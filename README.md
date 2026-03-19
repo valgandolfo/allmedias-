@@ -125,4 +125,8 @@ Consulte `SINTESE_PROJETO_ALLMÉDIAS.md` para documentação técnica detalhada.
 **Versão**: 1.0  
 **Migração**: Flutter → Django PWA  
 **Autor**: AllMedias Team# allmedias-
+<<<<<<< HEAD
 >>>>>>> 6ae5f7b (first commit)
+=======
+# allmedias-
+>>>>>>> e3afadc (first commit)
