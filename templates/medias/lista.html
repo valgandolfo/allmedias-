@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+
+{% block title %}Minhas Mídias - NewMedia{% endblock %}
+
+{% block extra_css %}
+    .media-item {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+    }
+    .media-item:last-child { border-bottom: none; }
+
+    .media-thumb {
+        width: 55px;
+        height: 55px;
+        border-radius: 8px;
+        background: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .media-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .media-info { flex: 1; min-width: 0; }
+    .media-titulo {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 2px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .media-meta { font-size: 12px; color: #777; }
+
+    .btn-star {
+        color: #ccc;
+        font-size: 1.2rem;
+        transition: color 0.2s, transform 0.2s;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0 4px;
+    }
+    .btn-star.ativo { color: #ffc107; }
+
+    .btn-fab {
+        position: fixed;
+        bottom: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        text-decoration: none;
+        z-index: 1000;
+    }
+    .btn-fab-add {
+        right: 20px;
+        background: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+    .btn-fab-home {
+        left: 20px;
+        background: #6c757d;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
+
+    .search-bar {
+        position: sticky;
+        top: -15px;
+        z-index: 100;
+        background: var(--bg-color);
+        padding: 10px 0;
+    }
+
+    .filter-btn.active {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border-color: var(--primary-color) !important;
+    }
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0">&#128193; Minhas Mídias</h4>
+            <small class="text-muted">Biblioteca centralizada</small>
+        </div>
+    </div>
+
+    <!-- Barra de busca -->
+    <div class="search-bar">
+        <div class="input-group card-custom">
+            <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarMedias()">
+        </div>
+    </div>
+
+    <!-- Filtros rápidos -->
+    <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
+        <button class="btn btn-sm btn-primary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
+        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">&#11088; Favoritos</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="foto" onclick="filtrarTipo('foto')">Fotos</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pdf" onclick="filtrarTipo('pdf')">PDFs</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="documento" onclick="filtrarTipo('documento')">Docs</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="video" onclick="filtrarTipo('video')">Vídeos</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="audio" onclick="filtrarTipo('audio')">Áudios</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="outro" onclick="filtrarTipo('outro')">Outros</button>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Lista de mídias -->
+    <div class="card-custom" id="mediaList">
+        {% for midia in medias %}
+        <div class="media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.descricao|lower }}">
+
+            <!-- Thumbnail -->
+            <div class="media-thumb" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
+                {% if midia.miniatura %}
+                    <img src="{{ midia.miniatura.url }}" alt="{{ midia.descricao }}">
+                {% elif midia.is_imagem and midia.arquivo %}
+                    <img src="{{ midia.arquivo.url }}" alt="{{ midia.descricao }}">
+                {% elif midia.tipo == 'video' %}
+                    <i class="bi bi-play-circle-fill fs-4 text-primary"></i>
+                {% elif midia.tipo == 'audio' %}
+                    <i class="bi bi-music-note-beamed fs-4 text-success"></i>
+                {% elif midia.tipo == 'pdf' %}
+                    <i class="bi bi-file-earmark-pdf-fill fs-4 text-danger"></i>
+                {% elif midia.tipo == 'documento' %}
+                    <i class="bi bi-file-earmark-word-fill fs-4 text-primary"></i>
+                {% else %}
+                    <i class="bi bi-file-earmark-text fs-4 text-secondary"></i>
+                {% endif %}
+            </div>
+
+            <!-- Informações -->
+            <div class="media-info" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="media-titulo pe-2">{{ midia.descricao }}</span>
+                    <!-- Botão de Favorito usando booleano do model -->
+                    <button class="btn-star {% if midia.favorito %}ativo{% endif %}"
+                        onclick="event.stopPropagation(); toggleFavorito({{ midia.pk }}, this)" title="Favoritar">
+                        <i class="bi bi-star-fill"></i>
+                    </button>
+                </div>
+                <div class="media-meta d-flex justify-content-between align-items-center">
+                    <span>{{ midia.get_tipo_display }} &bull; {{ midia.criado_em|date:"d/m H:i" }}</span>
+                    {% if midia.tamanho %}
+                        <span class="text-primary fw-bold" style="font-size: 11px;">
+                            {{ midia.tamanho }}
+                        </span>
+                    {% endif %}
+                </div>
+                {% if midia.status == 'pendente' %}
+                    <span class="badge-size bg-warning text-dark mt-1">
+                        <i class="bi bi-cloud-arrow-up"></i> Enviando...
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Menu de opções -->
+            <div class="text-secondary px-2" onclick="abrirMenu({{ midia.pk }}, '{{ midia.descricao|escapejs }}', '{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}', '{{ midia.tipo }}')">
+                <i class="bi bi-three-dots-vertical fs-5"></i>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-cloud-upload display-4"></i>
+            <p class="mt-2">Nenhuma mídia encontrada.</p>
+            <a href="{% url 'media_criar' %}" class="btn btn-primary btn-sm mt-2">
+                Adicionar primeira mídia
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Botão flutuante: Nova mídia (direita) -->
+    <a href="{% url 'media_criar' %}" class="btn-fab btn-fab-add" title="Nova mídia">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+
+    <!-- Botão flutuante: Voltar para home (esquerda) -->
+    <a href="{% url 'home' %}" class="btn-fab btn-fab-home" title="Início">
+        <i class="bi bi-house-fill"></i>
+    </a>
+
+    <!-- Modal de opções -->
+    <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-bottom">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 mt-2">
+                    <a href="#" id="linkCompartilhar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                        <i class="bi bi-share"></i> Compartilhar
+                    </a>
+                    <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
+                        <i class="bi bi-trash"></i> Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+    let midiaSelecionada = null;
+
+    function abrirMenu(id, titulo, arquivoUrl, tipo) {
+        midiaSelecionada = { id, titulo, arquivoUrl, tipo };
+        document.getElementById('modalTitle').innerText = titulo;
+        document.getElementById('linkEditar').href = `/medias/${id}/editar/`;
+        document.getElementById('linkDeletar').href = `/medias/${id}/deletar/`;
+        document.getElementById('linkCompartilhar').onclick = function(event) {
+            event.preventDefault();
+            compartilharMidia();
+        };
+        optionsModal.show();
+    }
+
+    function obterNomeArquivo(url, tipo) {
+        if (!url) return `midia-${Date.now()}`;
+        const bruto = url.split('/').pop() || '';
+        const semQuery = bruto.split('?')[0];
+        const nome = decodeURIComponent(semQuery);
+        if (nome) return nome;
+        return `midia-${Date.now()}.${tipo || 'bin'}`;
+    }
+
+    async function compartilharMidia() {
+        if (!midiaSelecionada || !midiaSelecionada.arquivoUrl) {
+            alert('Essa mídia não possui arquivo para compartilhar.');
+            return;
+        }
+
+        optionsModal.hide();
+        const { titulo, arquivoUrl, tipo } = midiaSelecionada;
+
+        if (!navigator.share) {
+            window.open(arquivoUrl, '_blank');
+            alert('Seu navegador não suporta compartilhamento nativo. O arquivo foi aberto em uma nova aba.');
+            return;
+        }
+
+        try {
+            const resposta = await fetch(arquivoUrl, { credentials: 'same-origin' });
+            if (!resposta.ok) throw new Error('Falha ao carregar arquivo para compartilhamento');
+
+            const blob = await resposta.blob();
+            const nomeArquivo = obterNomeArquivo(arquivoUrl, tipo);
+            const arquivo = new File([blob], nomeArquivo, {
+                type: blob.type || 'application/octet-stream'
+            });
+
+            const dadosCompartilhamento = {
+                title: titulo,
+                text: titulo,
+            };
+
+            if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+                dadosCompartilhamento.files = [arquivo];
+            } else {
+                dadosCompartilhamento.url = `${window.location.origin}${arquivoUrl}`;
+            }
+
+            await navigator.share(dadosCompartilhamento);
+        } catch (erro) {
+            // Cancelamento do usuário não precisa exibir erro.
+            if (erro && erro.name === 'AbortError') return;
+            console.error('Erro ao compartilhar:', erro);
+            alert('Não foi possível compartilhar essa mídia agora.');
+        }
+    }
+
+    function filtrarMedias() {
+        const termo = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.media-item').forEach(item => {
+            const titulo = item.getAttribute('data-titulo');
+            item.style.display = titulo.includes(termo) ? 'flex' : 'none';
+        });
+    }
+
+    function filtrarTipo(tipo) {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isAtivo = btn.getAttribute('data-tipo') === tipo;
+            btn.classList.toggle('active', isAtivo);
+            
+            if (btn.getAttribute('data-tipo') === 'favoritos') {
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+            } else if (!isAtivo) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        document.querySelectorAll('.media-item').forEach(item => {
+            item.style.display = (tipo === 'all' || item.getAttribute('data-tipo') === tipo) ? 'flex' : 'none';
+        });
+    }
+
+    function filtrarFavoritos() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isFav = btn.getAttribute('data-tipo') === 'favoritos';
+            btn.classList.toggle('active', isFav);
+            btn.classList.toggle('btn-warning', isFav);
+            btn.classList.toggle('btn-outline-warning', !isFav);
+            
+            if (!isFav) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        document.querySelectorAll('.media-item').forEach(item => {
+            const star = item.querySelector('.btn-star');
+            // Exibe apenas se o botão de estrela tiver a classe 'ativo' (que indica favorito=True)
+            item.style.display = (star && star.classList.contains('ativo')) ? 'flex' : 'none';
+        });
+    }
+
+    async function toggleFavorito(id, btn) {
+        try {
+            // Efeito visual imediato (Optimistic UI)
+            btn.classList.toggle('ativo');
+            btn.style.transform = 'scale(1.4)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+
+            const resp = await fetch(`/medias/${id}/favoritar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!resp.ok) {
+                // Reverte em caso de erro
+                btn.classList.toggle('ativo');
+                console.error('Erro ao favoritar: resposta não ok');
+            }
+        } catch (e) {
+            // Reverte em caso de erro
+            btn.classList.toggle('ativo');
+            console.error('Erro ao favoritar:', e);
+        }
+    }
+{% endblock %}

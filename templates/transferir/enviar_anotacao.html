@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferir Anotação - AllMedias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 10px; background-color: #f8f9fa; font-family: sans-serif; }
+        .header-title { background: #0d6efd; color: white; padding: 15px; border-radius: 8px 8px 0 0; margin: -10px -10px 15px -10px; font-weight: bold; }
+        .transfer-card { background: white; padding: 25px; border-radius: 12px; border: 2px solid #0d6efd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px; }
+        .label-text { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; }
+        .anota-desc { font-size: 18px; font-weight: bold; color: #0d6efd; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; display: block; }
+        .form-control-lg { border: 1px solid #dee2e6; padding: 15px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header-title text-center">
+        Transferir Anotação
+    </div>
+
+    <div class="container-fluid">
+        <div class="transfer-card">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <span class="label-text">Transferir:</span>
+                    <span class="anota-desc">{{ anotacao.titulo }}</span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="label-text">Enviar Para:</label>
+                    <input type="email" 
+                           name="email_destino" 
+                           class="form-control form-control-lg" 
+                           placeholder="e-mail do usuario do allMedias" 
+                           required>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary flex-fill btn-lg fw-bold">Enviar</button>
+                    <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary flex-fill btn-lg fw-bold">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

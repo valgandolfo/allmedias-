@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Mídia - NewMedia{% endblock %}
+
+{% block content %}
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <a href="{% url 'media_lista' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h4 class="mb-0">Excluir Mídia</h4>
+    </div>
+
+    <!-- Alerta de confirmação -->
+    <div class="alert alert-danger">
+        <h5><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão</h5>
+        <p class="mb-1">
+            Tem certeza que deseja excluir
+            <strong>"{{ midia.descricao }}"</strong>?
+        </p>
+        <small class="text-muted">Esta ação não pode ser desfeita.</small>
+    </div>
+
+    <!-- Preview da mídia -->
+    <div class="card-custom mb-4">
+        <div class="p-4 text-center">
+            {% if midia.is_imagem and midia.arquivo %}
+                <img src="{{ midia.arquivo.url }}"
+                     style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px;"
+                     alt="{{ midia.descricao }}">
+            {% elif midia.tipo == 'pdf' %}
+                <i class="bi bi-file-earmark-pdf-fill display-3 text-danger"></i>
+            {% elif midia.tipo == 'video' %}
+                <i class="bi bi-play-circle-fill display-3 text-primary"></i>
+            {% elif midia.tipo == 'audio' %}
+                <i class="bi bi-music-note-beamed display-3 text-success"></i>
+            {% else %}
+                <i class="bi bi-file-earmark-text display-3 text-secondary"></i>
+            {% endif %}
+            <p class="mt-3 mb-1">
+                <strong>{{ midia.descricao }}</strong>
+            </p>
+            <span class="badge bg-secondary">{{ midia.get_tipo_display }}</span>
+        </div>
+    </div>
+
+    <!-- Formulário de confirmação -->
+    <form method="POST">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger flex-fill">
+                <i class="bi bi-trash"></i> Sim, Excluir
+            </button>
+            <a href="{% url 'media_lista' %}" class="btn btn-outline-secondary flex-fill">
+                Cancelar
+            </a>
+        </div>
+    </form>
+{% endblock %}

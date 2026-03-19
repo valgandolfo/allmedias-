@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticar Checklist - NewMedia{% endblock %}
+
+{% block extra_css %}
+    .checklist-shell {
+        background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+        border: 1px solid #dbe7ff;
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.08);
+    }
+    .checklist-header {
+        background: #ffffff;
+        border: 1px solid #e9eef5;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+    }
+    .checklist-title {
+        font-weight: 700;
+        margin-bottom: 3px;
+        color: #243b53;
+    }
+    .checklist-meta {
+        font-size: 12px;
+        color: #52606d;
+    }
+    .checklist-meta strong {
+        color: #0d6efd;
+    }
+    .checklist-items-box {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .check-item-btn {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #f0f2f5;
+        background: transparent;
+        text-align: left;
+        padding: 14px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.15s ease;
+    }
+    .check-item-btn:hover {
+        background: #f8fbff;
+    }
+    .check-item-btn:active {
+        background: #eef4ff;
+    }
+    .check-item-btn:last-child { border-bottom: none; }
+    .check-item-prefix {
+        font-weight: 700;
+        min-width: 36px;
+        color: #495057;
+    }
+    .check-item-text {
+        color: #1f2933;
+    }
+    .check-item-text.done {
+        text-decoration: line-through;
+        color: #6c757d;
+    }
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{% url 'anotacao_lista' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h4 class="mb-0">✅ Ticar Checklist</h4>
+        <small class="text-muted">{{ anotacao.titulo }}</small>
+    </div>
+</div>
+
+<div class="checklist-shell">
+    <div class="checklist-header">
+        <div class="checklist-title">{{ anotacao.titulo }}</div>
+        <div class="checklist-meta">
+            Marcados: <strong id="qtdConcluidos">{{ concluidos }}</strong> de
+            <strong id="qtdTotal">{{ total_itens }}</strong>
+        </div>
+    </div>
+
+    <div class="checklist-items-box">
+        {% if itens %}
+            {% for item in itens %}
+                <button type="button" class="check-item-btn" data-item-id="{{ item.id }}">
+                    <span class="check-item-prefix">{% if item.concluido %}[X]{% else %}[ ]{% endif %}</span>
+                    <span class="check-item-text {% if item.concluido %}done{% endif %}">{{ item.texto }}</span>
+                </button>
+            {% endfor %}
+        {% else %}
+            <div class="p-4 text-center text-muted">Checklist sem itens.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    async function ticarItemChecklist(itemId, btn) {
+        try {
+            const resp = await fetch(`/anotacoes/item/${itemId}/ticar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.sucesso) {
+                throw new Error(data.erro || 'Erro ao ticar item');
+            }
+
+            const prefixo = btn.querySelector('.check-item-prefix');
+            const texto = btn.querySelector('.check-item-text');
+            const qtdConcluidos = document.getElementById('qtdConcluidos');
+            if (data.concluido) {
+                prefixo.innerText = '[X]';
+                texto.classList.add('done');
+                if (qtdConcluidos) qtdConcluidos.innerText = String(Number(qtdConcluidos.innerText || '0') + 1);
+            } else {
+                prefixo.innerText = '[ ]';
+                texto.classList.remove('done');
+                if (qtdConcluidos) qtdConcluidos.innerText = String(Math.max(0, Number(qtdConcluidos.innerText || '0') - 1));
+            }
+        } catch (e) {
+            console.error('Erro ao ticar item:', e);
+        }
+    }
+
+    document.querySelectorAll('.check-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            ticarItemChecklist(itemId, this);
+        });
+    });
+{% endblock %}

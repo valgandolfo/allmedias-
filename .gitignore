@@ -1,0 +1,182 @@
+# ===================================================================
+# ALLMÉDIAS PWA - GIT IGNORE
+# ===================================================================
+
+# ===================================================================
+# PYTHON
+# ===================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===================================================================
+# DJANGO
+# ===================================================================
+# Banco de dados local
+db.sqlite3
+db.sqlite3-journal
+
+# Uploads locais
+media/
+
+# Arquivos estáticos coletados
+staticfiles/
+static_root/
+
+# Migrações (manter apenas __init__.py)
+*/migrations/*.py
+*/migrations/*.pyc
+!*/migrations/__init__.py
+
+# ===================================================================
+# AMBIENTE E CONFIGURAÇÕES
+# ===================================================================
+# Arquivo de configurações secretas
+.env
+.env.local
+.env.production
+
+# Ambiente virtual
+venv/
+env/
+ENV/
+.venv/
+
+# ===================================================================
+# IDEs E EDITORES
+# ===================================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# Cursor
+.cursor/
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-*
+
+# Vim
+*.swp
+*.swo
+*~
+
+# ===================================================================
+# SISTEMA
+# ===================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ===================================================================
+# LOGS
+# ===================================================================
+*.log
+logs/
+log/
+
+# ===================================================================
+# TEMPORÁRIOS E CACHE
+# ===================================================================
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.pytest_cache/
+cover/
+.hypothesis/
+
+# ===================================================================
+# BACKUP E ARQUIVOS TEMPORÁRIOS
+# ===================================================================
+*.bak
+*.tmp
+*.temp
+backup_*/
+backups/
+
+# ===================================================================
+# ESPECÍFICOS DO PROJETO
+# ===================================================================
+# Pasta de reciclagem do projeto antigo (se sensível)
+# reciclagem/
+
+# Arquivos de teste grandes
+test_uploads/
+sample_media/
+
+# Documentação gerada automaticamente
+docs/_build/
+site/
+
+# ===================================================================
+# SEGURANÇA
+# ===================================================================
+# Chaves e credenciais
+*.key
+*.pem
+*.p12
+credentials.json
+service-account.json
+
+# ===================================================================
+# DESENVOLVIMENTO
+# ===================================================================
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env.backup
+
+# ===================================================================
+# NOTAS
+# ===================================================================
+# O arquivo .env.example DEVE ser commitado como template
+# Migrations iniciais podem ser commitadas se necessário
+# Media files devem ficar apenas local (produção usa S3)
+# ===================================================================

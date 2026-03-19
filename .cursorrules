@@ -1,0 +1,23 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+db.sqlite3
+media/
+staticfiles/
+
+# Logs e IDEs
+*.log
+.vscode/
+.idea/
+.history/
+.cursor/
+
+# Arquivos de documentação (ignorar em geral, exceto o projeto do AllMedias PWA)
+*.md
+!PROJETO_ALLMEDIAS_PWA.md
+!docs/PROJETO_ALLMEDIAS_PWA.md
+docs/

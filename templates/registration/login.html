@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0" style="background: linear-gradient(135deg, #dbe6e4 0%, #b3c0c8 100%);">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-sign-in-alt me-2 text-primary"></i>
+                        Login
+                    </h2>
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Seu usuário ou senha estão incorretos. Por favor, tente novamente.
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'login' %}" autocomplete="off">
+                        {% csrf_token %}
+                        <!-- Honeypot para enganar autocomplete -->
+                        <input type="text" name="fakeusernameremembered" style="display:none" autocomplete="off">
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">
+                                <i class="fas fa-envelope me-2 text-secondary"></i>E-mail:
+                            </label>
+                            <input type="email" name="username" class="form-control form-control-lg" id="id_username" required autocomplete="off" value="">
+                        </div>
+                        <div class="mb-3 position-relative">
+                            <label for="id_password" class="form-label">
+                                <i class="fas fa-lock me-2 text-secondary"></i>Senha:
+                            </label>
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control form-control-lg" id="id_password" required autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1">
+                                    <i class="fas fa-eye" id="iconPassword"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="remember" class="form-check-input" id="id_remember">
+                            <label class="form-check-label" for="id_remember">Lembrar-me</label>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                            </button>
+                        </div>
+                        <input type="hidden" name="next" value="{{ next }}">
+                    </form>
+                    <div class="mt-4 text-center">
+                        <p class="mb-2">
+                            <a href="{% url 'password_reset' %}" class="text-decoration-none">
+                                <i class="fas fa-key me-1"></i>Esqueceu sua senha?
+                            </a>
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-user-plus me-1"></i>
+                            Não tem uma conta? 
+                            <a href="{% url 'register' %}" class="text-decoration-none fw-bold">Cadastre-se aqui</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar/ocultar senha
+const togglePassword = document.getElementById('togglePassword');
+const password = document.getElementById('id_password');
+const icon = document.getElementById('iconPassword');
+if (togglePassword) {
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    });
+}
+// Forçar campo username limpo ao carregar e ao focar
+window.addEventListener('DOMContentLoaded', function() {
+    var userField = document.getElementById('id_username');
+    if (userField) {
+        userField.value = '';
+        userField.addEventListener('focus', function() { this.value = ''; });
+    }
+});
+setTimeout(function() {
+    var userField = document.getElementById('id_username');
+    if (userField) {
+        userField.value = '';
+    }
+}, 200);
+</script>
+
+<style>
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.input-group .btn {
+    border-radius: 0 10px 10px 0;
+}
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+</style>
+{% endblock %} 

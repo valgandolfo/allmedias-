@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Anotação - NewMedia{% endblock %}
+
+{% block content %}
+<div class="card-custom p-3">
+    <h5 class="mb-3">Editar Anotação</h5>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label class="form-label">Título</label>
+            {{ form.titulo }}
+        </div>
+        
+        <!-- Tipo oculto ou readonly na edição para simplificar, ou permitir mudar -->
+        <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            {{ form.tipo }}
+        </div>
+        
+        <div id="areaTexto" class="mb-3">
+            <label class="form-label" id="labelTexto">Conteúdo</label>
+            {{ form.texto }}
+            <div class="form-text">Edite as linhas para atualizar a lista/checklist.</div>
+        </div>
+        
+        <div id="areaPix" class="d-none">
+            <div class="mb-3">
+                <label class="form-label">Nome do PIX</label>
+                {{ form.pix_nome }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Chave PIX</label>
+                {{ form.pix_chave }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Favorecido</label>
+                {{ form.pix_favorecido }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Banco</label>
+                {{ form.pix_banco }}
+            </div>
+        </div>
+        
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            <a href="{% url 'anotacao_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    const selectTipo = document.querySelector('select[name="tipo"]');
+    const areaTexto = document.getElementById('areaTexto');
+    const areaPix = document.getElementById('areaPix');
+    const labelTexto = document.getElementById('labelTexto');
+    const textareaTexto = document.querySelector('textarea[name="texto"]');
+
+    function inserirTextoNoCursor(textarea, texto) {
+        const inicio = textarea.selectionStart;
+        const fim = textarea.selectionEnd;
+        const atual = textarea.value;
+        textarea.value = atual.slice(0, inicio) + texto + atual.slice(fim);
+        const novaPosicao = inicio + texto.length;
+        textarea.selectionStart = novaPosicao;
+        textarea.selectionEnd = novaPosicao;
+    }
+
+    function obterNumeroAtual(linha) {
+        const match = linha.match(/^\s*(\d+)\s*-\s*/);
+        return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function garantirPrefixoInicial() {
+        if (!textareaTexto) return;
+        const tipo = selectTipo.value;
+        const valorAtual = textareaTexto.value || '';
+        const temConteudo = valorAtual.trim().length > 0;
+
+        if (tipo === 'lista_numerada' && !temConteudo) {
+            textareaTexto.value = '1 - ';
+            textareaTexto.selectionStart = textareaTexto.value.length;
+            textareaTexto.selectionEnd = textareaTexto.value.length;
+        } else if (tipo === 'checklist' && !temConteudo) {
+            textareaTexto.value = '[ ] ';
+            textareaTexto.selectionStart = textareaTexto.value.length;
+            textareaTexto.selectionEnd = textareaTexto.value.length;
+        }
+    }
+
+    function tratarEnterListaChecklist(event) {
+        if (event.key !== 'Enter' || event.shiftKey) return;
+        if (!textareaTexto) return;
+
+        const tipo = selectTipo.value;
+        if (tipo !== 'lista_numerada' && tipo !== 'checklist') return;
+
+        event.preventDefault();
+
+        const inicio = textareaTexto.selectionStart;
+        const textoAtual = textareaTexto.value;
+        const inicioLinha = textoAtual.lastIndexOf('\n', inicio - 1) + 1;
+        const fimLinha = textoAtual.indexOf('\n', inicio);
+        const fimRealLinha = fimLinha === -1 ? textoAtual.length : fimLinha;
+        const linhaAtual = textoAtual.slice(inicioLinha, fimRealLinha);
+
+        if (tipo === 'lista_numerada') {
+            const numeroAtual = obterNumeroAtual(linhaAtual);
+            const proximoNumero = numeroAtual > 0 ? numeroAtual + 1 : 1;
+            inserirTextoNoCursor(textareaTexto, `\n${proximoNumero} - `);
+            return;
+        }
+
+        if (tipo === 'checklist') {
+            inserirTextoNoCursor(textareaTexto, '\n[ ] ');
+        }
+    }
+    
+    function toggleCampos() {
+        const tipo = selectTipo.value;
+        if (tipo === 'pix') {
+            areaTexto.classList.add('d-none');
+            areaPix.classList.remove('d-none');
+        } else {
+            areaTexto.classList.remove('d-none');
+            areaPix.classList.add('d-none');
+            
+            if (tipo === 'checklist') {
+                labelTexto.innerText = 'Itens do Checklist';
+            } else if (tipo === 'lista_numerada') {
+                labelTexto.innerText = 'Itens da Lista';
+            } else {
+                labelTexto.innerText = 'Texto';
+            }
+
+            garantirPrefixoInicial();
+        }
+    }
+    
+    selectTipo.addEventListener('change', toggleCampos);
+    if (textareaTexto) {
+        textareaTexto.addEventListener('keydown', tratarEnterListaChecklist);
+    }
+    toggleCampos();
+{% endblock %}

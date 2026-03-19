@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Mídia - NewMedia{% endblock %}
+
+{% block extra_css %}
+    .preview-container { margin-top: 15px; text-align: center; }
+    .preview-image {
+        max-width: 100%;
+        max-height: 280px;
+        border-radius: 8px;
+        margin-top: 8px;
+    }
+    .section-arquivo {
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .section-arquivo.pdf { background: #e7f3ff; border-color: #b6d4fe; }
+{% endblock %}
+
+{% block content %}
+    <!-- Cabeçalho -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <a href="{% url 'media_lista' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">&#9998; Editar Mídia</h4>
+            <small class="text-muted">{{ midia.descricao }}</small>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card-custom p-3">
+        <form method="POST" enctype="multipart/form-data" id="editForm">
+            {% csrf_token %}
+
+            <!-- Descrição -->
+            <div class="mb-3">
+                <label for="id_descricao" class="form-label fw-bold">Descrição <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="id_descricao" name="descricao"
+                       value="{{ midia.descricao }}" required>
+                {% if form.descricao.errors %}
+                    <div class="text-danger small mt-1">{{ form.descricao.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-3">
+                <label for="id_tags" class="form-label fw-bold">
+                    Tags <small class="text-muted fw-normal">(opcional)</small>
+                </label>
+                <input type="text" class="form-control" id="id_tags" name="tags"
+                       value="{{ midia.tags|default:'' }}"
+                       placeholder="Ex: trabalho, pessoal, importante">
+            </div>
+
+            <!-- Tipo (somente leitura) -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Tipo <small class="text-muted fw-normal">(não pode ser alterado)</small></label>
+                <input type="text" class="form-control bg-light"
+                       value="{{ midia.get_tipo_display }}" readonly>
+                <input type="hidden" name="tipo" value="{{ midia.tipo }}">
+            </div>
+
+            <!-- Alterar arquivo -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Alterar Arquivo
+                    <small class="text-muted fw-normal">(deixe em branco para manter o atual)</small>
+                </label>
+
+                {% if midia.tipo == 'foto' %}
+                    <button type="button" class="btn btn-outline-primary w-100"
+                            onclick="document.getElementById('fotoInput').click()">
+                        <i class="bi bi-image"></i> Alterar Foto
+                    </button>
+                    <input type="file" id="fotoInput" name="arquivo" accept="image/*"
+                           style="display:none;" onchange="previewFoto(this)">
+                    <div id="previewContainer" class="preview-container"
+                         {% if not midia.is_imagem %}style="display:none;"{% endif %}>
+                        <img id="previewImg"
+                             src="{% if midia.arquivo %}{{ midia.arquivo.url }}{% endif %}"
+                             class="preview-image" alt="Preview">
+                    </div>
+
+                {% elif midia.tipo == 'pdf' %}
+                    <div class="section-arquivo pdf">
+                        <button type="button" class="btn btn-primary w-100"
+                                onclick="document.getElementById('pdfInput').click()">
+                            <i class="bi bi-file-earmark-pdf"></i> Selecionar PDF
+                        </button>
+                        <input type="file" id="pdfInput" name="arquivo" accept=".pdf"
+                               style="display:none;" onchange="previewArquivo(this)">
+                        <div id="pdfInfo" class="mt-2">
+                            {% if midia.arquivo %}
+                                <small class="text-muted">
+                                    <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                                    Atual: {{ midia.arquivo.name }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                {% else %}
+                    <input type="file" class="form-control" name="arquivo">
+                    {% if midia.arquivo %}
+                        <small class="text-muted mt-1 d-block">
+                            <i class="bi bi-paperclip"></i> Atual: {{ midia.arquivo.name }}
+                        </small>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary flex-fill" id="btnSalvar">
+                    <span id="btnTexto"><i class="bi bi-save"></i> Salvar Alterações</span>
+                    <span id="btnLoading" style="display:none;">
+                        <span class="spinner-border spinner-border-sm"></span> Salvando...
+                    </span>
+                </button>
+                <a href="{% url 'media_lista' %}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    function previewFoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewContainer').style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function previewArquivo(input) {
+        if (input.files && input.files[0]) {
+            const info = document.getElementById('pdfInfo');
+            if (info) {
+                info.innerHTML = `<small class="text-success">
+                    <i class="bi bi-check-circle"></i> Novo arquivo: ${input.files[0].name}
+                </small>`;
+            }
+        }
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function() {
+        document.getElementById('btnSalvar').disabled = true;
+        document.getElementById('btnTexto').style.display = 'none';
+        document.getElementById('btnLoading').style.display = 'inline-block';
+    });
+{% endblock %}

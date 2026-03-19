@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cadastro de Usuário{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #170da6;
+        --secondary-color: #8B4513;
+        --accent-color: #d4af37;
+        --success-color: #047c0e;
+        --text-dark: #0c0c0c;
+        --text-light: #1e1e1f;
+        --bg-light: #5bdef3;
+        --shadow-light: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-medium: 0 8px 25px rgba(0,0,0,0.15);
+        --shadow-heavy: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    /* ===== FUNDO DA PÁGINA ===== */
+    body {
+        background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+        min-height: 100vh;
+    }
+
+    /* ===== CONTAINER PRINCIPAL DO FORMULÁRIO ===== */
+    .register-container {
+        background: rgb(135, 240, 165);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(123, 55, 55, 0.1);
+        padding: 2rem;
+        margin: 0 auto;
+        border: none;
+        max-width: 400px;
+    }
+
+    /* ===== CABEÇALHO SIMPLES ===== */
+    .register-header {
+        text-align: left;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #c92929;
+    }
+
+    .header-icon {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+
+    .header-icon i {
+        color: white;
+        font-size: 1rem;
+    }
+
+    .register-title {
+        display: inline-block;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #19023c;
+        margin: 0;
+        vertical-align: middle;
+    }
+
+    .register-subtitle {
+        font-size: 0.9rem;
+        color: #0a0a0a;
+        margin: 0.5rem 0 0 0;
+        font-weight: 400;
+    }
+
+    .form-group {
+        margin-bottom: 2rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #0b0b0b;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.9rem;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        background: #e9ecc8;
+        transition: all 0.3s ease;
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(44, 85, 48, 0.1);
+        background: rgb(210, 230, 229);
+        outline: none;
+    }
+
+    .btn-register {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        width: 100%;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-top: 1rem;
+    }
+
+    .btn-register:hover {
+        background: #429e4b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124, 242, 136, 0.3);
+    }
+
+    .btn-login {
+        background: transparent;
+        border: 2px solid #ce1684;
+        color: #e824ef;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    .btn-login:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+    .alert {
+        border-radius: 4px;
+        border: none;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+
+    .password-requirements {
+        background: #edb4d7;
+        border: 1px solid #0d0d0d;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .password-requirements strong {
+        font-size: 0.95 rem;
+        color: #880202;
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .password-requirements ul {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .password-requirements li {
+        font-size: 0.8rem;
+        color: #0a0a0a;
+        margin-bottom: 0.25rem;
+        padding-left: 1rem;
+        position: relative;
+    }
+
+    .password-requirements li:before {
+        content: "•";
+        color: var(--primary-color);
+        position: absolute;
+        left: 0;
+    }
+
+    @media (max-width: 768px) {
+        .register-container {
+            padding: 2rem 1.5rem;
+        }
+
+        .register-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="register-container">
+                <div class="register-header">
+                    <div class="header-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h1 class="register-title">
+                        Criar Conta
+                    </h1>
+                    <p class="register-subtitle">
+                        Cadastre-se para acessar o AllMedias PWA
+                    </p>
+                </div>
+
+                <!-- Mensagens -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Formulário -->
+                <form method="post" id="registerForm">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_email" class="form-label">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            E-mail *
+                        </label>
+                        <input type="email" name="email" class="form-control" id="id_email" required>
+                        <div class="help-text">Seu e-mail será usado para login</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_password1" class="form-label">
+                            <i class="fas fa-lock me-2 text-primary"></i>
+                            Senha *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" name="password1" class="form-control" id="id_password1" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                                <i class="fas fa-eye" id="iconPassword1"></i>
+                            </button>
+                        </div>
+                        <div class="password-requirements">
+                            <strong>Requisitos da senha:</strong>
+                            <ul>
+                                <li>Pelo menos 8 caracteres</li>
+                                <li>Pelo menos uma letra maiúscula</li>
+                                <li>Pelo menos uma letra minúscula</li>
+                                <li>Pelo menos um número</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_password2" class="form-label">
+                            <i class="fas fa-lock me-2 text-primary"></i>
+                            Confirmar Senha *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" name="password2" class="form-control" id="id_password2" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                                <i class="fas fa-eye" id="iconPassword2"></i>
+                            </button>
+                        </div>
+                        <div class="help-text">Digite a mesma senha novamente</div>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-4">
+                        <button type="submit" class="btn btn-register">
+                            <i class="fas fa-user-plus me-1"></i>
+                            Criar Conta
+                        </button>
+                    </div>
+
+                    <div class="text-center" style="margin-top: 3rem;">
+                        <p class="mb-3" style="font-size: 0.9rem; color: #666;">
+                            Já tem uma conta?
+                        </p>
+                        <a href="{% url 'login' %}" class="btn btn-login">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            Fazer Login
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar/ocultar senha
+        function setupPasswordToggle(toggleId, passwordId, iconId) {
+            const toggle = document.getElementById(toggleId);
+            const password = document.getElementById(passwordId);
+            const icon = document.getElementById(iconId);
+            
+            if (toggle && password && icon) {
+                toggle.addEventListener('click', function() {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                });
+            }
+        }
+
+        setupPasswordToggle('togglePassword1', 'id_password1', 'iconPassword1');
+        setupPasswordToggle('togglePassword2', 'id_password2', 'iconPassword2');
+
+        // Validação de senha em tempo real
+        const password1 = document.getElementById('id_password1');
+        const password2 = document.getElementById('id_password2');
+
+        function validatePassword() {
+            const password = password1.value;
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+
+            // Atualizar visual dos requisitos
+            const requirementsList = document.querySelector('.password-requirements ul');
+            if (requirementsList) {
+                const items = requirementsList.querySelectorAll('li');
+                items.forEach((item, index) => {
+                    const requirementsArray = Object.values(requirements);
+                    if (requirementsArray[index]) {
+                        item.style.color = 'var(--success-color)';
+                        // Só adiciona ✓ se não tiver já
+                        if (!item.innerHTML.includes('✓')) {
+                            item.innerHTML = item.innerHTML.replace('Pelo menos', '✓ Pelo menos');
+                        }
+                    } else {
+                        item.style.color = 'var(--text-light)';
+                        // Remove ✓ se tiver
+                        item.innerHTML = item.innerHTML.replace('✓ ', '');
+                    }
+                });
+            }
+        }
+
+        function validatePasswordMatch() {
+            if (password2.value && password1.value !== password2.value) {
+                password2.setCustomValidity('As senhas não coincidem');
+            } else {
+                password2.setCustomValidity('');
+            }
+        }
+
+        if (password1) {
+            password1.addEventListener('input', validatePassword);
+        }
+
+        if (password2) {
+            password2.addEventListener('input', validatePasswordMatch);
+        }
+
+        // Validação do formulário
+        const form = document.getElementById('registerForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (password1.value !== password2.value) {
+                    e.preventDefault();
+                    alert('As senhas não coincidem!');
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

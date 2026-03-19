@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Anota Aí+ - NewMedia{% endblock %}
+
+{% block extra_css %}
+    .anotacao-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+    .anotacao-item:last-child { border-bottom: none; }
+    
+    .anotacao-content { flex: 1; min-width: 0; }
+    .anotacao-title { 
+        font-weight: bold; 
+        font-size: 16px; 
+        color: #333;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .anotacao-meta { font-size: 12px; color: #999; }
+    
+    .type-icon { 
+        font-size: 20px; 
+        margin-right: 15px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        width: 40px; 
+        height: 40px; 
+        background: #f0f0f0; 
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    
+    .btn-star {
+        color: #ccc;
+        font-size: 1.2rem;
+        transition: color 0.2s, transform 0.2s;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0 4px;
+    }
+    .btn-star.ativo { color: #ffc107; }
+
+    .btn-fab {
+        position: fixed;
+        bottom: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        text-decoration: none;
+        z-index: 1000;
+    }
+    .btn-fab-add {
+        right: 20px;
+        background: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+    }
+    .btn-fab-home {
+        left: 20px;
+        background: #6c757d;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+    }
+
+    .search-bar {
+        position: sticky;
+        top: -15px;
+        z-index: 100;
+        background: var(--bg-color);
+        padding: 10px 0;
+    }
+
+    .filter-btn.active {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border-color: var(--primary-color) !important;
+    }
+
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0">📝 Anota Aí+</h4>
+            <small class="text-muted">Bloco e Anotações personalizados</small>
+        </div>
+    </div>
+
+    <!-- Barra de busca -->
+    <div class="search-bar">
+        <div class="input-group card-custom">
+            <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarAnotacoes()">
+        </div>
+    </div>
+
+    <!-- Filtros rápidos -->
+    <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
+        <button class="btn btn-sm btn-primary rounded-pill px-3 filter-btn active" data-tipo="" onclick="filtrarTipo('')">Todos</button>
+        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">⭐ Favoritos</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="texto" onclick="filtrarTipo('texto')">Texto</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="checklist" onclick="filtrarTipo('checklist')">Checklist</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="lista_numerada" onclick="filtrarTipo('lista_numerada')">Lista</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pix" onclick="filtrarTipo('pix')">PIX</button>
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Lista de anotações -->
+    <div class="card-custom" id="anotacaoList">
+        {% for anotacao in anotacoes %}
+        <div class="anotacao-item" 
+             data-tipo="{{ anotacao.tipo }}" 
+             data-titulo="{{ anotacao.titulo|lower }}">
+            
+            <div class="type-icon" onclick="window.location.href='{% url 'anotacao_detalhes' anotacao.pk %}'">
+                {% if anotacao.tipo == 'texto' %}📝
+                {% elif anotacao.tipo == 'checklist' %}✅
+                {% elif anotacao.tipo == 'lista_numerada' %}🔢
+                {% elif anotacao.tipo == 'pix' %}📱
+                {% else %}📄{% endif %}
+            </div>
+
+            <div class="anotacao-content" onclick="window.location.href='{% url 'anotacao_detalhes' anotacao.pk %}'">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="anotacao-title">{{ anotacao.titulo }}</span>
+                    <!-- Botão de Favorito -->
+                    <button class="btn-star {% if anotacao.favorito %}ativo{% endif %}"
+                        onclick="event.stopPropagation(); toggleFavorito({{ anotacao.pk }}, this)" title="Favoritar">
+                        <i class="bi bi-star-fill"></i>
+                    </button>
+                </div>
+                <div class="anotacao-meta">
+                    {{ anotacao.get_tipo_display }} • {{ anotacao.criado_em|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+
+            <div class="text-secondary px-2" onclick="abrirMenu({{ anotacao.pk }}, '{{ anotacao.titulo|escapejs }}', '{{ anotacao.tipo }}')">
+                <i class="bi bi-three-dots-vertical fs-5"></i>
+            </div>
+        </div>
+        {% empty %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-journal-text display-4"></i>
+            <p class="mt-2">Nenhuma anotação encontrada.</p>
+            <a href="{% url 'anotacao_criar' %}" class="btn btn-primary btn-sm mt-2">
+                Criar primeira anotação
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Botão flutuante: Nova anotação -->
+    <a href="{% url 'anotacao_criar' %}" class="btn-fab btn-fab-add" title="Nova anotação">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+
+    <!-- Botão flutuante: Home -->
+    <a href="{% url 'home' %}" class="btn-fab btn-fab-home" title="Início">
+        <i class="bi bi-house-fill"></i>
+    </a>
+
+    <!-- Modal de opções -->
+    <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-bottom">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 mt-2">
+                    <a href="#" id="linkCompartilhar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                        <i class="bi bi-share"></i> Compartilhar
+                    </a>
+                    <a href="#" id="linkTicar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom d-none">
+                        <i class="bi bi-check2-square"></i> Ticar
+                    </a>
+                    <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
+                        <i class="bi bi-trash"></i> Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+
+    function abrirMenu(id, titulo, tipo) {
+        document.getElementById('modalTitle').innerText = titulo;
+        document.getElementById('linkEditar').href = `/anotacoes/${id}/editar/`;
+        document.getElementById('linkDeletar').href = `/anotacoes/${id}/deletar/`;
+        document.getElementById('linkCompartilhar').onclick = function(event) {
+            event.preventDefault();
+            compartilharAnotacao(id);
+        };
+        const linkTicar = document.getElementById('linkTicar');
+        const isChecklist = tipo === 'checklist';
+        linkTicar.classList.toggle('d-none', !isChecklist);
+        linkTicar.href = isChecklist ? `/anotacoes/${id}/ticar/` : '#';
+        optionsModal.show();
+    }
+
+    async function compartilharAnotacao(id) {
+        optionsModal.hide();
+        try {
+            const resp = await fetch(`/anotacoes/${id}/compartilhar-dados/`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.sucesso) {
+                throw new Error(data.erro || 'Falha ao preparar compartilhamento');
+            }
+
+            const payload = {
+                title: data.titulo || 'Anotação',
+                text: data.texto_compartilhar || '',
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(payload);
+                    return;
+                } catch (e) {
+                    if (e && e.name === 'AbortError') return;
+                }
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(payload.text);
+                alert('Texto copiado! Agora é só colar no WhatsApp, e-mail ou outro app.');
+                return;
+            }
+
+            window.prompt('Copie e compartilhe este texto:', payload.text);
+        } catch (e) {
+            console.error('Erro ao compartilhar anotação:', e);
+            alert('Não foi possível compartilhar essa anotação agora.');
+        }
+    }
+
+    function filtrarAnotacoes() {
+        const termo = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.anotacao-item').forEach(item => {
+            const titulo = item.getAttribute('data-titulo');
+            item.style.display = titulo.includes(termo) ? 'flex' : 'none';
+        });
+    }
+
+    function filtrarTipo(tipo) {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isAtivo = btn.getAttribute('data-tipo') === tipo;
+            btn.classList.toggle('active', isAtivo);
+            
+            if (btn.getAttribute('data-tipo') === 'favoritos') {
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+            } else if (!isAtivo) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        document.querySelectorAll('.anotacao-item').forEach(item => {
+            item.style.display = (tipo === '' || item.getAttribute('data-tipo') === tipo) ? 'flex' : 'none';
+        });
+    }
+
+    function filtrarFavoritos() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const isFav = btn.getAttribute('data-tipo') === 'favoritos';
+            btn.classList.toggle('active', isFav);
+            btn.classList.toggle('btn-warning', isFav);
+            btn.classList.toggle('btn-outline-warning', !isFav);
+            
+            if (!isFav) {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        document.querySelectorAll('.anotacao-item').forEach(item => {
+            const star = item.querySelector('.btn-star');
+            item.style.display = (star && star.classList.contains('ativo')) ? 'flex' : 'none';
+        });
+    }
+
+    async function toggleFavorito(id, btn) {
+        try {
+            // Efeito visual imediato
+            btn.classList.toggle('ativo');
+            btn.style.transform = 'scale(1.4)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+
+            const resp = await fetch(`/anotacoes/${id}/favoritar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!resp.ok) {
+                btn.classList.toggle('ativo');
+                console.error('Erro ao favoritar: resposta não ok');
+            }
+        } catch (e) {
+            btn.classList.toggle('ativo');
+            console.error('Erro ao favoritar:', e);
+        }
+    }
+{% endblock %}

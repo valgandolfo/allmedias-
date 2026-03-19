@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Perfil - AllMedias{% endblock %}
+
+{% block content %}
+<div class="container px-0 pb-4">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'profile' %}" class="btn btn-link text-dark p-0 me-3">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <h1 class="h4 mb-0 flex-grow-1">Editar Perfil</h1>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card card-custom p-0">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Seção: Foto de Perfil -->
+                <div class="text-center mb-4 pb-3 border-bottom">
+                    <div class="position-relative d-inline-block mb-3">
+                        <div id="foto-preview" class="rounded-circle mx-auto shadow-sm photo-preview-container" style="
+                width: 120px; 
+                height: 120px; 
+                background-image: url('{{ profile.foto_url }}');
+                background-size: cover;
+                background-position: center;
+                background-color: #f1f5f9;
+                border: 3px solid #fff;
+              "></div>
+                        <label for="{{ form.foto_perfil.id_for_label }}"
+                            class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow"
+                            style="cursor: pointer;" title="Alterar Foto">
+                            <i class="bi bi-camera-fill"></i>
+                        </label>
+                        {% if profile.foto_perfil %}
+                        <button type="button"
+                            class="position-absolute top-0 end-0 btn btn-sm btn-danger rounded-circle p-1 shadow"
+                            id="btn-remover-foto" title="Remover Foto">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-none">
+                        {{ form.foto_perfil }}
+                    </div>
+                    {% if form.foto_perfil.errors %}
+                    <div class="text-danger small mt-1">{{ form.foto_perfil.errors.0 }}</div>
+                    {% endif %}
+                    <div class="text-muted small">A imagem será otimizada automaticamente</div>
+                </div>
+
+                <!-- Seção: Dados Pessoais -->
+                <h6 class="text-uppercase text-muted fw-bold mb-3 small">Dados Pessoais</h6>
+
+                <div class="mb-3">
+                    <label for="{{ form.nome_completo.id_for_label }}" class="form-label text-muted small mb-1">Nome
+                        Completo</label>
+                    {{ form.nome_completo }}
+                    {% if form.nome_completo.errors %}<div class="text-danger small mt-1">{{ form.nome_completo.errors.0
+                        }}</div>{% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">E-mail (Login)</label>
+                    <input type="text" class="form-control bg-light text-muted" value="{{ user.email }}" disabled
+                        readonly>
+                    <div class="form-text small">O e-mail não pode ser alterado por aqui.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.telefone.id_for_label }}"
+                        class="form-label text-muted small mb-1">Telefone</label>
+                    {{ form.telefone }}
+                    {% if form.telefone.errors %}<div class="text-danger small mt-1">{{ form.telefone.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.data_nascimento.id_for_label }}" class="form-label text-muted small mb-1">Data
+                        de Nascimento</label>
+                    {{ form.data_nascimento }}
+                    {% if form.data_nascimento.errors %}<div class="text-danger small mt-1">{{
+                        form.data_nascimento.errors.0 }}</div>{% endif %}
+                </div>
+
+                <hr class="mb-4">
+
+                <!-- Seção: Preferências -->
+                <h6 class="text-uppercase text-muted fw-bold mb-3 small">Preferências</h6>
+                <div class="mb-3 form-check form-switch py-2">
+                    {{ form.tema_escuro }}
+                    <label class="form-check-label pt-1" for="{{ form.tema_escuro.id_for_label }}">
+                        Ativar tema escuro (Dark Mode)
+                    </label>
+                </div>
+                <div class="mb-3 form-check form-switch py-2">
+                    {{ form.notificacoes_email }}
+                    <label class="form-check-label pt-1" for="{{ form.notificacoes_email.id_for_label }}">
+                        Receber notificações por e-mail
+                    </label>
+                </div>
+                <div class="mb-4 form-check form-switch py-2">
+                    {{ form.compartilhamento_publico }}
+                    <label class="form-check-label pt-1" for="{{ form.compartilhamento_publico.id_for_label }}">
+                        Permitir compartilhamento público de mídias
+                    </label>
+                </div>
+
+                <!-- Botão de Salvar -->
+                <div class="d-grid mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                        <i class="bi bi-save me-2"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tratamento de preview da imagem
+        const inputFoto = document.getElementById('{{ form.foto_perfil.id_for_label }}');
+        const previewDiv = document.getElementById('foto-preview');
+
+        if (inputFoto) {
+            inputFoto.addEventListener('change', function (e) {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        previewDiv.style.backgroundImage = `url(${e.target.result})`;
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+
+        // Tratamento de remoção de foto via AJAX
+        const btnRemoverFoto = document.getElementById('btn-remover-foto');
+        if (btnRemoverFoto) {
+            btnRemoverFoto.addEventListener('click', function () {
+                if (confirm('Tem certeza que deseja remover sua foto de perfil?')) {
+
+                    fetch('{% url "api_delete_photo" %}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                previewDiv.style.backgroundImage = `url('${data.new_photo_url}')`;
+                                btnRemoverFoto.remove(); // esconde o botão
+
+                                // Opcional: mostrar toast ou mensagem
+                                alert(data.message);
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro:', error);
+                            alert('Não foi possível remover a foto.');
+                        });
+                }
+            });
+        }
+
+    });
+</script>
+{% endblock %}

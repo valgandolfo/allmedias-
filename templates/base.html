@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}AllMedias{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  {# Bootstrap 5 + Icons, igual ao base_webview.html #}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+  {# Font Awesome - necessário para os ícones dos templates de login/registro #}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  {# PWA básico (podemos refinar depois) #}
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}" />
+  <meta name="theme-color" content="#0d6efd" />
+
+  <style>
+    :root {
+      --primary-color: #0d6efd;
+      --bg-color: #f8f9fa;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      padding-top: 80px;
+      /* Space for fixed header */
+      padding-bottom: 80px;
+      /* Space for fixed footer */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card-custom {
+      background: #ffffff;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    .badge-size {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    {% block extra_css %}
+    {% endblock %}
+  </style>
+</head>
+
+<body>
+  <!-- Fixed Header -->
+  <nav class="navbar fixed-top bg-white shadow-sm" style="padding: 10px 15px;">
+    <div class="container-fluid px-0 d-flex justify-content-between align-items-center">
+      <!-- Text Group (Left) -->
+      <div class="d-flex flex-column">
+        <span class="fs-5 fw-bold text-dark m-0 pb-1" style="line-height: 1;">AllMedias - Central de Medias</span>
+        <span class="text-muted" style="font-size: 0.75rem; line-height: 1;">Todas as suas medias em um só local</span>
+      </div>
+
+      <!-- User Profile (Right) -->
+      {% if user.is_authenticated %}
+      <div class="dropdown">
+        <a href="#" class="d-block link-dark text-decoration-none" id="dropdownUser1" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          <div class="rounded-circle shadow-sm" style="
+                width: 44px; 
+                height: 44px; 
+                background-image: url('{{ user.profile.foto_url }}'); background-size: cover; background-position:
+            center; border: 2px solid var(--primary-color); "></div>
+        </a>
+        <ul class=" dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="dropdownUser1">
+          <li><a class="dropdown-item" href="{% url 'profile' %}">Meu Perfil</a></li>
+          <li><a class="dropdown-item" href="{% url 'profile_edit' %}">Configurações</a></li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
+          <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Sair</a></li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container px-3">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker
+          .register("{% static 'service-worker.js' %}")
+          .catch(function (err) {
+            console.warn("Falha ao registrar service worker:", err);
+          });
+      });
+    }
+
+    document.querySelectorAll(".btn, .option-item").forEach((el) => {
+      el.addEventListener("click", function () {
+        this.style.opacity = "0.7";
+        setTimeout(() => (this.style.opacity = "1"), 200);
+      });
+    });
+
+    {% block extra_js %} {% endblock %}
+  </script>
+</body>
+
+</html>
