@@ -16,15 +16,33 @@ DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = config(
     "DJANGO_ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,allmedias-production.up.railway.app",
+    default="localhost,127.0.0.1,igeracao.com.br,www.igeracao.com.br,allmedias-production.up.railway.app,.railway.app",
     cast=Csv(),
 )
 
 CSRF_TRUSTED_ORIGINS = config(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
-    default="http://localhost,http://127.0.0.1,https://allmedias-production.up.railway.app",
+    default="http://localhost,http://127.0.0.1,https://igeracao.com.br,https://www.igeracao.com.br,https://allmedias-production.up.railway.app",
     cast=Csv(),
 )
+
+# Garante hosts/origins essenciais mesmo se variables antigas estiverem no ambiente.
+for _host in [
+    "igeracao.com.br",
+    "www.igeracao.com.br",
+    "allmedias-production.up.railway.app",
+    ".railway.app",
+]:
+    if _host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
+
+for _origin in [
+    "https://igeracao.com.br",
+    "https://www.igeracao.com.br",
+    "https://allmedias-production.up.railway.app",
+]:
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
 
 
 INSTALLED_APPS = [
@@ -182,6 +200,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # ===================================================================
 # SEGURANÇA - DESABILITAR HTTPS EM DESENVOLVIMENTO
 # ===================================================================
+# Necessário no Railway para Django reconhecer requests HTTPS atrás de proxy.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
