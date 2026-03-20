@@ -13,8 +13,12 @@
   {# Font Awesome - necessário para os ícones dos templates de login/registro #}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  {# PWA básico (podemos refinar depois) #}
+  {# PWA e ícones #}
   <link rel="manifest" href="{% static 'manifest.webmanifest' %}" />
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-32x32.png' %}" />
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/icon-16x16.png' %}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}" />
   <meta name="theme-color" content="#0d6efd" />
 
   <style>
