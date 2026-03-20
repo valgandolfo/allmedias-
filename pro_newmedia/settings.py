@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     "app_newmedia",
     "app_newmedia.registration",
     "app_newmedia.medias",
+    "app_newmedia.anota_ai",
+    "app_newmedia.conversor",
+    "app_newmedia.transferir",
 ]
 
 MIDDLEWARE = [
