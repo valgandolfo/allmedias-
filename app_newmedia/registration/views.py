@@ -108,7 +108,11 @@ class AllMediasLogoutView(LogoutView):
     View customizada de logout
     """
     template_name = 'registration/logged_out.html'
-    
+    next_page = None  # Não redirecionar — exibe o template de despedida
+
+    def get_next_page(self):
+        return None  # Ignora LOGOUT_REDIRECT_URL do settings
+
     def dispatch(self, request, *args, **kwargs):
         """
         Adiciona mensagem de logout
