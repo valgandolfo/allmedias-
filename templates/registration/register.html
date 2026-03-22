@@ -290,6 +290,16 @@
                         <div class="help-text">Digite a mesma senha novamente</div>
                     </div>
 
+                    <!-- Aceite dos termos -->
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="aceito_termos" id="id_aceito_termos" required>
+                            <label class="form-check-label" for="id_aceito_termos" style="font-size:0.85rem;">
+                                Li e aceito os <strong>termos de uso</strong> e a <strong>política de privacidade</strong>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="d-grid gap-2 mb-4">
                         <button type="submit" class="btn btn-register">
                             <i class="fas fa-user-plus me-1"></i>
@@ -315,87 +325,62 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mostrar/ocultar senha
-        function setupPasswordToggle(toggleId, passwordId, iconId) {
-            const toggle = document.getElementById(toggleId);
-            const password = document.getElementById(passwordId);
-            const icon = document.getElementById(iconId);
-            
-            if (toggle && password && icon) {
-                toggle.addEventListener('click', function() {
-                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                    password.setAttribute('type', type);
-                    icon.classList.toggle('fa-eye');
-                    icon.classList.toggle('fa-eye-slash');
-                });
-            }
-        }
-
-        setupPasswordToggle('togglePassword1', 'id_password1', 'iconPassword1');
-        setupPasswordToggle('togglePassword2', 'id_password2', 'iconPassword2');
-
-        // Validação de senha em tempo real
-        const password1 = document.getElementById('id_password1');
-        const password2 = document.getElementById('id_password2');
-
-        function validatePassword() {
-            const password = password1.value;
-            const requirements = {
-                length: password.length >= 8,
-                uppercase: /[A-Z]/.test(password),
-                lowercase: /[a-z]/.test(password),
-                number: /\d/.test(password)
-            };
-
-            // Atualizar visual dos requisitos
-            const requirementsList = document.querySelector('.password-requirements ul');
-            if (requirementsList) {
-                const items = requirementsList.querySelectorAll('li');
-                items.forEach((item, index) => {
-                    const requirementsArray = Object.values(requirements);
-                    if (requirementsArray[index]) {
-                        item.style.color = 'var(--success-color)';
-                        // Só adiciona ✓ se não tiver já
-                        if (!item.innerHTML.includes('✓')) {
-                            item.innerHTML = item.innerHTML.replace('Pelo menos', '✓ Pelo menos');
-                        }
-                    } else {
-                        item.style.color = 'var(--text-light)';
-                        // Remove ✓ se tiver
-                        item.innerHTML = item.innerHTML.replace('✓ ', '');
-                    }
-                });
-            }
-        }
-
-        function validatePasswordMatch() {
-            if (password2.value && password1.value !== password2.value) {
-                password2.setCustomValidity('As senhas não coincidem');
-            } else {
-                password2.setCustomValidity('');
-            }
-        }
-
-        if (password1) {
-            password1.addEventListener('input', validatePassword);
-        }
-
-        if (password2) {
-            password2.addEventListener('input', validatePasswordMatch);
-        }
-
-        // Validação do formulário
-        const form = document.getElementById('registerForm');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                if (password1.value !== password2.value) {
-                    e.preventDefault();
-                    alert('As senhas não coincidem!');
-                    return false;
-                }
+    // Toggle senha — executa direto, sem aguardar DOMContentLoaded
+    function setupPasswordToggle(toggleId, passwordId, iconId) {
+        var toggle = document.getElementById(toggleId);
+        var password = document.getElementById(passwordId);
+        var icon = document.getElementById(iconId);
+        if (toggle && password && icon) {
+            toggle.addEventListener('click', function() {
+                var type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
             });
         }
-    });
+    }
+    setupPasswordToggle('togglePassword1', 'id_password1', 'iconPassword1');
+    setupPasswordToggle('togglePassword2', 'id_password2', 'iconPassword2');
+
+    // Validação de requisitos em tempo real
+    var password1 = document.getElementById('id_password1');
+    var password2 = document.getElementById('id_password2');
+
+    if (password1) {
+        password1.addEventListener('input', function() {
+            var p = password1.value;
+            var checks = [p.length >= 8, /[A-Z]/.test(p), /[a-z]/.test(p), /\d/.test(p)];
+            var items = document.querySelectorAll('.password-requirements li');
+            items.forEach(function(item, i) {
+                if (checks[i]) {
+                    item.style.color = 'var(--success-color)';
+                    if (!item.innerHTML.includes('✓'))
+                        item.innerHTML = item.innerHTML.replace('Pelo menos', '✓ Pelo menos');
+                } else {
+                    item.style.color = 'var(--text-light)';
+                    item.innerHTML = item.innerHTML.replace('✓ ', '');
+                }
+            });
+        });
+    }
+
+    if (password2) {
+        password2.addEventListener('input', function() {
+            password2.setCustomValidity(
+                password2.value && password1.value !== password2.value
+                    ? 'As senhas não coincidem' : ''
+            );
+        });
+    }
+
+    var form = document.getElementById('registerForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (password1.value !== password2.value) {
+                e.preventDefault();
+                alert('As senhas não coincidem!');
+            }
+        });
+    }
 </script>
 {% endblock %}
