@@ -108,18 +108,15 @@
                 </button>
                 <div id="opcoesFoto" class="file-options">
                     <button type="button" class="btn btn-primary w-100 mb-2"
-                            onclick="document.getElementById('fotoGaleria').click()">
+                            onclick="abrirFoto('galeria')">
                         <i class="bi bi-images"></i> Galeria
                     </button>
                     <button type="button" class="btn btn-success w-100"
-                            onclick="document.getElementById('fotoCamera').click()">
+                            onclick="abrirFoto('camera')">
                         <i class="bi bi-camera-fill"></i> Câmera
                     </button>
                 </div>
-                <input type="file" id="fotoGaleria" name="arquivo" accept="image/*"
-                       style="display:none;" onchange="previewFoto(this)">
-                <input type="file" id="fotoCamera" name="arquivo" accept="image/*"
-                       capture="environment"
+                <input type="file" id="fotoInput" name="arquivo" accept="image/*"
                        style="display:none;" onchange="previewFoto(this)">
                 <div id="previewFotoContainer" class="preview-container" style="display:none;">
                     <img id="previewFotoImg" class="preview-image" alt="Preview">
@@ -258,7 +255,7 @@
         }
 
         // Limpar todos os inputs ao trocar tipo
-        ['fotoGaleria','fotoCamera','pdfInput','videoInput','audioInput','outrosInput']
+        ['fotoInput','pdfInput','videoInput','audioInput','outrosInput']
             .forEach(id => { document.getElementById(id).value = ''; });
         ['pdfPreview','videoPreview','audioPreview','outrosPreview']
             .forEach(id => { document.getElementById(id).style.display = 'none'; });
@@ -269,6 +266,17 @@
 
     function mostrarOpcoesFoto() {
         document.getElementById('opcoesFoto').classList.toggle('show');
+    }
+
+    function abrirFoto(modo) {
+        const input = document.getElementById('fotoInput');
+        if (modo === 'camera') {
+            input.setAttribute('capture', 'environment');
+        } else {
+            input.removeAttribute('capture');
+        }
+        input.value = '';
+        input.click();
     }
 
     function previewFoto(input) {
@@ -285,8 +293,7 @@
     }
 
     function removerFoto() {
-        document.getElementById('fotoGaleria').value = '';
-        document.getElementById('fotoCamera').value = '';
+        document.getElementById('fotoInput').value = '';
         document.getElementById('previewFotoContainer').style.display = 'none';
         validarFormulario();
     }
@@ -318,8 +325,7 @@
     function temArquivoSelecionado() {
         const tipo = document.getElementById('id_tipo').value;
         if (tipo === 'foto') {
-            return document.getElementById('fotoGaleria').files.length > 0
-                || document.getElementById('fotoCamera').files.length > 0;
+            return document.getElementById('fotoInput').files.length > 0;
         }
         const mapa = { pdf: 'pdfInput', video: 'videoInput', audio: 'audioInput' };
         if (mapa[tipo]) return document.getElementById(mapa[tipo]).files.length > 0;
