@@ -105,23 +105,21 @@ class AllMediasLoginView(LoginView):
 
 class AllMediasLogoutView(LogoutView):
     """
-    View customizada de logout
+    View customizada de logout — exibe página de despedida após deslogar.
     """
     template_name = 'registration/logged_out.html'
-    next_page = None  # Não redirecionar — exibe o template de despedida
+    next_page = None
 
-    def get_next_page(self):
-        return None  # Ignora LOGOUT_REDIRECT_URL do settings
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Adiciona mensagem de logout
-        """
+    def post(self, request, *args, **kwargs):
+        nome = None
         if request.user.is_authenticated:
-            nome = request.user.profile.nome_completo if hasattr(request.user, 'profile') and request.user.profile.nome_completo else request.user.username
-            messages.info(request, f'Até logo, {nome}! Volte sempre.')
-        
-        return super().dispatch(request, *args, **kwargs)
+            try:
+                nome = request.user.profile.nome_completo or request.user.username
+            except Exception:
+                nome = request.user.username
+        from django.contrib.auth import logout as auth_logout
+        auth_logout(request)
+        return render(request, self.template_name, {'nome': nome})
 
 
 class AllMediasRegistrationView(CreateView):

@@ -202,7 +202,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # ===================================================================
 # Necessário no Railway para Django reconhecer requests HTTPS atrás de proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-USE_X_FORWARDED_HOST = True
 
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
