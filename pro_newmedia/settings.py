@@ -14,35 +14,30 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = config(
-    "DJANGO_ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,igeracao.com.br,www.igeracao.com.br,allmedias-production.up.railway.app,.railway.app",
-    cast=Csv(),
-)
-
-CSRF_TRUSTED_ORIGINS = config(
-    "DJANGO_CSRF_TRUSTED_ORIGINS",
-    default="http://localhost,http://127.0.0.1,https://igeracao.com.br,https://www.igeracao.com.br,https://allmedias-production.up.railway.app",
-    cast=Csv(),
-)
-
-# Garante hosts/origins essenciais mesmo se variables antigas estiverem no ambiente.
-for _host in [
+# Hosts e origins obrigatórios — sempre presentes independente de env vars
+_ALLOWED_HOSTS_BASE = [
+    "localhost",
+    "127.0.0.1",
     "igeracao.com.br",
     "www.igeracao.com.br",
     "allmedias-production.up.railway.app",
     ".railway.app",
-]:
-    if _host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(_host)
+]
 
-for _origin in [
+_CSRF_ORIGINS_BASE = [
+    "http://localhost",
+    "http://127.0.0.1",
     "https://igeracao.com.br",
     "https://www.igeracao.com.br",
     "https://allmedias-production.up.railway.app",
-]:
-    if _origin not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(_origin)
+]
+
+# Permite extensão via env var (ex.: novo domínio no futuro)
+_extra_hosts = [h.strip() for h in config("DJANGO_ALLOWED_HOSTS", default="", cast=Csv()) if h.strip()]
+_extra_origins = [o.strip() for o in config("DJANGO_CSRF_TRUSTED_ORIGINS", default="", cast=Csv()) if o.strip()]
+
+ALLOWED_HOSTS = list({*_ALLOWED_HOSTS_BASE, *_extra_hosts})
+CSRF_TRUSTED_ORIGINS = list({*_CSRF_ORIGINS_BASE, *_extra_origins})
 
 
 INSTALLED_APPS = [
@@ -206,4 +201,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
 
