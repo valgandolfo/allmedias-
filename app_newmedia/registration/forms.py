@@ -332,12 +332,19 @@ class AllMediasPasswordResetForm(PasswordResetForm):
         html_email_template_name=None,
     ):
         """
-        Garante URL absoluta correta no e-mail (evita uid corrompido por
-        rastreamento SendGrid / clientes de e-mail com {% url %}).
+        Monta URL absoluta no e-mail.
+
+        O Django usa base64 sem padding; para pk=4 o segmento vira literalmente
+        "NA", o que parece link quebrado e alguns WAFs/clientes tratam mal.
+        Acrescentamos '=' até comprimento múltiplo de 4 (ex.: NA==); o
+        urlsafe_base64_decode do Django continua a aceitar.
         """
+        uid = str(context['uid']).strip()
+        pad = (4 - len(uid) % 4) % 4
+        uid_for_url = uid + ('=' * pad)
         path = reverse(
             'password_reset_confirm',
-            kwargs={'uidb64': context['uid'], 'token': context['token']},
+            kwargs={'uidb64': uid_for_url, 'token': context['token']},
         )
         context = {
             **context,
