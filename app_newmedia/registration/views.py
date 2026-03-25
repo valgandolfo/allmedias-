@@ -14,6 +14,8 @@ from django.contrib.auth.views import (
 )
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -219,7 +221,31 @@ class AllMediasPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = AllMediasSetPasswordForm
     template_name = 'registration/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
-    
+
+    def get_user(self, uidb64):
+        """
+        Aceita pk em texto claro no URL (enviado nos e-mails) e mantém
+        compatibilidade com links antigos em Base64 (Django padrão).
+        """
+        UserModel = get_user_model()
+        try:
+            pk = UserModel._meta.pk.to_python(uidb64)
+            return UserModel._default_manager.get(pk=pk)
+        except (TypeError, ValueError, ValidationError, OverflowError, UserModel.DoesNotExist):
+            pass
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            pk = UserModel._meta.pk.to_python(uid)
+            return UserModel._default_manager.get(pk=pk)
+        except (
+            TypeError,
+            ValueError,
+            OverflowError,
+            UserModel.DoesNotExist,
+            ValidationError,
+        ):
+            return None
+
     def form_valid(self, form):
         """
         Nova senha definida

@@ -12,6 +12,7 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from .models import UserProfile
 
@@ -334,14 +335,13 @@ class AllMediasPasswordResetForm(PasswordResetForm):
         """
         Monta URL absoluta no e-mail.
 
-        O Django usa base64 sem padding; para pk=4 o segmento vira literalmente
-        "NA", o que parece link quebrado e alguns WAFs/clientes tratam mal.
-        Acrescentamos '=' até comprimento múltiplo de 4 (ex.: NA==); o
-        urlsafe_base64_decode do Django continua a aceitar.
+        Usa o pk em texto claro (value_to_string) no path — sem Base64 curto
+        tipo NA e sem '=' no segmento, que em quoted-printable viram =3D e
+        partem o link em alguns clientes.
         """
-        uid = str(context['uid']).strip()
-        pad = (4 - len(uid) % 4) % 4
-        uid_for_url = uid + ('=' * pad)
+        UserModel = get_user_model()
+        user = context['user']
+        uid_for_url = UserModel._meta.pk.value_to_string(user)
         path = reverse(
             'password_reset_confirm',
             kwargs={'uidb64': uid_for_url, 'token': context['token']},
