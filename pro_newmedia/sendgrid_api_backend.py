@@ -70,7 +70,16 @@ class SendGridAPIBackend(BaseEmailBackend):
         return num_sent
 
     def _send(self, client, message):
-        from sendgrid.helpers.mail import Mail, To, From, PlainTextContent, HtmlContent
+        from sendgrid.helpers.mail import (
+            Mail,
+            To,
+            From,
+            PlainTextContent,
+            HtmlContent,
+            TrackingSettings,
+            ClickTracking,
+            OpenTracking,
+        )
 
         from_email = From(message.from_email)
         plain_body = message.body or ' '
@@ -91,6 +100,12 @@ class SendGridAPIBackend(BaseEmailBackend):
 
             if html_body:
                 mail.add_content(HtmlContent(html_body))
+
+            # Evita reescrita de links (ex.: uid/token quebrados como "NA")
+            mail.tracking_settings = TrackingSettings(
+                click_tracking=ClickTracking(enable=False, enable_text=False),
+                open_tracking=OpenTracking(enable=False),
+            )
 
             response = client.send(mail)
 

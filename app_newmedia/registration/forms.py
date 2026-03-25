@@ -12,6 +12,7 @@ from django.contrib.auth.forms import (
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.urls import reverse
 from .models import UserProfile
 
 
@@ -320,6 +321,36 @@ class AllMediasPasswordResetForm(PasswordResetForm):
                 )
         
         return email
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        """
+        Garante URL absoluta correta no e-mail (evita uid corrompido por
+        rastreamento SendGrid / clientes de e-mail com {% url %}).
+        """
+        path = reverse(
+            'password_reset_confirm',
+            kwargs={'uidb64': context['uid'], 'token': context['token']},
+        )
+        context = {
+            **context,
+            'password_reset_url': f"{context['protocol']}://{context['domain']}{path}",
+        }
+        super().send_mail(
+            subject_template_name,
+            email_template_name,
+            context,
+            from_email,
+            to_email,
+            html_email_template_name=html_email_template_name,
+        )
 
 
 class AllMediasSetPasswordForm(SetPasswordForm):

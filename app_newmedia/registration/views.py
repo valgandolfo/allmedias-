@@ -183,7 +183,7 @@ class AllMediasPasswordResetView(PasswordResetView):
     form_class = AllMediasPasswordResetForm
     template_name = 'registration/password_reset_form.html'
     success_url = reverse_lazy('password_reset_done')
-    email_template_name = 'registration/password_reset_email.html'
+    email_template_name = 'registration/password_reset_email.txt'
     subject_template_name = 'registration/password_reset_subject.txt'
     html_email_template_name = 'registration/password_reset_email.html'
 
