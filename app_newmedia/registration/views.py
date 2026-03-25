@@ -20,6 +20,11 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.generic import CreateView, UpdateView
 from django.core.exceptions import ValidationError
+from django.core.mail import BadHeaderError
+import smtplib
+import logging
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth.models import User
 
 from .forms import (
@@ -180,16 +185,24 @@ class AllMediasPasswordResetView(PasswordResetView):
     success_url = reverse_lazy('password_reset_done')
     email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
-    
+    html_email_template_name = 'registration/password_reset_email.html'
+
     def form_valid(self, form):
-        """
-        Email de reset enviado
-        """
-        messages.success(
-            self.request,
-            'E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.'
-        )
-        return super().form_valid(form)
+        try:
+            response = super().form_valid(form)
+            messages.success(
+                self.request,
+                'E-mail de recuperação enviado! Verifique sua caixa de entrada e spam.'
+            )
+            return response
+        except (BadHeaderError, smtplib.SMTPException, OSError) as e:
+            logger.error('Erro ao enviar e-mail de reset de senha: %s', e)
+            messages.error(
+                self.request,
+                'Não foi possível enviar o e-mail no momento. '
+                'Tente novamente em alguns minutos ou entre em contato com o suporte.'
+            )
+            return self.form_invalid(form)
 
 
 class AllMediasPasswordResetDoneView(PasswordResetDoneView):

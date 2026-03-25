@@ -203,6 +203,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='AllMedias <noreply@allmedias.com>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_TIMEOUT = 10
 
 # ===================================================================
 # SEGURANÇA - DESABILITAR HTTPS EM DESENVOLVIMENTO
