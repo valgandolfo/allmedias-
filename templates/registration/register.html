@@ -324,8 +324,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Toggle senha — executa direto, sem aguardar DOMContentLoaded
+    // Toggle senha
     function setupPasswordToggle(toggleId, passwordId, iconId) {
         var toggle = document.getElementById(toggleId);
         var password = document.getElementById(passwordId);
@@ -382,5 +381,4 @@
             }
         });
     }
-</script>
 {% endblock %}

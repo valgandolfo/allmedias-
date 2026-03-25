@@ -10,7 +10,7 @@ from decouple import Csv, config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = config("DJANGO_SECRET_KEY")
+SECRET_KEY = config("DJANGO_SECRET_KEY", default=None) or config("SECRET_KEY")
 
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 
@@ -189,8 +189,20 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # fallback para admin (username)
 ]
 
-# Email backend (desenvolvimento)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# ===================================================================
+# CONFIGURAÇÕES DE EMAIL - SENDGRID
+# ===================================================================
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='AllMedias <noreply@allmedias.com>')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # ===================================================================
 # SEGURANÇA - DESABILITAR HTTPS EM DESENVOLVIMENTO
