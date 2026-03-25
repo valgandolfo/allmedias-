@@ -14,43 +14,47 @@ from django.core.mail.backends.base import BaseEmailBackend
 
 logger = logging.getLogger(__name__)
 
+SENDGRID_TIMEOUT = 15  # segundos
+
 
 class SendGridAPIBackend(BaseEmailBackend):
 
     def __init__(self, fail_silently=False, **kwargs):
         super().__init__(fail_silently=fail_silently, **kwargs)
-        # Aceita SENDGRID_API_KEY ou EMAIL_HOST_PASSWORD
         self.api_key = (
             getattr(settings, 'SENDGRID_API_KEY', None)
             or getattr(settings, 'EMAIL_HOST_PASSWORD', None)
         )
+
+    def _get_client(self):
+        import sendgrid as sg_module
+        client = sg_module.SendGridAPIClient(api_key=self.api_key)
+        # Aplica timeout na conexão HTTP para não travar
+        client.client.timeout = SENDGRID_TIMEOUT
+        return client
 
     def send_messages(self, email_messages):
         if not email_messages:
             return 0
 
         if not self.api_key:
+            msg = (
+                'SendGridAPIBackend: API Key não configurada. '
+                'Defina SENDGRID_API_KEY ou EMAIL_HOST_PASSWORD.'
+            )
+            logger.error(msg)
             if not self.fail_silently:
-                raise ValueError(
-                    'SendGridAPIBackend: nenhuma API Key configurada. '
-                    'Defina SENDGRID_API_KEY ou EMAIL_HOST_PASSWORD.'
-                )
-            logger.error('SendGridAPIBackend: API Key ausente, e-mails não enviados.')
+                raise ValueError(msg)
             return 0
 
         try:
-            import sendgrid as sg_module
-            from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+            client = self._get_client()
         except ImportError as exc:
             if not self.fail_silently:
-                raise RuntimeError(
-                    'Instale a dependência: pip install sendgrid'
-                ) from exc
+                raise RuntimeError('Instale a dependência: pip install sendgrid') from exc
             return 0
 
-        client = sg_module.SendGridAPIClient(api_key=self.api_key)
         num_sent = 0
-
         for message in email_messages:
             try:
                 self._send(client, message)
@@ -58,8 +62,7 @@ class SendGridAPIBackend(BaseEmailBackend):
             except Exception as exc:
                 logger.error(
                     'SendGridAPIBackend: falha ao enviar para %s — %s',
-                    message.to,
-                    exc,
+                    message.to, exc,
                 )
                 if not self.fail_silently:
                     raise
@@ -67,15 +70,11 @@ class SendGridAPIBackend(BaseEmailBackend):
         return num_sent
 
     def _send(self, client, message):
-        from sendgrid.helpers.mail import Mail, To, From, Subject, PlainTextContent, HtmlContent
+        from sendgrid.helpers.mail import Mail, To, From, PlainTextContent, HtmlContent
 
         from_email = From(message.from_email)
-        subject = Subject(message.subject)
-
-        # Corpo texto puro
         plain_body = message.body or ' '
 
-        # Corpo HTML (de alternatives se existir)
         html_body = None
         if hasattr(message, 'alternatives'):
             for content, mimetype in message.alternatives:
@@ -86,7 +85,7 @@ class SendGridAPIBackend(BaseEmailBackend):
         for recipient in message.to:
             mail = Mail()
             mail.from_email = from_email
-            mail.subject = subject
+            mail.subject = message.subject
             mail.to = To(recipient)
             mail.content = PlainTextContent(plain_body)
 
@@ -98,12 +97,11 @@ class SendGridAPIBackend(BaseEmailBackend):
             status = getattr(response, 'status_code', None)
             if status and status >= 400:
                 raise RuntimeError(
-                    f'SendGrid retornou status {status} para {recipient}: '
+                    f'SendGrid retornou HTTP {status} para {recipient}: '
                     f'{getattr(response, "body", "")}'
                 )
 
             logger.info(
-                'SendGridAPIBackend: e-mail enviado para %s (status %s)',
-                recipient,
-                status,
+                'SendGridAPIBackend: e-mail enviado para %s (HTTP %s)',
+                recipient, status,
             )
