@@ -15,6 +15,9 @@ reportlab>=4.0.0,<5.0.0
 # Configurações e ambiente
 python-decouple>=3.8,<4.0
 
+# Email via API do SendGrid
+sendgrid>=6.11.0,<7.0.0
+
 # Assets estáticos em produção
 whitenoise>=6.6.0,<7.0.0
 gunicorn>=22.0.0,<23.0.0
