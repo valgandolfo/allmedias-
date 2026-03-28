@@ -154,24 +154,32 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # ===================================================================
-# STORAGE - WASABI S3
+# STORAGE - GOOGLE DRIVE (Substituiu o Wasabi S3)
 # ===================================================================
-USE_S3_STORAGE = config("USE_S3_STORAGE", default=False, cast=bool)
+USE_DRIVE_STORAGE = config("USE_DRIVE_STORAGE", default=True, cast=bool)
 
-if USE_S3_STORAGE:
+if USE_DRIVE_STORAGE:
     STORAGES = {
-        "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+        "default": {"BACKEND": "app_newmedia.storage.GoogleDriveStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
-    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
-    AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL")
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_DEFAULT_ACL = "private"
-    AWS_QUERYSTRING_AUTH = True
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
+else:
+    # Fallback legacy para S3 se necessário
+    USE_S3_STORAGE = config("USE_S3_STORAGE", default=False, cast=bool)
+    if USE_S3_STORAGE:
+        STORAGES = {
+            "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
+            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        }
+        AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
+        AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
+        AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME", default="")
+        AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
+        AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL", default="")
+        AWS_S3_FILE_OVERWRITE = False
+        AWS_DEFAULT_ACL = "private"
+        AWS_QUERYSTRING_AUTH = True
+        AWS_S3_SIGNATURE_VERSION = "s3v4"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
