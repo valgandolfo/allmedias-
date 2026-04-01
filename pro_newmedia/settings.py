@@ -156,7 +156,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ===================================================================
 # STORAGE - GOOGLE DRIVE (Substituiu o Wasabi S3)
 # ===================================================================
-USE_DRIVE_STORAGE = config("USE_DRIVE_STORAGE", default=True, cast=bool)
+import os
+_drive_storage_val = os.environ.get("USE_DRIVE_STORAGE", "True")
+USE_DRIVE_STORAGE = _drive_storage_val.lower() in ("true", "1", "t", "y", "yes")
 
 if USE_DRIVE_STORAGE:
     STORAGES = {
