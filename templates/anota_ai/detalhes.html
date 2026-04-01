@@ -84,13 +84,20 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script>
     {% if pix_payload %}
-    document.addEventListener("DOMContentLoaded", function() {
+    (function() {
         var canvas = document.createElement('canvas');
         QRCode.toCanvas(canvas, '{{ pix_payload|escapejs }}', { width: 250, margin: 2 }, function (error) {
-            if (error) console.error(error);
-            document.getElementById('qrcode').appendChild(canvas);
+            if (error) {
+                console.error("Erro ao gerar QR Code:", error);
+                return;
+            }
+            var container = document.getElementById('qrcode');
+            if (container) {
+                container.innerHTML = '';
+                container.appendChild(canvas);
+            }
         });
-    });
+    })();
 
     function copiarPix() {
         var copyText = document.getElementById("pixCopiaCola");
