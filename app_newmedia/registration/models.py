@@ -5,7 +5,6 @@ import os
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
@@ -60,37 +59,6 @@ class UserProfile(models.Model):
         null=True,
         verbose_name='Foto de Perfil',
         help_text='Recomendado: 300x300px, máximo 2MB'
-    )
-    
-    # ===================================================================
-    # DADOS PIX PESSOAIS (para recebimento)
-    # ===================================================================
-    pix_nome = models.CharField(
-        max_length=200, 
-        blank=True, 
-        verbose_name='Nome do PIX',
-        help_text='Nome que aparece no PIX'
-    )
-    
-    pix_chave = models.CharField(
-        max_length=200, 
-        blank=True, 
-        verbose_name='Chave PIX',
-        help_text='CPF, email, telefone ou chave aleatória'
-    )
-    
-    pix_favorecido = models.CharField(
-        max_length=200, 
-        blank=True, 
-        verbose_name='Favorecido',
-        help_text='Nome do titular da conta'
-    )
-    
-    pix_banco = models.CharField(
-        max_length=100, 
-        blank=True, 
-        verbose_name='Banco',
-        help_text='Nome do banco'
     )
     
     # ===================================================================
@@ -242,13 +210,6 @@ class UserProfile(models.Model):
         nome_inicial = self.nome_completo[0] if self.nome_completo else self.user.username[0].upper()
         return f"https://via.placeholder.com/300x300/0d6efd/FFFFFF?text={nome_inicial}"
 
-    @property
-    def pix_completo(self):
-        """
-        Verifica se todos os dados PIX estão preenchidos
-        """
-        return all([self.pix_nome, self.pix_chave, self.pix_favorecido, self.pix_banco])
-
     def incrementar_contador_midias(self):
         """
         Incrementa o contador de mídias
@@ -299,34 +260,6 @@ class UserProfile(models.Model):
         self.data_expiracao = base_date + timezone.timedelta(days=dias_adicionais)
         self.dias_acesso = dias_adicionais
         self.save()
-
-    def clean(self):
-        """
-        Validações customizadas
-        """
-        # Validar chave PIX se preenchida
-        if self.pix_chave:
-            # Remover espaços e caracteres especiais
-            chave_limpa = ''.join(filter(str.isalnum, self.pix_chave))
-            
-            # Validação básica de CPF (11 dígitos)
-            if len(chave_limpa) == 11 and chave_limpa.isdigit():
-                pass  # CPF válido
-            # Validação básica de telefone (10-11 dígitos)
-            elif len(chave_limpa) in [10, 11] and chave_limpa.isdigit():
-                pass  # Telefone válido
-            # Validação de email
-            elif '@' in self.pix_chave and '.' in self.pix_chave:
-                pass  # Email válido
-            # Chave aleatória (32 caracteres)
-            elif len(self.pix_chave) == 32:
-                pass  # Chave aleatória válida
-            else:
-                raise ValidationError({
-                    'pix_chave': 'Chave PIX deve ser CPF, telefone, email ou chave aleatória válida.'
-                })
-        
-        super().clean()
 
 
 # ===================================================================

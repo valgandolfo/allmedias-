@@ -27,10 +27,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         ('Informações Pessoais', {
             'fields': ('nome_completo', 'telefone', 'data_nascimento', 'foto_perfil')
         }),
-        ('PIX', {
-            'fields': ('pix_nome', 'pix_chave', 'pix_favorecido', 'pix_banco'),
-            'classes': ('collapse',)
-        }),
         ('Acesso e Plano', {
             'fields': ('plano', 'dias_acesso', 'data_expiracao')
         }),
