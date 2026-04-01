@@ -29,6 +29,8 @@ class Anotacao(models.Model):
     pix_chave = models.CharField(max_length=200, blank=True, null=True, verbose_name='Chave PIX')
     pix_favorecido = models.CharField(max_length=200, blank=True, null=True, verbose_name='Favorecido')
     pix_banco = models.CharField(max_length=100, blank=True, null=True, verbose_name='Banco')
+    pix_cidade = models.CharField(max_length=100, blank=True, null=True, verbose_name='Cidade do Favorecido', default='Sua Cidade')
+    pix_valor = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name='Valor')
 
     class Meta:
         verbose_name = 'Anotação'

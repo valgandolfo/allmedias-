@@ -4,7 +4,7 @@ from .models import Anotacao
 class AnotacaoForm(forms.ModelForm):
     class Meta:
         model = Anotacao
-        fields = ['titulo', 'tipo', 'texto', 'pix_nome', 'pix_chave', 'pix_favorecido', 'pix_banco']
+        fields = ['titulo', 'tipo', 'texto', 'pix_nome', 'pix_chave', 'pix_favorecido', 'pix_banco', 'pix_cidade', 'pix_valor']
         widgets = {
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título da anotação'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
@@ -13,4 +13,6 @@ class AnotacaoForm(forms.ModelForm):
             'pix_chave': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Chave PIX'}),
             'pix_favorecido': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Favorecido'}),
             'pix_banco': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Instituição Bancária'}),
+            'pix_cidade': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cidade da Transação (Obrigatório)'}),
+            'pix_valor': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Valor opcional (ex: 50.00)', 'step': '0.01'}),
         }

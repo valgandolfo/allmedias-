@@ -7,6 +7,7 @@ import re
 
 from .models import Anotacao, ItemAnotacao
 from .forms import AnotacaoForm
+from .utils import gerar_payload_pix
 
 @login_required
 def anotacao_lista(request):
@@ -80,7 +81,20 @@ def anotacao_detalhes(request, pk):
     Exibe detalhes da anotação
     """
     anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
-    return render(request, 'anota_ai/detalhes.html', {'anotacao': anotacao})
+    
+    pix_payload = ""
+    if anotacao.tipo == 'pix':
+        pix_payload = gerar_payload_pix(
+            anotacao.pix_chave,
+            anotacao.pix_favorecido,
+            anotacao.pix_cidade,
+            anotacao.pix_valor
+        )
+        
+    return render(request, 'anota_ai/detalhes.html', {
+        'anotacao': anotacao,
+        'pix_payload': pix_payload
+    })
 
 @login_required
 def anotacao_ticar(request, pk):
@@ -141,6 +155,21 @@ def _montar_texto_compartilhamento(anotacao):
             f"Favorecido: {anotacao.pix_favorecido or '-'}",
             f"Banco: {anotacao.pix_banco or '-'}",
         ]
+        if anotacao.pix_cidade:
+            linhas.append(f"Cidade: {anotacao.pix_cidade}")
+        if anotacao.pix_valor:
+            linhas.append(f"Valor: R$ {anotacao.pix_valor}")
+            
+        pix_payload = gerar_payload_pix(
+            anotacao.pix_chave,
+            anotacao.pix_favorecido,
+            anotacao.pix_cidade,
+            anotacao.pix_valor
+        )
+        if pix_payload:
+            linhas.append("\nPix Copia e Cola:")
+            linhas.append(pix_payload)
+            
         conteudo = "\n".join(linhas)
     elif anotacao.tipo == 'checklist':
         itens = anotacao.itens.all().order_by('numero')

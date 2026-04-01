@@ -33,3 +33,5 @@ django-extensions>=3.2.0,<4.0.0
 djangorestframework>=3.14.0,<4.0.0
 django-cors-headers>=4.3.0,<5.0.0
 
+# Bibliotecas utilitárias
+crcmod>=1.7

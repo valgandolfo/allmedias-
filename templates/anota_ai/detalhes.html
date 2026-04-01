@@ -20,8 +20,27 @@
     
     <div class="mt-3">
         {% if anotacao.tipo == 'pix' %}
+            <div class="bg-light p-3 rounded text-center mb-3">
+                <h5 class="mb-3">Escaneie o QR Code</h5>
+                {% if pix_payload %}
+                <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control font-monospace text-muted small" value="{{ pix_payload }}" id="pixCopiaCola" readonly>
+                    <button class="btn btn-outline-primary" type="button" onclick="copiarPix()">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                    <button class="btn btn-outline-success" type="button" onclick="compartilharPix()">
+                        <i class="bi bi-share"></i> Compartilhar
+                    </button>
+                </div>
+                {% else %}
+                <p class="text-danger">Não foi possível gerar o código Pix. Verifique os dados (Chave, Favorecido e Cidade são obrigatórios).</p>
+                {% endif %}
+            </div>
+            
             <div class="bg-light p-3 rounded">
-                <p><strong>Nome:</strong> {{ anotacao.pix_nome }}</p>
+                <p><strong>Nome:</strong> {{ anotacao.pix_nome|default:"-" }}</p>
                 <p><strong>Chave:</strong> <span class="text-primary font-monospace">{{ anotacao.pix_chave }}</span> <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_chave }}')"><i class="bi bi-clipboard"></i></button></p>
                 <p>
                     <strong>Favorecido:</strong> {{ anotacao.pix_favorecido }}
@@ -29,7 +48,11 @@
                         <i class="bi bi-clipboard"></i>
                     </button>
                 </p>
-                <p><strong>Banco:</strong> {{ anotacao.pix_banco }}</p>
+                <p><strong>Cidade:</strong> {{ anotacao.pix_cidade|default:"-" }}</p>
+                <p><strong>Banco:</strong> {{ anotacao.pix_banco|default:"-" }}</p>
+                {% if anotacao.pix_valor %}
+                <p><strong>Valor:</strong> R$ {{ anotacao.pix_valor }}</p>
+                {% endif %}
             </div>
         {% elif anotacao.tipo == 'checklist' %}
             <ul class="list-unstyled">
@@ -55,4 +78,60 @@
         <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary w-100">Voltar para Lista</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script>
+    {% if pix_payload %}
+    document.addEventListener("DOMContentLoaded", function() {
+        var canvas = document.createElement('canvas');
+        QRCode.toCanvas(canvas, '{{ pix_payload|escapejs }}', { width: 250, margin: 2 }, function (error) {
+            if (error) console.error(error);
+            document.getElementById('qrcode').appendChild(canvas);
+        });
+    });
+
+    function copiarPix() {
+        var copyText = document.getElementById("pixCopiaCola");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            alert('Pix Copia e Cola copiado!');
+        });
+    }
+
+    async function compartilharPix() {
+        const payload = document.getElementById("pixCopiaCola").value;
+        const canvas = document.querySelector('#qrcode canvas');
+        const textToShare = "{{ anotacao.titulo }}\n\nPix Copia e Cola:\n" + payload;
+        
+        if (navigator.share) {
+            try {
+                if (canvas) {
+                    canvas.toBlob(async (blob) => {
+                        const file = new File([blob], 'qrcode-pix.png', { type: 'image/png' });
+                        const filesArray = navigator.canShare && navigator.canShare({ files: [file] }) ? [file] : [];
+                        
+                        await navigator.share({
+                            title: '{{ anotacao.titulo|escapejs }}',
+                            text: textToShare,
+                            files: filesArray
+                        });
+                    });
+                } else {
+                    await navigator.share({
+                        title: '{{ anotacao.titulo|escapejs }}',
+                        text: textToShare
+                    });
+                }
+            } catch (err) {
+                console.error("Erro ao compartilhar", err);
+            }
+        } else {
+            alert("O seu navegador não suporta compartilhamento nativo. Utilize o botão copiar.");
+        }
+    }
+    {% endif %}
+</script>
 {% endblock %}
