@@ -23,8 +23,8 @@ requests>=2.31.0,<3.0.0
 whitenoise>=6.6.0,<7.0.0
 gunicorn>=22.0.0,<23.0.0
 
-# Banco de dados MySQL
-mysqlclient>=2.2.0,<3.0.0
+# Banco de dados MySQL (PyMySQL - pure Python, sem dependências de sistema)
+PyMySQL>=1.1.0
 
 # Banco de dados PostgreSQL (Railway)
 psycopg2-binary>=2.9.0

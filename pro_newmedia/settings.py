@@ -6,6 +6,12 @@ from urllib.parse import urlparse
 
 from decouple import Csv, config
 
+# PyMySQL como substituto do mysqlclient (sem dependências de sistema)
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
