@@ -227,9 +227,13 @@ _drive_storage_val = os.environ.get("USE_DRIVE_STORAGE", "True")
 USE_DRIVE_STORAGE = _drive_storage_val.lower() in ("true", "1", "t", "y", "yes")
 
 if USE_DRIVE_STORAGE:
+    _staticfiles_backend = (
+        "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage"
+    )
     STORAGES = {
         "default": {"BACKEND": "app_newmedia.storage.GoogleDriveStorage"},
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        "staticfiles": {"BACKEND": _staticfiles_backend},
     }
 else:
     # Fallback legacy para S3 se necessário
@@ -237,7 +241,7 @@ else:
     if USE_S3_STORAGE:
         STORAGES = {
             "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
-            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+            "staticfiles": {"BACKEND": _staticfiles_backend},
         }
         AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
         AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
@@ -287,9 +291,10 @@ EMAIL_TIMEOUT = 10
 # Necessário no Railway para Django reconhecer requests HTTPS atrás de proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Ativa HTTPS obrigatório e Secure Cookies apenas quando não estamos em ambiente de desenvolvimento
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
 
