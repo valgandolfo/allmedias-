@@ -77,9 +77,19 @@ _CSRF_ORIGINS_BASE = [
     "https://*.railway.app",
 ]
 
-# Permite extensão via env var (ex.: novo domínio no futuro)
-_extra_hosts = [h.strip() for h in config("DJANGO_ALLOWED_HOSTS", default="", cast=Csv()) if h.strip()]
-_extra_origins = [o.strip() for o in config("DJANGO_CSRF_TRUSTED_ORIGINS", default="", cast=Csv()) if o.strip()]
+# Lendo variáveis de hosts e origens confiáveis, aceitando tanto os nomes antigos quanto os novos
+_extra_hosts = [
+    h.strip() for h in config("ALLOWED_HOSTS", default=config("DJANGO_ALLOWED_HOSTS", default=""), cast=Csv()) if h.strip()
+]
+
+_extra_origins = []
+for o in config("CSRF_TRUSTED_ORIGINS", default=config("DJANGO_CSRF_TRUSTED_ORIGINS", default=""), cast=Csv()):
+    origin = o.strip()
+    if origin:
+        # Django 4+ exige o protocolo (https://)
+        if not origin.startswith(('http://', 'https://')):
+            origin = f'https://{origin}'
+        _extra_origins.append(origin)
 
 ALLOWED_HOSTS = list({*_ALLOWED_HOSTS_BASE, *_extra_hosts})
 CSRF_TRUSTED_ORIGINS = list({*_CSRF_ORIGINS_BASE, *_extra_origins})
