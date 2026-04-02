@@ -54,9 +54,11 @@ class GoogleDriveStorage(Storage):
             # uc?id=X&export=view funciona melhor nas tags <img>.
             return f"https://drive.google.com/uc?id={file_id}&export=view"
         
-        # Em caso de arquivos velhos do Wasabi que ainda não têm "//", nós repassamos sem modificar 
-        # (mas eles devem quebrar sem o S3 configurado, é esperado)
-        return name
+        # Arquivo local (sem prefixo de Drive ID) - retorna URL absoluta com MEDIA_URL
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        # Remove barra dupla no início por precaução
+        name_clean = name.lstrip('/')
+        return f"{media_url}{name_clean}"
 
     def delete(self, name):
         if "//" in name:

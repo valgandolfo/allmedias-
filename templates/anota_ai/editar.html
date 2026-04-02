@@ -62,7 +62,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    const selectTipo = document.querySelector('select[name="tipo"]');
+<script>
+const selectTipo = document.querySelector('select[name="tipo"]');
     const areaTexto = document.getElementById('areaTexto');
     const areaPix = document.getElementById('areaPix');
     const labelTexto = document.getElementById('labelTexto');
@@ -154,4 +155,5 @@
         textareaTexto.addEventListener('keydown', tratarEnterListaChecklist);
     }
     toggleCampos();
+</script>
 {% endblock %}

@@ -236,7 +236,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    function alterarTipo() {
+<script>
+function alterarTipo() {
         const tipo = document.getElementById('id_tipo').value;
         const secoes = ['secaoFoto', 'secaoPdf', 'secaoVideo', 'secaoAudio', 'secaoOutros'];
         secoes.forEach(id => document.getElementById(id).style.display = 'none');
@@ -350,4 +351,5 @@
 
     // Inicializar exibindo seção de foto
     window.addEventListener('load', () => { alterarTipo(); validarFormulario(); });
+</script>
 {% endblock %}

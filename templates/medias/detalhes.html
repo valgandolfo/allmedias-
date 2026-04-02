@@ -103,7 +103,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    function compartilhar() {
+<script>
+function compartilhar() {
         const rawUrl = "{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}";
         const titulo = "{{ midia.descricao|escapejs }}";
         
@@ -121,4 +122,5 @@
                 .catch(() => alert('Use o link: ' + window.location.href));
         }
     }
+</script>
 {% endblock %}

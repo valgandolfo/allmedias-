@@ -105,7 +105,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    async function ticarItemChecklist(itemId, btn) {
+<script>
+async function ticarItemChecklist(itemId, btn) {
         try {
             const resp = await fetch(`/anotacoes/item/${itemId}/ticar/`, {
                 method: 'POST',
@@ -143,4 +144,5 @@
             ticarItemChecklist(itemId, this);
         });
     });
+</script>
 {% endblock %}

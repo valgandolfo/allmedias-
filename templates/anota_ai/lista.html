@@ -209,7 +209,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+<script>
+const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
 
     function abrirMenu(id, titulo, tipo) {
         document.getElementById('modalTitle').innerText = titulo;
@@ -334,4 +335,5 @@
             console.error('Erro ao favoritar:', e);
         }
     }
+</script>
 {% endblock %}
