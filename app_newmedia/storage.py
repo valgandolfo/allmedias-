@@ -9,9 +9,18 @@ class GoogleDriveStorage(Storage):
     usando google-api-python-client.
     """
     def __init__(self):
-        credentials_path = os.path.join(settings.BASE_DIR, 'credentials.json')
-        token_path = os.path.join(settings.BASE_DIR, 'token.json')
-        self.service = get_drive_service(credentials_path, token_path)
+        self._service = None  # lazy — only connects on first use
+
+    def _get_service(self):
+        if self._service is None:
+            credentials_path = os.path.join(settings.BASE_DIR, 'credentials.json')
+            token_path = os.path.join(settings.BASE_DIR, 'token.json')
+            self._service = get_drive_service(credentials_path, token_path)
+        return self._service
+
+    @property
+    def service(self):
+        return self._get_service()
 
     def _save(self, name, content):
         """
