@@ -104,11 +104,16 @@
 
 {% block extra_js %}
     function compartilhar() {
-        const url = "{% if midia.arquivo %}{{ midia.arquivo.url }}{% endif %}";
+        const rawUrl = "{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}";
         const titulo = "{{ midia.descricao|escapejs }}";
+        
+        let finalUrl = rawUrl;
+        if (rawUrl && !rawUrl.startsWith('http')) {
+            finalUrl = window.location.origin + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
+        }
 
         if (navigator.share) {
-            navigator.share({ title: titulo, url: window.location.origin + url })
+            navigator.share({ title: titulo, url: finalUrl })
                 .catch(err => console.warn('Compartilhar cancelado:', err));
         } else {
             navigator.clipboard.writeText(window.location.href)
