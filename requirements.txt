@@ -4,9 +4,12 @@
 # Framework principal
 Django>=6.0.0,<7.0.0
 
-# Storage e Cloud (Wasabi S3)
+# Storage e Cloud (Google Drive & Wasabi S3)
 django-storages[s3]>=1.14.0,<2.0.0
 boto3>=1.34.0,<2.0.0
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0
 
 # Processamento de imagens e PDFs
 Pillow>=10.0.0,<11.0.0
