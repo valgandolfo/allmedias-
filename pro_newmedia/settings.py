@@ -1,10 +1,14 @@
 
 from __future__ import annotations
 
+import logging
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
 from decouple import Csv, config
+
+logger = logging.getLogger(__name__)
 
 # PyMySQL como substituto do mysqlclient (sem dependências de sistema)
 try:
@@ -107,22 +111,47 @@ DATABASES = {
 }
 
 DATABASE_URL = config("DATABASE_URL", default="")
+
+print(f"[settings] DATABASE_URL present: {bool(DATABASE_URL)}", file=sys.stderr)
 if DATABASE_URL:
-    url = urlparse(DATABASE_URL)
-    ENGINE_MAP = {
-        "mysql": "django.db.backends.mysql",
-        "mysql2": "django.db.backends.mysql",
-        "postgresql": "django.db.backends.postgresql",
-        "postgres": "django.db.backends.postgresql",
-    }
-    engine = ENGINE_MAP.get(url.scheme)
-    if engine:
+    # Log a redacted version of the URL for debugging (hide password)
+    try:
+        _url_redacted = urlparse(DATABASE_URL)
+        print(
+            f"[settings] DATABASE_URL scheme={_url_redacted.scheme!r} "
+            f"host={_url_redacted.hostname!r} "
+            f"port={_url_redacted.port!r} "
+            f"db={_url_redacted.path.lstrip('/')!r}",
+            file=sys.stderr,
+        )
+    except Exception as _e:
+        print(f"[settings] Could not redact DATABASE_URL for logging: {_e}", file=sys.stderr)
+
+    try:
+        url = urlparse(DATABASE_URL)
+        ENGINE_MAP = {
+            "mysql": "django.db.backends.mysql",
+            "mysql2": "django.db.backends.mysql",
+            "postgresql": "django.db.backends.postgresql",
+            "postgres": "django.db.backends.postgresql",
+        }
+        engine = ENGINE_MAP.get(url.scheme)
+        if not engine:
+            raise ValueError(
+                f"Unsupported DATABASE_URL scheme {url.scheme!r}. "
+                f"Expected one of: {list(ENGINE_MAP.keys())}"
+            )
+        if not url.hostname:
+            raise ValueError("DATABASE_URL is missing a hostname.")
+        if not url.path or url.path == "/":
+            raise ValueError("DATABASE_URL is missing a database name (path component).")
+
         db_config = {
             "ENGINE": engine,
             "NAME": url.path.lstrip("/"),
             "USER": url.username or "",
             "PASSWORD": url.password or "",
-            "HOST": url.hostname or "",
+            "HOST": url.hostname,
             "PORT": str(url.port or ""),
         }
         # MySQL-specific options
@@ -132,6 +161,28 @@ if DATABASE_URL:
                 "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
             }
         DATABASES = {"default": db_config}
+        print(
+            f"[settings] Database configured: engine={engine!r} "
+            f"db={db_config['NAME']!r} host={db_config['HOST']!r}",
+            file=sys.stderr,
+        )
+    except Exception as exc:
+        print(f"[settings] ERROR parsing DATABASE_URL: {exc}", file=sys.stderr)
+        raise RuntimeError(
+            f"Failed to parse DATABASE_URL. Refusing to start with an invalid "
+            f"database configuration. Original error: {exc}"
+        ) from exc
+
+# In production (DEBUG=False), SQLite is not supported — Railway has no persistent disk.
+# If DATABASES is still pointing at SQLite at this point, something went wrong.
+_db_engine = DATABASES.get("default", {}).get("ENGINE", "")
+if not DEBUG and _db_engine == "django.db.backends.sqlite3":
+    raise RuntimeError(
+        "DATABASES is configured to use SQLite3 but DEBUG=False (production mode). "
+        "SQLite3 is not supported in production on Railway because there is no "
+        "persistent storage. Please set the DATABASE_URL environment variable to a "
+        "valid MySQL or PostgreSQL connection string."
+    )
 
 
 AUTH_PASSWORD_VALIDATORS = [
