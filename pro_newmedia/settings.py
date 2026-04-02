@@ -26,10 +26,13 @@ _ALLOWED_HOSTS_BASE = [
 
 _CSRF_ORIGINS_BASE = [
     "http://localhost",
+    "http://localhost:8000",
     "http://127.0.0.1",
+    "http://127.0.0.1:8000",
     "https://igeracao.com.br",
     "https://www.igeracao.com.br",
     "https://allmedias-production.up.railway.app",
+    "https://*.railway.app",
 ]
 
 # Permite extensão via env var (ex.: novo domínio no futuro)
