@@ -9,6 +9,9 @@ from decouple import Csv, config
 # PyMySQL como substituto do mysqlclient (sem dependências de sistema)
 try:
     import pymysql
+    # Django 6 exige mysqlclient>=2.2.1; PyMySQL reporta 1.x então sobrescrevemos
+    pymysql.version_info = (2, 2, 1, "final", 0)
+    pymysql.__version__ = "2.2.1"
     pymysql.install_as_MySQLdb()
 except ImportError:
     pass
