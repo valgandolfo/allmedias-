@@ -103,23 +103,26 @@ if DATABASE_URL:
     ENGINE_MAP = {
         "mysql": "django.db.backends.mysql",
         "mysql2": "django.db.backends.mysql",
+        "postgresql": "django.db.backends.postgresql",
+        "postgres": "django.db.backends.postgresql",
     }
     engine = ENGINE_MAP.get(url.scheme)
     if engine:
-        DATABASES = {
-            "default": {
-                "ENGINE": engine,
-                "NAME": url.path.lstrip("/"),
-                "USER": url.username or "",
-                "PASSWORD": url.password or "",
-                "HOST": url.hostname or "",
-                "PORT": str(url.port or "3306"),
-                "OPTIONS": {
-                    "charset": "utf8mb4",
-                    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-                },
-            }
+        db_config = {
+            "ENGINE": engine,
+            "NAME": url.path.lstrip("/"),
+            "USER": url.username or "",
+            "PASSWORD": url.password or "",
+            "HOST": url.hostname or "",
+            "PORT": str(url.port or ""),
         }
+        # MySQL-specific options
+        if "mysql" in engine:
+            db_config["OPTIONS"] = {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
+        DATABASES = {"default": db_config}
 
 
 AUTH_PASSWORD_VALIDATORS = [
