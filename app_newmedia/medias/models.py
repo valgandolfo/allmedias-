@@ -115,10 +115,11 @@ class Midia(models.Model):
                     try:
                         from .utils import otimizar_imagem, gerar_miniatura
                         # Optimizes main image
-                        self.arquivo = otimizar_imagem(self.arquivo)
+                        novo_arquivo = otimizar_imagem(arquivo_file)
+                        self.arquivo = novo_arquivo
                         
                         # Generate thumbnail
-                        thumb_file = gerar_miniatura(self.arquivo)
+                        thumb_file = gerar_miniatura(novo_arquivo)
                         if thumb_file:
                             self.miniatura = thumb_file
                     except Exception as e:

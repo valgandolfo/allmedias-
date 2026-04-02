@@ -154,13 +154,17 @@ class UserProfile(models.Model):
         """
         Sobrescreve save para otimizar imagem de perfil e calcular expiração
         """
+        from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+        
         # Calcular data de expiração se não estiver definida
         if not self.data_expiracao and self.dias_acesso > 0:
             self.data_expiracao = timezone.now() + timezone.timedelta(days=self.dias_acesso)
         
-        # Otimizar foto de perfil antes de salvar
+        # Otimizar foto de perfil antes de salvar (apenas novos uploads)
         if self.foto_perfil:
-            self.foto_perfil = self._otimizar_foto_perfil(self.foto_perfil)
+            arquivo_file = getattr(self.foto_perfil, 'file', None)
+            if isinstance(arquivo_file, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                self.foto_perfil = self._otimizar_foto_perfil(arquivo_file)
         
         super().save(*args, **kwargs)
 
