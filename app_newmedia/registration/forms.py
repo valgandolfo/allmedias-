@@ -483,12 +483,14 @@ class UserProfileForm(forms.ModelForm):
         foto = self.cleaned_data.get('foto_perfil')
         
         if foto:
-            # Verificar formato
-            allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-            if foto.content_type not in allowed_types:
-                raise forms.ValidationError(
-                    'Formato de imagem não suportado. Use JPEG, PNG, GIF ou WebP.'
-                )
+            # Verificar formato apenas se for um novo UploadedFile (que tem content_type)
+            # Quando a edição mantém a imagem existente, 'foto' é um ImageFieldFile que não possui esse atributo.
+            if hasattr(foto, 'content_type'):
+                allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                if foto.content_type not in allowed_types:
+                    raise forms.ValidationError(
+                        'Formato de imagem não suportado. Use JPEG, PNG, GIF ou WebP.'
+                    )
         
         return foto
     

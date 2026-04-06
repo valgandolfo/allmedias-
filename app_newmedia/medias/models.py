@@ -102,26 +102,32 @@ class Midia(models.Model):
         return f"{self.descricao} ({self.get_tipo_display()})"
 
     def save(self, *args, **kwargs):
-        from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
         from django.template.defaultfilters import filesizeformat
 
         if self.arquivo:
             arquivo_file = getattr(self.arquivo, 'file', None)
-            is_novo_upload = isinstance(arquivo_file, (InMemoryUploadedFile, TemporaryUploadedFile))
+            is_novo_upload = not getattr(self.arquivo, '_committed', True)
 
-            if is_novo_upload:
+            if is_novo_upload and arquivo_file:
                 # Otimizar se for imagem
                 if self.is_imagem:
                     try:
                         from .utils import otimizar_imagem, gerar_miniatura
+                        
                         # Optimizes main image
                         novo_arquivo = otimizar_imagem(arquivo_file)
-                        self.arquivo = novo_arquivo
                         
-                        # Generate thumbnail
-                        thumb_file = gerar_miniatura(novo_arquivo)
+                        # Garantir que o nome está presente e salvar pelo FieldFile
+                        nome_arquivo = getattr(novo_arquivo, 'name', 'imagem.jpg')
+                        self.arquivo.save(nome_arquivo, novo_arquivo, save=False)
+                        
+                        # Generate thumbnail (do recém-salvo)
+                        arquivo_para_miniatura = getattr(self.arquivo, 'file', novo_arquivo)
+                        thumb_file = gerar_miniatura(arquivo_para_miniatura)
+                        
                         if thumb_file:
-                            self.miniatura = thumb_file
+                            nome_thumb = getattr(thumb_file, 'name', 'miniatura.jpg')
+                            self.miniatura.save(nome_thumb, thumb_file, save=False)
                     except Exception as e:
                         logger.error(f"Erro ao otimizar imagem no save: {e}")
 

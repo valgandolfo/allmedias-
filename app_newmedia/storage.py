@@ -22,11 +22,47 @@ class GoogleDriveStorage(Storage):
     def service(self):
         return self._get_service()
 
+    def _open(self, name, mode='rb'):
+        """Retorna o arquivo (bytes) baixado do Drive."""
+        from io import BytesIO
+        from django.core.files.base import ContentFile
+        from googleapiclient.http import MediaIoBaseDownload
+
+        if "//" in name:
+            file_id = name.split("//")[0]
+            request = self.service.files().get_media(fileId=file_id)
+            fh = BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            fh.seek(0)
+            # Retorna um ContentFile que suporta .read()
+            return ContentFile(fh.read())
+            
+        import os
+        from django.conf import settings
+        media_root = getattr(settings, 'MEDIA_ROOT', '')
+        with open(os.path.join(media_root, name), 'rb') as local_file:
+            return ContentFile(local_file.read())
+
     def _save(self, name, content):
         """
         Salva o arquivo `content` enviando para o Google Drive via API, 
         e retorna o nome que será armazenado no DB (uma string prefixada pelo File ID).
         """
+        if hasattr(content, 'seek'):
+            try:
+                content.seek(0)
+            except Exception:
+                pass
+        
+        if hasattr(content, 'file') and hasattr(content.file, 'seek'):
+            try:
+                content.file.seek(0)
+            except Exception:
+                pass
+
         # Como o Django manda InMemoryUploadedFile ou um TemporaryUploadedFile, 
         # enviamos o objeto diretamente para o uploader IoBase.
         file_id = upload_from_stream(self.service, content.file, name)
