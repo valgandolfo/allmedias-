@@ -154,17 +154,18 @@ class UserProfile(models.Model):
         """
         Sobrescreve save para otimizar imagem de perfil e calcular expiração
         """
-        from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-        
         # Calcular data de expiração se não estiver definida
         if not self.data_expiracao and self.dias_acesso > 0:
             self.data_expiracao = timezone.now() + timezone.timedelta(days=self.dias_acesso)
         
-        # Otimizar foto de perfil antes de salvar (apenas novos uploads)
-        if self.foto_perfil:
+        # Otimizar foto de perfil — SOMENTE se for um novo upload (não commitado ainda)
+        # Usar _committed=False evita abrir arquivos já salvos no Drive/S3
+        if self.foto_perfil and not getattr(self.foto_perfil, '_committed', True):
             arquivo_file = getattr(self.foto_perfil, 'file', None)
-            if isinstance(arquivo_file, (InMemoryUploadedFile, TemporaryUploadedFile)):
-                self.foto_perfil = self._otimizar_foto_perfil(arquivo_file)
+            if arquivo_file:
+                novo_arquivo = self._otimizar_foto_perfil(arquivo_file)
+                nome = getattr(novo_arquivo, 'name', 'profile.jpg')
+                self.foto_perfil.save(nome, novo_arquivo, save=False)
         
         super().save(*args, **kwargs)
 
@@ -281,9 +282,15 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
+def save_user_profile(sender, instance, created, update_fields, **kwargs):
     """
-    Salva o UserProfile quando o User é salvo
+    Salva o UserProfile quando o User é salvo — ignora saves parciais
+    (ex: update_fields=["last_login"] feito pelo Django no login).
     """
-    if hasattr(instance, 'profile'):
+    # Se update_fields está definido, é um save parcial (ex: last_login).
+    # Não precisamos re-salvar o perfil nesse caso, e evitamos acesso desnecessário ao Drive.
+    if update_fields:
+        return
+    
+    if not created and hasattr(instance, 'profile'):
         instance.profile.save()
