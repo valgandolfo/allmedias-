@@ -275,18 +275,19 @@ if USE_S3_STORAGE:
     AWS_S3_REGION_NAME       = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_S3_ENDPOINT_URL      = config("AWS_S3_ENDPOINT_URL", default="https://s3.us-east-1.wasabisys.com")
     AWS_S3_FILE_OVERWRITE    = False
-    AWS_DEFAULT_ACL          = "public-read"  # ACL por objeto — garante acesso público
-    AWS_QUERYSTRING_AUTH     = False    # URLs limpas sem token
+    AWS_DEFAULT_ACL          = None         # Wasabi bloqueia "public-read" no nível da conta
+    AWS_QUERYSTRING_AUTH     = True         # URLs pré-assinadas com token de autenticação
+    AWS_QUERYSTRING_EXPIRE   = 3600         # Token válido por 1 hora
     AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_CUSTOM_DOMAIN     = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.wasabisys.com"
-    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+    AWS_S3_CUSTOM_DOMAIN     = None         # Sem custom domain — usa endpoint direto com token
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=3600"}
 
     STORAGES = {
         "default":     {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
         "staticfiles": {"BACKEND": _staticfiles_backend},
     }
 
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
