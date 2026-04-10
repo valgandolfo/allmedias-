@@ -180,3 +180,5 @@ celerybeat.pid
 # Migrations iniciais podem ser commitadas se necessário
 # Media files devem ficar apenas local (produção usa S3)
 # ===================================================================
+# Agentes de IA
+.agents/

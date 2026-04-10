@@ -18,6 +18,12 @@ def otimizar_imagem(arquivo, max_width=1280, max_height=1280, quality=75):
     - Retorna um ContentFile pronto para o FileField
     """
     try:
+        if hasattr(arquivo, 'seek'):
+            try:
+                arquivo.seek(0)
+            except Exception:
+                pass
+
         img = Image.open(arquivo)
         filename = getattr(arquivo, 'name', 'imagem.jpg')
         base_name = os.path.splitext(filename)[0]

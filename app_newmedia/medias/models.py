@@ -117,13 +117,12 @@ class Midia(models.Model):
                         # Optimizes main image
                         novo_arquivo = otimizar_imagem(arquivo_file)
                         
+                        # Generate thumbnail (antes de salvar no Drive, para que a stream não seja fechada)
+                        thumb_file = gerar_miniatura(novo_arquivo)
+                        
                         # Garantir que o nome está presente e salvar pelo FieldFile
                         nome_arquivo = getattr(novo_arquivo, 'name', 'imagem.jpg')
                         self.arquivo.save(nome_arquivo, novo_arquivo, save=False)
-                        
-                        # Generate thumbnail (do recém-salvo)
-                        arquivo_para_miniatura = getattr(self.arquivo, 'file', novo_arquivo)
-                        thumb_file = gerar_miniatura(arquivo_para_miniatura)
                         
                         if thumb_file:
                             nome_thumb = getattr(thumb_file, 'name', 'miniatura.jpg')
