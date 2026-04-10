@@ -275,7 +275,7 @@ if USE_S3_STORAGE:
     AWS_S3_REGION_NAME       = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_S3_ENDPOINT_URL      = config("AWS_S3_ENDPOINT_URL", default="https://s3.us-east-1.wasabisys.com")
     AWS_S3_FILE_OVERWRITE    = False
-    AWS_DEFAULT_ACL          = None     # Bucket Policy garante acesso público (não precisa de ACL por objeto)
+    AWS_DEFAULT_ACL          = "public-read"  # ACL por objeto (Bucket Policy não disponível no plano)
     AWS_QUERYSTRING_AUTH     = False    # URLs limpas sem token expirado
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     AWS_S3_ADDRESSING_STYLE  = "path"  # Wasabi requer path-style (não virtual-hosted)
