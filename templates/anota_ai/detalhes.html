@@ -69,6 +69,39 @@
                 <li class="list-group-item border-0 px-0">{{ item.texto }}</li>
                 {% endfor %}
             </ol>
+        {% elif anotacao.tipo == 'link' %}
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="fs-3">🔗</span>
+                    <span class="fw-bold text-primary fs-5">Link</span>
+                </div>
+                <hr class="my-2">
+                <div class="mb-2">
+                    <span class="text-muted small">Descrição</span>
+                    <div class="fw-semibold mt-1">{{ anotacao.titulo }}</div>
+                </div>
+                {% if anotacao.texto %}
+                <div class="mt-3">
+                    <span class="text-muted small">Link</span>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="text-break text-primary font-monospace small flex-grow-1"
+                              style="word-break: break-all;">{{ anotacao.texto }}</span>
+                        <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-primary btn-sm flex-shrink-0" title="Abrir link">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="d-grid mt-4">
+                    <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-primary">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Abrir Link
+                    </a>
+                </div>
+                {% else %}
+                <p class="text-muted mt-2">Nenhum link cadastrado.</p>
+                {% endif %}
+            </div>
         {% else %}
             <div class="text-break" style="white-space: pre-wrap;">{{ anotacao.texto }}</div>
         {% endif %}

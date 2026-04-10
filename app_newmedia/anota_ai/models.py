@@ -10,6 +10,7 @@ class Anotacao(models.Model):
         ('lista_numerada', 'Lista Numerada'),
         ('checklist', 'Checklist'),
         ('pix', 'PIX'),
+        ('link', 'Link'),
     ]
 
     usuario = models.ForeignKey(

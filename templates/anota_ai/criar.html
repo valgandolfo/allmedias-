@@ -55,6 +55,20 @@
                 {{ form.pix_valor }}
             </div>
         </div>
+
+        <!-- Área LINK (inicialmente oculta) -->
+        <div id="areaLink" class="d-none">
+            <div class="mb-3">
+                <label class="form-label">URL do Link</label>
+                <div class="input-group">
+                    {{ form.texto }}
+                    <button type="button" class="btn btn-outline-secondary" id="btnTestarLink" title="Testar link" onclick="testarLink()">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                </div>
+                <div class="form-text">Cole aqui o endereço completo (ex: https://...)</div>
+            </div>
+        </div>
         
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary">Salvar Anotação</button>
@@ -135,13 +149,21 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     
     function toggleCampos() {
         const tipo = selectTipo.value;
+        const areaLink = document.getElementById('areaLink');
+
         if (tipo === 'pix') {
             areaTexto.classList.add('d-none');
             areaPix.classList.remove('d-none');
+            areaLink.classList.add('d-none');
+        } else if (tipo === 'link') {
+            areaTexto.classList.add('d-none');
+            areaPix.classList.add('d-none');
+            areaLink.classList.remove('d-none');
         } else {
             areaTexto.classList.remove('d-none');
             areaPix.classList.add('d-none');
-            
+            areaLink.classList.add('d-none');
+
             if (tipo === 'checklist') {
                 labelTexto.innerText = 'Itens do Checklist (um por linha)';
             } else if (tipo === 'lista_numerada') {
@@ -152,6 +174,11 @@ const selectTipo = document.querySelector('select[name="tipo"]');
 
             garantirPrefixoInicial();
         }
+    }
+
+    function testarLink() {
+        const url = document.querySelector('textarea[name="texto"]').value.trim();
+        if (url) window.open(url, '_blank');
     }
     
     selectTipo.addEventListener('change', toggleCampos);

@@ -148,6 +148,13 @@ def anotacao_favoritar(request, pk):
     })
 
 def _montar_texto_compartilhamento(anotacao):
+    if anotacao.tipo == 'link':
+        titulo = anotacao.titulo or 'Link'
+        url = (anotacao.texto or '').strip()
+        if url:
+            return f"{titulo}\n\n{url}"
+        return titulo
+
     if anotacao.tipo == 'pix':
         linhas = [
             f"Nome: {anotacao.pix_nome or '-'}",
@@ -257,7 +264,7 @@ def processar_itens_anotacao(anotacao, texto_bruto):
     # Sempre limpar itens antigos ao salvar para recriar baseados no texto atual
     anotacao.itens.all().delete()
     
-    if anotacao.tipo in ['texto', 'pix']:
+    if anotacao.tipo in ['texto', 'pix', 'link']:
         return
 
     if not texto_bruto:

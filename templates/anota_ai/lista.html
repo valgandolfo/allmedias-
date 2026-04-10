@@ -114,6 +114,7 @@
         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="checklist" onclick="filtrarTipo('checklist')">Checklist</button>
         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="lista_numerada" onclick="filtrarTipo('lista_numerada')">Lista</button>
         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pix" onclick="filtrarTipo('pix')">PIX</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="link" onclick="filtrarTipo('link')">🔗 Link</button>
     </div>
 
     <!-- Mensagens -->
@@ -138,6 +139,7 @@
                 {% elif anotacao.tipo == 'checklist' %}✅
                 {% elif anotacao.tipo == 'lista_numerada' %}🔢
                 {% elif anotacao.tipo == 'pix' %}📱
+                {% elif anotacao.tipo == 'link' %}🔗
                 {% else %}📄{% endif %}
             </div>
 
