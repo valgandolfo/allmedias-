@@ -278,6 +278,7 @@ if USE_S3_STORAGE:
     AWS_DEFAULT_ACL          = "public-read"   # arquivos públicos (imagens/mídias)
     AWS_QUERYSTRING_AUTH     = False            # URLs limpas sem token expirado
     AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_ADDRESSING_STYLE  = "path"          # Wasabi requer path-style (não virtual-hosted)
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
     STORAGES = {
