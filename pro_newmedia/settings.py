@@ -278,7 +278,6 @@ if USE_S3_STORAGE:
     AWS_DEFAULT_ACL          = None     # Bucket Policy garante acesso público
     AWS_QUERYSTRING_AUTH     = False    # URLs limpas sem token
     AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_ADDRESSING_STYLE  = "path"  # Wasabi requer path-style (não virtual-hosted)
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
     STORAGES = {
@@ -286,8 +285,8 @@ if USE_S3_STORAGE:
         "staticfiles": {"BACKEND": _staticfiles_backend},
     }
 
-    # URL pública das mídias no Wasabi
-    MEDIA_URL = f"https://s3.us-east-1.wasabisys.com/allmedias-prod/"
+    # URL pública — formato virtual-hosted igual ao projeto oncristo
+    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.wasabisys.com/"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
