@@ -113,22 +113,32 @@ class Midia(models.Model):
                 if self.is_imagem:
                     try:
                         from .utils import otimizar_imagem, gerar_miniatura
-                        
-                        # Optimizes main image
+
+                        # 1. Otimiza imagem principal
                         novo_arquivo = otimizar_imagem(arquivo_file)
-                        
-                        # Generate thumbnail (antes de salvar no Drive, para que a stream não seja fechada)
+
+                        # 2. Gera miniatura ANTES de qualquer upload (stream ainda intacta)
+                        if hasattr(novo_arquivo, 'seek'):
+                            novo_arquivo.seek(0)
                         thumb_file = gerar_miniatura(novo_arquivo)
-                        
-                        # Garantir que o nome está presente e salvar pelo FieldFile
+
+                        # 3. Salva imagem principal no Wasabi
+                        if hasattr(novo_arquivo, 'seek'):
+                            novo_arquivo.seek(0)
                         nome_arquivo = getattr(novo_arquivo, 'name', 'imagem.jpg')
                         self.arquivo.save(nome_arquivo, novo_arquivo, save=False)
-                        
+                        logger.info(f"[Midia.save] Imagem salva: {self.arquivo.name}")
+                    except Exception as e:
+                        logger.error(f"Erro ao salvar imagem principal: {e}", exc_info=True)
+
+                    # 4. Salva miniatura num bloco independente
+                    try:
                         if thumb_file:
                             nome_thumb = getattr(thumb_file, 'name', 'miniatura.jpg')
                             self.miniatura.save(nome_thumb, thumb_file, save=False)
+                            logger.info(f"[Midia.save] Miniatura salva: {self.miniatura.name}")
                     except Exception as e:
-                        logger.error(f"Erro ao otimizar imagem no save: {e}")
+                        logger.error(f"Erro ao salvar miniatura: {e}", exc_info=True)
 
                 # Gravar tamanho enquanto arquivo ainda está em memória/disco
                 try:
