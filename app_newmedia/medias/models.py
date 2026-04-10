@@ -69,15 +69,15 @@ class Midia(models.Model):
         is_novo = self.arquivo and not getattr(self.arquivo, '_committed', True)
 
         if is_novo:
-            # Registra tamanho antes de qualquer processamento
+            # Processamento exclusivo para imagens (otimiza antes de medir o tamanho)
+            if self._arquivo_eh_imagem():
+                self._processar_imagem()
+
+            # Captura tamanho APÓS otimização — reflete o arquivo real enviado ao Wasabi
             try:
                 self.tamanho = filesizeformat(self.arquivo.size)
             except Exception:
                 self.tamanho = None
-
-            # Processamento exclusivo para imagens
-            if self._arquivo_eh_imagem():
-                self._processar_imagem()
 
         super().save(*args, **kwargs)
 
