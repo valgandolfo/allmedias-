@@ -275,7 +275,7 @@ if USE_S3_STORAGE:
     AWS_S3_REGION_NAME       = config("AWS_S3_REGION_NAME", default="us-east-1")
     AWS_S3_ENDPOINT_URL      = config("AWS_S3_ENDPOINT_URL", default="https://s3.us-east-1.wasabisys.com")
     AWS_S3_FILE_OVERWRITE    = False
-    AWS_DEFAULT_ACL          = None     # Bucket Policy garante acesso público
+    AWS_DEFAULT_ACL          = "public-read"  # ACL por objeto — garante acesso público
     AWS_QUERYSTRING_AUTH     = False    # URLs limpas sem token
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
