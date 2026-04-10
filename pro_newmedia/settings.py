@@ -272,8 +272,8 @@ if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID        = config("AWS_ACCESS_KEY_ID", default="")
     AWS_SECRET_ACCESS_KEY    = config("AWS_SECRET_ACCESS_KEY", default="")
     AWS_STORAGE_BUCKET_NAME  = config("AWS_STORAGE_BUCKET_NAME", default="allmedias-prod")
-    AWS_S3_REGION_NAME       = config("AWS_S3_REGION_NAME", default="us-west-1")
-    AWS_S3_ENDPOINT_URL      = config("AWS_S3_ENDPOINT_URL", default="https://s3.us-west-1.wasabisys.com")
+    AWS_S3_REGION_NAME       = config("AWS_S3_REGION_NAME", default="us-east-1")
+    AWS_S3_ENDPOINT_URL      = config("AWS_S3_ENDPOINT_URL", default="https://s3.us-east-1.wasabisys.com")
     AWS_S3_FILE_OVERWRITE    = False
     AWS_DEFAULT_ACL          = "public-read"   # arquivos públicos (imagens/mídias)
     AWS_QUERYSTRING_AUTH     = False            # URLs limpas sem token expirado
@@ -286,7 +286,7 @@ if USE_S3_STORAGE:
     }
 
     # URL pública das mídias no Wasabi
-    MEDIA_URL = f"https://s3.us-west-1.wasabisys.com/allmedias-prod/"
+    MEDIA_URL = f"https://s3.us-east-1.wasabisys.com/allmedias-prod/"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
