@@ -278,6 +278,7 @@ if USE_S3_STORAGE:
     AWS_DEFAULT_ACL          = "public-read"  # ACL por objeto — garante acesso público
     AWS_QUERYSTRING_AUTH     = False    # URLs limpas sem token
     AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_CUSTOM_DOMAIN     = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.wasabisys.com"
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
     STORAGES = {
@@ -285,8 +286,7 @@ if USE_S3_STORAGE:
         "staticfiles": {"BACKEND": _staticfiles_backend},
     }
 
-    # URL pública — formato virtual-hosted igual ao projeto oncristo
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.wasabisys.com/"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
