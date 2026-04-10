@@ -83,11 +83,27 @@ class GoogleDriveStorage(Storage):
                 "Renove o GOOGLE_TOKEN_JSON no Railway."
             ) from e
 
+        # Resolve o stream: ContentFile expõe diretamente via .read(),
+        # InMemoryUploadedFile e TemporaryUploadedFile usam .file
+        if hasattr(content, 'file'):
+            stream = content.file
+        else:
+            stream = content
+
+        # Garante que o ponteiro está no início
+        if hasattr(stream, 'seek'):
+            try:
+                stream.seek(0)
+            except Exception:
+                pass
+
         try:
-            file_id = upload_from_stream(service, content.file, name)
+            logger.info("[GoogleDriveStorage] Iniciando upload: %s", name)
+            file_id = upload_from_stream(service, stream, name)
+            logger.info("[GoogleDriveStorage] Upload concluído. file_id=%s", file_id)
         except Exception as e:
             self._service = None  # força reconexão na próxima tentativa
-            logger.error("[GoogleDriveStorage] Erro no upload para o Drive: %s", e)
+            logger.error("[GoogleDriveStorage] Erro no upload para o Drive: %s", e, exc_info=True)
             raise
 
         # Torna o arquivo público para visualização web na hora do upload
