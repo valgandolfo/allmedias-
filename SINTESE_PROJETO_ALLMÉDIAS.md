@@ -14,8 +14,6 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 - **Backend**: Django 6.x
 - **Frontend**: Templates HTML + Bootstrap 5 + JavaScript (Fetch API / CSS Grid)
 - **PWA**: Manifest + Service Worker
-- **Tarefas em Background / Fila**: django-q2 (utilizando o banco relacional como broker, ex: SQLite/MySQL)
-- **OCR (Optical Character Recognition)**: Tesseract C++ (`pytesseract`) + PyPDF2
 - **Banco Dev**: SQLite
 - **Banco Prod**: MYSQL (Railway via DATABASE_URL)
 - **Storage**: Wasabi S3 (prod) / Local (dev)
@@ -24,7 +22,6 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 ### **Filosofia de Desenvolvimento**
 - ✅ **Menos camadas**: Navegador → Django → Banco/S3
 - ✅ **PWA nativo**: Site instalável como app na home screen
-- ✅ **Assincronicidade e Performace**: Operações custosas (como OCR de imagens) são jogadas para fila de processamento sem prender a tela do usuário.
 - ✅ **Mobile-first**: Design responsivo (CSS Grid nativo), botões FAB (Floating Action Button), prioridade na usabilidade em telas pequenas.
 
 ---
@@ -37,7 +34,7 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 **Recursos:**
 - Upload de arquivos (fotos, docs, pdfs, audio e video).
 - Armazenamento em Wasabi S3.
-- **Extração inteligente (OCR Async)**: Assim que uma imagem ou PDF é enviada, uma background task processa o arquivo, extraindo as top 5 palavras-chave (removendo artigos e preposições) e gravando como hashtags no campo `#tags` automaticamente.
+- Tags manuais para organização.
 - Otimização automática de imagens.
 - Layout de exibição customizado em mosaico responsivo.
 
@@ -103,17 +100,8 @@ Entidade recém gerada contendo os metadados fixos:
 
 ## 🚀 **ROTINAS ASSÍNCRONAS & DEPLOY**
 
-### **Background Tasks (Django Q)**
-- Configurado via modelo ORM do próprio banco (`Q_CLUSTER = {'orm': 'default'}`). Não necessita alocação de Redis, gerando enorme economia computacional em provedores como Railway.
-- **Gatilho**: Ao salvar (.save()) uma `Midia`, utilizou-se `transaction.on_commit` para engatilhar a function de extração NLP assíncrona só após o banco físico atestar segurança ACID.
-
 ### **Requisitos de Build (Railway)**
-Para garantir que as integrações C++ (Tesseract) funcionem sem quebrar no ambiente Linux Serverless da Railway:
-Foi gerado na raiz o arquivo **`Aptfile`**:
-```bash
-tesseract-ocr
-tesseract-ocr-por
-```
+Para garantir que as integrações funcionem sem quebrar no ambiente Linux Serverless da Railway, não há dependências específicas de sistema além das padrão do Python/Django.
 
 ### **Comportamento PWA**
 Os arquivos essenciais que ditam a instalação no ecossistema Android e iOS da Apple via Safari estão atrelados ao projeto em:
