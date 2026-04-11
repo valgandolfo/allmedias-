@@ -213,9 +213,6 @@ if DATABASE_URL:
             f"Failed to parse DATABASE_URL. Refusing to start with an invalid "
             f"database configuration. Original error: {exc}"
         ) from exc
-        "persistent storage. Please set the DATABASE_URL environment variable to a "
-        "valid MySQL or PostgreSQL connection string."
-    )
 
 
 AUTH_PASSWORD_VALIDATORS = [
