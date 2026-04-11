@@ -1,14 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enviar e Receber Medias - AllMedias</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
-    <style>
-        body { padding: 10px; background-color: #f8f9fa; font-family: sans-serif; }
-        .header-title { background: #0d6efd; color: white; padding: 15px; border-radius: 8px 8px 0 0; margin: -10px -10px 15px -10px; font-weight: bold; }
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Transferências - AllMedias{% endblock %}
+
+{% block extra_css %}
+<style>
+
+        
+        .header-title { background: #0d6efd; color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; }
         .section-header { background: #e9ecef; padding: 8px 15px; font-weight: bold; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6; margin: 20px -10px 10px -10px; text-align: center; }
         .list-container { background: white; margin: 0 -10px; border-bottom: 1px solid #dee2e6; }
         .item-row { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
@@ -29,9 +28,12 @@
         
         .empty-msg { padding: 30px; text-align: center; color: #999; font-style: italic; }
         .container-content { padding-bottom: 100px; }
-    </style>
-</head>
-<body>
+    
+</style>
+{% endblock %}
+
+{% block content %}
+
     <div class="header-title text-center">
         Enviar e Receber Medias
     </div>
@@ -87,20 +89,17 @@
 
     <!-- BOTÕES INFERIORES -->
     <div class="footer-buttons">
-        <a href="{% url 'transferir_caixa_entrada' %}" class="btn-footer btn btn-warning">
+        <a href="{% url 'transferir_caixa_entrada' %}" class="btn-footer btn btn-warning text-decoration-none">
             📥 Entrada
         </a>
-        <a href="{% url 'transferir_enviar' %}" class="btn-footer btn btn-primary">
+        <a href="{% url 'transferir_enviar' %}" class="btn-footer btn btn-primary text-decoration-none">
             ➕ Add
         </a>
     </div>
+{% endblock %}
 
-    <!-- Botão flutuante Home -->
-    <a href="/" class="btn-fab btn-fab-home" title="Início">
-        <i class="bi bi-house-fill"></i>
-    </a>
+{% block extra_js %}
+<script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-</body>
-</html>
+</script>
+{% endblock %}

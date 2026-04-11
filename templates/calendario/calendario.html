@@ -149,6 +149,64 @@
     color: white;
     opacity: 0.9;
   }
+
+  /* Responsividade Calendário (Mobile) */
+  @media (max-width: 767.98px) {
+    .calendar-header-title {
+      font-size: 1.4rem;
+    }
+    .calendar-container {
+      padding: 0.5rem;
+      margin-top: 1rem;
+    }
+    .calendar-grid {
+      gap: 2px;
+    }
+    .weekday-header {
+      font-size: 0.6rem;
+      padding-bottom: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+    .calendar-day {
+      min-height: 0;
+      padding: 4px 2px;
+      border-radius: 6px;
+    }
+    .day-number {
+      font-size: 0.8rem;
+      text-align: center;
+      display: block;
+    }
+    .event-dot-container {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2px;
+      margin-top: 4px;
+    }
+    .event-dot {
+      display: block !important;
+      width: 6px !important;
+      height: 6px !important;
+      border-radius: 50% !important;
+      background-color: var(--event-color, var(--primary-color)) !important;
+      font-size: 0 !important;
+      color: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      white-space: normal !important;
+    }
+    .event-dot::before {
+      display: none !important;
+    }
+    /* Menu superior de controle mais compacto */
+    .btn-group .btn {
+      padding: 0.25rem 0.4rem;
+      font-size: 0.8rem;
+    }
+  }
 </style>
 {% endblock %}
 
