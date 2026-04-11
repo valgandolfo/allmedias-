@@ -292,12 +292,23 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
             const isAtivo = btn.getAttribute('data-tipo') === tipo;
             btn.classList.toggle('active', isAtivo);
             
+            // Reset all buttons to outline state first
+            btn.classList.remove('btn-primary', 'btn-warning');
             if (btn.getAttribute('data-tipo') === 'favoritos') {
-                btn.classList.remove('btn-warning');
                 btn.classList.add('btn-outline-warning');
-            } else if (!isAtivo) {
-                btn.classList.remove('btn-primary');
+            } else {
                 btn.classList.add('btn-outline-secondary');
+            }
+            
+            // Then set active button to solid color
+            if (isAtivo) {
+                if (btn.getAttribute('data-tipo') === 'favoritos') {
+                    btn.classList.remove('btn-outline-warning');
+                    btn.classList.add('btn-warning');
+                } else {
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-primary');
+                }
             }
         });
 
@@ -310,12 +321,19 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const isFav = btn.getAttribute('data-tipo') === 'favoritos';
             btn.classList.toggle('active', isFav);
-            btn.classList.toggle('btn-warning', isFav);
-            btn.classList.toggle('btn-outline-warning', !isFav);
             
-            if (!isFav) {
-                btn.classList.remove('btn-primary');
+            // Reset all buttons to outline state first
+            btn.classList.remove('btn-primary', 'btn-warning');
+            if (btn.getAttribute('data-tipo') === 'favoritos') {
+                btn.classList.add('btn-outline-warning');
+            } else {
                 btn.classList.add('btn-outline-secondary');
+            }
+            
+            // Then set active button to solid color
+            if (isFav) {
+                btn.classList.remove('btn-outline-warning');
+                btn.classList.add('btn-warning');
             }
         });
 
