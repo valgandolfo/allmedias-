@@ -143,61 +143,58 @@ TEMPLATES = [
 WSGI_APPLICATION = "pro_newmedia.wsgi.application"
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+DATABASES = {}
 
 DATABASE_URL = config("DATABASE_URL", default="")
 
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is required. Configure it in environment variables.")
+
 print(f"[settings] DATABASE_URL present: {bool(DATABASE_URL)}", file=sys.stderr)
-if DATABASE_URL:
-    # Log a redacted version of the URL for debugging (hide password)
-    try:
-        _url_redacted = urlparse(DATABASE_URL)
-        print(
-            f"[settings] DATABASE_URL scheme={_url_redacted.scheme!r} "
-            f"host={_url_redacted.hostname!r} "
-            f"port={_url_redacted.port!r} "
-            f"db={_url_redacted.path.lstrip('/')!r}",
-            file=sys.stderr,
+# Log a redacted version of the URL for debugging (hide password)
+try:
+    _url_redacted = urlparse(DATABASE_URL)
+    print(
+        f"[settings] DATABASE_URL scheme={_url_redacted.scheme!r} "
+        f"host={_url_redacted.hostname!r} "
+        f"port={_url_redacted.port!r} "
+        f"db={_url_redacted.path.lstrip('/')!r}",
+        file=sys.stderr,
+    )
+except Exception as _e:
+    print(f"[settings] Could not redact DATABASE_URL for logging: {_e}", file=sys.stderr)
+
+try:
+    url = urlparse(DATABASE_URL)
+    ENGINE_MAP = {
+        "mysql": "django.db.backends.mysql",
+        "mysql2": "django.db.backends.mysql",
+        "postgresql": "django.db.backends.postgresql",
+        "postgres": "django.db.backends.postgresql",
+        "sqlite": "django.db.backends.sqlite3",
+    }
+    engine = ENGINE_MAP.get(url.scheme)
+    if not engine:
+        raise ValueError(
+            f"Unsupported DATABASE_URL scheme {url.scheme!r}. "
+            f"Expected one of: {list(ENGINE_MAP.keys())}"
         )
-    except Exception as _e:
-        print(f"[settings] Could not redact DATABASE_URL for logging: {_e}", file=sys.stderr)
+    if not url.hostname and engine != "django.db.backends.sqlite3":
+        raise ValueError("DATABASE_URL is missing a hostname.")
+    if not url.path or url.path == "/":
+        raise ValueError("DATABASE_URL is missing a database name (path component).")
 
-    try:
-        url = urlparse(DATABASE_URL)
-        ENGINE_MAP = {
-            "mysql": "django.db.backends.mysql",
-            "mysql2": "django.db.backends.mysql",
-            "postgresql": "django.db.backends.postgresql",
-            "postgres": "django.db.backends.postgresql",
-            "sqlite": "django.db.backends.sqlite3",
-        }
-        engine = ENGINE_MAP.get(url.scheme)
-        if not engine:
-            raise ValueError(
-                f"Unsupported DATABASE_URL scheme {url.scheme!r}. "
-                f"Expected one of: {list(ENGINE_MAP.keys())}"
-            )
-        if not url.hostname and engine != "django.db.backends.sqlite3":
-            raise ValueError("DATABASE_URL is missing a hostname.")
-        if not url.path or url.path == "/":
-            raise ValueError("DATABASE_URL is missing a database name (path component).")
-
-        db_config = {
-            "ENGINE": engine,
-            "NAME": url.path.lstrip("/"),
-            "USER": url.username or "",
-            "PASSWORD": url.password or "",
-            "HOST": url.hostname,
-            "PORT": str(url.port or ""),
-        }
-        # MySQL-specific options
-        if "mysql" in engine:
-            db_config["OPTIONS"] = {
+    db_config = {
+        "ENGINE": engine,
+        "NAME": url.path.lstrip("/"),
+        "USER": url.username or "",
+        "PASSWORD": url.password or "",
+        "HOST": url.hostname,
+        "PORT": str(url.port or ""),
+    }
+    # MySQL-specific options
+    if "mysql" in engine:
+        db_config["OPTIONS"] = {
                 "charset": "utf8mb4",
                 "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
             }
