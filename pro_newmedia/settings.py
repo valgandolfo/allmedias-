@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "app_newmedia.anota_ai",
     "app_newmedia.conversor",
     "app_newmedia.transferir",
+    "app_newmedia.calendario",
     "django_q",
 ]
 
