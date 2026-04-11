@@ -15,7 +15,7 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 - **Frontend**: Templates HTML + Bootstrap 5 + JavaScript
 - **PWA**: Manifest + Service Worker
 - **Banco Dev**: SQLite
-- **Banco Prod**: PostgreSQL (Railway via DATABASE_URL)
+- **Banco Prod**: MYSQL (Railway via DATABASE_URL)
 - **Storage**: Wasabi S3 (prod) / Local (dev)
 - **Autenticação**: Django Sessions (substitui JWT)
 

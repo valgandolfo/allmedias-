@@ -109,6 +109,7 @@ INSTALLED_APPS = [
     "app_newmedia.anota_ai",
     "app_newmedia.conversor",
     "app_newmedia.transferir",
+    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -173,6 +174,7 @@ if DATABASE_URL:
             "mysql2": "django.db.backends.mysql",
             "postgresql": "django.db.backends.postgresql",
             "postgres": "django.db.backends.postgresql",
+            "sqlite": "django.db.backends.sqlite3",
         }
         engine = ENGINE_MAP.get(url.scheme)
         if not engine:
@@ -180,7 +182,7 @@ if DATABASE_URL:
                 f"Unsupported DATABASE_URL scheme {url.scheme!r}. "
                 f"Expected one of: {list(ENGINE_MAP.keys())}"
             )
-        if not url.hostname:
+        if not url.hostname and engine != "django.db.backends.sqlite3":
             raise ValueError("DATABASE_URL is missing a hostname.")
         if not url.path or url.path == "/":
             raise ValueError("DATABASE_URL is missing a database name (path component).")
@@ -333,4 +335,21 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+
+# ===================================================================
+# BACKGROUND TASKS (DJANGO-Q2)
+# ===================================================================
+Q_CLUSTER = {
+    'name': 'newmedia_cluster',
+    'workers': 2,
+    'recycle': 100,
+    'timeout': 90,
+    'retry': 120,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'orm': 'default'  # usa o banco de dados principal (MySQL/SQLite)
+}
 
