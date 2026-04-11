@@ -34,6 +34,12 @@ def home(request):
 
     total_midias = Midia.objects.filter(usuario=request.user).count()
     total_favoritos = Midia.objects.filter(usuario=request.user, favorito=True).count()
+    recentes = Midia.objects.filter(usuario=request.user).order_by('-criado_em')[:3]
+
+    import datetime
+    agora = datetime.datetime.now()
+    meses_pt = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    data_formatada = f"Hoje, {agora.day} {meses_pt[agora.month - 1]}"
 
     context = {
         'profile': profile,
@@ -43,6 +49,8 @@ def home(request):
         'acesso_ativo': profile.acesso_ativo,
         'total_midias': total_midias,
         'total_favoritos': total_favoritos,
+        'recentes': recentes,
+        'data_formatada': data_formatada,
     }
 
     return render(request, "home.html", context)

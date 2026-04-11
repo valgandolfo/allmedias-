@@ -16,6 +16,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     padding: 1.5rem;
     margin-top: 1.5rem;
+    color: #1a1a2e; /* Fix readibility inside white container on dark mode */
   }
   .calendar-grid {
     display: grid;
@@ -193,9 +194,9 @@
 <!-- Modal Dia -->
 <div class="modal fade" id="dayModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius: 12px;">
+    <div class="modal-content" style="border-radius: 12px; color: #1a1a2e;">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title" style="font-family: serif; font-weight: bold; font-size: 1.5rem;" id="modalDayTitle">Dia X</h5>
+        <h5 class="modal-title" style="font-family: serif; font-weight: bold; font-size: 1.5rem; color: #1a1a2e;" id="modalDayTitle">Dia X</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
