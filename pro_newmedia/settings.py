@@ -110,7 +110,6 @@ INSTALLED_APPS = [
     "app_newmedia.conversor",
     "app_newmedia.transferir",
     "app_newmedia.calendario",
-    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -336,21 +335,4 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
-
-# ===================================================================
-# BACKGROUND TASKS (DJANGO-Q2)
-# ===================================================================
-Q_CLUSTER = {
-    'name': 'newmedia_cluster',
-    'workers': 2,
-    'recycle': 100,
-    'timeout': 90,
-    'retry': 120,
-    'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
-    'cpu_affinity': 1,
-    'label': 'Django Q',
-    'orm': 'default'  # usa o banco de dados principal (MySQL/SQLite)
-}
 

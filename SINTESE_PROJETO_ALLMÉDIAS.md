@@ -80,7 +80,7 @@ A infraestrutura foi compactada. Tabelas legadas redundantes (como "Perfil separ
 ### **Modelos (Tabelas Principais)**
 
 #### **`app_newmedia.medias.models.Midia` (TBMIDEAS)**
-Armazena a raiz dos arquivos, metadados, tamanhos e hashtags automáticas do Tesseract (`django-q`).
+Armazena a raiz dos arquivos, metadados e tamanhos. Tags são adicionadas manualmente pelos usuários.
 
 #### **`app_newmedia.anota_ai.models.Anotacao` (TBANOTAAI)**
 Abraça de forma dinâmica texto, pix e checklist usando campos nulos estendidos e enumeração de Tipo, juntamente aos fragmentos filhos `ItemAnotacao` para as checklists.
