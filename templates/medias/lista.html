@@ -3,7 +3,8 @@
 {% block title %}Minhas Mídias - NewMedia{% endblock %}
 
 {% block extra_css %}
-    .media-item {
+<style>
+.media-item {
         padding: 12px;
         border-bottom: 1px solid #eee;
         display: flex;
@@ -53,30 +54,9 @@
     }
     .btn-star.ativo { color: #ffc107; }
 
-    .btn-fab {
-        position: fixed;
-        bottom: 20px;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        text-decoration: none;
-        z-index: 1000;
-    }
-    .btn-fab-add {
-        right: 20px;
-        background: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
-    }
-    .btn-fab-home {
-        left: 20px;
-        background: #6c757d;
-        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
-    }
+    
+    
+    
 
     .search-bar {
         position: sticky;
@@ -91,6 +71,7 @@
         color: white !important;
         border-color: var(--primary-color) !important;
     }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -197,14 +178,11 @@
     </div>
 
     <!-- Botão flutuante: Nova mídia (direita) -->
-    <a href="{% url 'media_criar' %}" class="btn-fab btn-fab-add" title="Nova mídia">
-        <i class="bi bi-plus-lg"></i>
-    </a>
+    {% url 'media_criar' as url_media_criar %}
+    {% include "components/fab.html" with url=url_media_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Adicionar" %}
 
     <!-- Botão flutuante: Voltar para home (esquerda) -->
-    <a href="{% url 'home' %}" class="btn-fab btn-fab-home" title="Início">
-        <i class="bi bi-house-fill"></i>
-    </a>
+    {% include "components/fab.html" with url="/" icon="bi-house-fill" position="left" color="#f43f5e" title="Início" %}
 
     <!-- Modal de opções -->
     <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">

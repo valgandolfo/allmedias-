@@ -1,0 +1,6 @@
+{# components/fab.html #}
+{# arguments: url (str), icon (str), position (left|right), color (hex or var), title (str), extra_classes (str) #}
+
+<a href="{{ url|default:'#' }}" class="btn-fab btn-fab-{{ position|default:'right' }} {{ extra_classes }}" title="{{ title|default:'' }}" style="--neon-color: {{ color|default:'var(--primary-color)' }};">
+    <i class="bi {{ icon|default:'bi-star' }}"></i>
+</a>

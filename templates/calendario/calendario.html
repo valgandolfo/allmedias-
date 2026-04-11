@@ -8,15 +8,18 @@
     font-family: serif;
     font-size: 2rem;
     font-weight: bold;
-    color: #1a1a2e;
+    color: var(--text-main);
   }
   .calendar-container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     padding: 1.5rem;
     margin-top: 1.5rem;
-    color: #1a1a2e; /* Fix readibility inside white container on dark mode */
+    color: var(--text-main);
   }
   .calendar-grid {
     display: grid;
@@ -27,35 +30,37 @@
     text-align: center;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #888;
+    color: #aaa;
     text-transform: uppercase;
     padding-bottom: 0.5rem;
   }
   .calendar-day {
     aspect-ratio: 1 / 1;
     border-radius: 8px;
-    border: 1px solid #eee;
+    border: 1px solid var(--glass-border);
     padding: 8px;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
     min-height: 80px;
+    color: var(--text-main);
   }
   .calendar-day:hover {
-    background: #f8f9fa;
-    border-color: #ddd;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   .calendar-day.other-month {
-    color: #ccc;
-    background: #fafafa;
+    color: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.15);
+    border-color: transparent;
   }
   .calendar-day.today {
     border: 2px solid var(--primary-color);
   }
   .calendar-day.selected {
-    background: #eef2ff;
-    border-color: #b0c4de;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
   }
   .day-number {
     font-size: 0.9rem;
@@ -103,12 +108,14 @@
   }
 
   .event-list-item {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 8px;
     display: flex;
     align-items: flex-start;
+    color: var(--text-main);
   }
   .event-list-item::before {
     content: "●";
@@ -125,26 +132,9 @@
   }
 
   /* Botão flutuante Home */
-  .btn-fab {
-    position: fixed;
-    bottom: 20px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    text-decoration: none;
-    z-index: 1000;
-  }
   
-  .btn-fab-home {
-    left: 20px;
-    background: #6c757d;
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
-  }
+  
+  
   .btn-fab-home:hover {
     color: white;
     opacity: 0.9;
@@ -245,17 +235,15 @@
 </div>
 
 <!-- Botão flutuante: Voltar para home -->
-<a href="{% url 'home' %}" class="btn-fab btn-fab-home" title="Início">
-  <i class="bi bi-house-fill"></i>
-</a>
+{% include "components/fab.html" with url="/" icon="bi-house-fill" position="left" color="#f43f5e" title="Início" %}
 
 <!-- Modal Dia -->
 <div class="modal fade" id="dayModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius: 12px; color: #1a1a2e;">
+    <div class="modal-content card-custom" style="border-radius: 16px;">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title" style="font-family: serif; font-weight: bold; font-size: 1.5rem; color: #1a1a2e;" id="modalDayTitle">Dia X</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" style="font-family: serif; font-weight: bold; font-size: 1.5rem; color: var(--text-main);" id="modalDayTitle">Dia X</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <p class="text-muted small mb-3" id="modalEventsCount">0 compromissos</p>
@@ -269,18 +257,18 @@
         <form id="eventForm">
           {% csrf_token %}
           <div class="input-group mb-3">
-            <span class="input-group-text bg-transparent"><i class="bi bi-type-t"></i></span>
-            <input type="text" class="form-control" name="titulo" placeholder="Título do compromisso" required>
+            <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-type-t"></i></span>
+            <input type="text" class="form-control bg-transparent text-white border-secondary" name="titulo" placeholder="Título do compromisso" required>
           </div>
           
           <div class="input-group mb-3">
-            <span class="input-group-text bg-transparent"><i class="bi bi-clock"></i></span>
-            <input type="time" class="form-control" name="hora" required>
+            <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-clock"></i></span>
+            <input type="time" class="form-control bg-transparent text-white border-secondary" name="hora" required>
           </div>
 
           <div class="input-group mb-3">
-            <span class="input-group-text bg-transparent"><i class="bi bi-file-text"></i></span>
-            <textarea class="form-control" name="observacoes" placeholder="Observações (opcional)" rows="2"></textarea>
+            <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-file-text"></i></span>
+            <textarea class="form-control bg-transparent text-white border-secondary" name="observacoes" placeholder="Observações (opcional)" rows="2"></textarea>
           </div>
 
           <div class="mb-4">

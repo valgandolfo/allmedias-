@@ -7,24 +7,24 @@
 <style>
 
         
-        .header-title { background: #0d6efd; color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; }
-        .section-header { background: #e9ecef; padding: 8px 15px; font-weight: bold; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6; margin: 20px -10px 10px -10px; text-align: center; }
-        .list-container { background: white; margin: 0 -10px; border-bottom: 1px solid #dee2e6; }
-        .item-row { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .header-title { background: var(--glass-bg); color: var(--text-main); padding: 15px; border-radius: 16px; margin-bottom: 15px; font-weight: bold; border: 1px solid var(--glass-border); backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .section-header { background: rgba(0,0,0,0.2); padding: 8px 15px; font-weight: bold; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); margin: 20px -10px 10px -10px; text-align: center; color: var(--text-main); }
+        .list-container { background: var(--glass-bg); margin: 0 -10px; border-bottom: 1px solid var(--glass-border); backdrop-filter: blur(12px); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .item-row { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
         .item-row:last-child { border-bottom: none; }
         .item-info { display: flex; flex-direction: column; }
-        .item-title { font-weight: bold; font-size: 15px; color: #333; }
-        .item-sub { font-size: 12px; color: #666; }
-        .item-date { font-size: 11px; color: #999; }
+        .item-title { font-weight: bold; font-size: 15px; color: var(--text-main); }
+        .item-sub { font-size: 12px; color: #aaa; }
+        .item-date { font-size: 11px; color: #888; }
         .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; text-transform: uppercase; }
-        .status-pendente { background: #fff3cd; color: #856404; }
-        .status-aceito { background: #d4edda; color: #155724; }
-        .status-recusado { background: #f8d7da; color: #721c24; }
+        .status-pendente { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .status-aceito { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .status-recusado { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
         
-        .footer-buttons { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .btn-footer { flex: 1; padding: 12px; font-weight: bold; border-radius: 8px; font-size: 13px; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-fab { position: fixed; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; text-decoration: none; z-index: 1100; box-shadow: 0 4px 12px rgba(108,117,125,0.4); }
-        .btn-fab-home { left: 20px; background: #6c757d; }
+        .footer-buttons { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(11, 17, 32, 0.85); padding: 15px; display: flex; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); backdrop-filter: blur(12px); border-top: 1px solid var(--glass-border); z-index: 1000; }
+        .btn-footer { flex: 1; padding: 12px; font-weight: bold; border-radius: 12px; font-size: 13px; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        
+        
         
         .empty-msg { padding: 30px; text-align: center; color: #999; font-style: italic; }
         .container-content { padding-bottom: 100px; }
@@ -96,6 +96,9 @@
             ➕ Add
         </a>
     </div>
+
+    <!-- Botão flutuante: Voltar para home -->
+    {% include "components/fab.html" with url="/" icon="bi-house-fill" position="left" color="#f43f5e" title="Início" %}
 {% endblock %}
 
 {% block extra_js %}
