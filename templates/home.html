@@ -137,29 +137,19 @@
 /* Responsividade Sidebar vs Grid */
 @media (max-width: 767.98px) {
     .sidebar {
-        height: auto;
-        position: relative;
-        top: 0;
-        margin-bottom: 20px;
-        flex-direction: row !important;
-        flex-wrap: wrap;
-        padding: 10px;
-    }
-    .sidebar-link {
-        flex: 1 1 40%;
-        margin: 5px;
-        justify-content: center;
-        padding: 10px;
+        padding: 15px 5px;
     }
     .sidebar-link span {
-        font-size: 0.85rem;
+        display: none; /* Oculta texto no mobile para caber lateralmente */
     }
     .sidebar-link i {
-        margin-right: 8px;
+        margin-right: 0;
+        font-size: 1.4rem;
+        margin: 0 auto;
     }
-    .sidebar .mt-auto {
-        margin-top: 0 !important;
-        display: contents;
+    .sidebar-link {
+        padding: 12px 0;
+        justify-content: center;
     }
 }
 </style>
@@ -170,7 +160,7 @@
   <div class="row gx-4">
     
     <!-- Sidebar -->
-    <div class="col-12 col-md-4 col-lg-3">
+    <div class="col-3 col-md-4 col-lg-3">
       <div class="sidebar">
         <a href="{% url 'home' %}" class="sidebar-link active">
            <i class="bi bi-house-door"></i>
@@ -201,7 +191,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="col-12 col-md-8 col-lg-9">
+    <div class="col-9 col-md-8 col-lg-9">
       
       <!-- Header Section Mimetizado (Data e Hora) -->
       <div class="d-flex justify-content-between text-muted mb-4 px-1">
