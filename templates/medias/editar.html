@@ -28,7 +28,7 @@
         </a>
         <div>
             <h4 class="mb-0">&#9998; Editar Mídia</h4>
-            <small class="text-muted">{{ midia.descricao }}</small>
+            <small class="text-muted">{{ midia.nome_exibicao }}</small>
         </div>
     </div>
 
@@ -69,7 +69,7 @@
             <div class="mb-3">
                 <label class="form-label fw-bold">Tipo <small class="text-muted fw-normal">(não pode ser alterado)</small></label>
                 <input type="text" class="form-control bg-light"
-                       value="{{ midia.get_tipo_display }}" readonly>
+                       value="{{ midia.tipo_label }}" readonly>
                 <input type="hidden" name="tipo" value="{{ midia.tipo }}">
             </div>
 

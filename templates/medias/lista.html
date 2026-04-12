@@ -115,14 +115,14 @@
     <!-- Lista de mídias -->
     <div class="card-custom" id="mediaList">
         {% for midia in medias %}
-        <div class="media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.descricao|lower }}">
+        <div class="media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.nome_exibicao|lower }}">
 
             <!-- Thumbnail -->
             <div class="media-thumb" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
                 {% if midia.miniatura %}
-                    <img src="{{ midia.miniatura.url }}" alt="{{ midia.descricao }}">
+                    <img src="{{ midia.miniatura.url }}" alt="{{ midia.nome_exibicao }}">
                 {% elif midia.is_imagem and midia.arquivo %}
-                    <img src="{{ midia.arquivo.url }}" alt="{{ midia.descricao }}">
+                    <img src="{{ midia.arquivo.url }}" alt="{{ midia.nome_exibicao }}">
                 {% elif midia.tipo == 'video' %}
                     <i class="bi bi-play-circle-fill fs-4 text-primary"></i>
                 {% elif midia.tipo == 'audio' %}
@@ -139,7 +139,7 @@
             <!-- Informações -->
             <div class="media-info" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
                 <div class="d-flex justify-content-between align-items-start mb-1">
-                    <span class="media-titulo pe-2">{{ midia.descricao }}</span>
+                    <span class="media-titulo pe-2">{{ midia.nome_exibicao }}</span>
                     <!-- Botão de Favorito usando booleano do model -->
                     <button class="btn-star {% if midia.favorito %}ativo{% endif %}"
                         onclick="event.stopPropagation(); toggleFavorito({{ midia.pk }}, this)" title="Favoritar">
@@ -147,7 +147,7 @@
                     </button>
                 </div>
                 <div class="media-meta d-flex justify-content-between align-items-center">
-                    <span>{{ midia.get_tipo_display }} &bull; {{ midia.criado_em|date:"d/m H:i" }}</span>
+                    <span>{{ midia.tipo_label }} &bull; {{ midia.criado_em|date:"d/m H:i" }}</span>
                     {% if midia.tamanho %}
                         <span class="text-primary fw-bold" style="font-size: 11px;">
                             {{ midia.tamanho }}
@@ -162,7 +162,7 @@
             </div>
 
             <!-- Menu de opções -->
-            <div class="text-secondary px-2" onclick="abrirMenu({{ midia.pk }}, '{{ midia.descricao|escapejs }}', '{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}', '{{ midia.tipo }}')">
+            <div class="text-secondary px-2" onclick="abrirMenu({{ midia.pk }}, '{{ midia.nome_exibicao|escapejs }}', '{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}', '{{ midia.tipo }}')">
                 <i class="bi bi-three-dots-vertical fs-5"></i>
             </div>
         </div>

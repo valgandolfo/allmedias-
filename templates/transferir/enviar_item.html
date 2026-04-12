@@ -88,7 +88,7 @@
                  data-tipo="{{ m.tipo }}"
                  data-fav="{% if m.favorito %}true{% else %}false{% endif %}">
                 <span>{{ m.descricao|truncatechars:30 }}</span>
-                <small class="text-muted">{{ m.get_tipo_display }}</small>
+                <small class="text-muted">{{ m.tipo_label }}</small>
             </div>
             {% endfor %}
         </div>

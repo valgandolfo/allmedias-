@@ -16,7 +16,7 @@
         <h5><i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão</h5>
         <p class="mb-1">
             Tem certeza que deseja excluir
-            <strong>"{{ midia.descricao }}"</strong>?
+            <strong>"{{ midia.nome_exibicao }}"</strong>?
         </p>
         <small class="text-muted">Esta ação não pode ser desfeita.</small>
     </div>
@@ -27,7 +27,7 @@
             {% if midia.is_imagem and midia.arquivo %}
                 <img src="{{ midia.arquivo.url }}"
                      style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px;"
-                     alt="{{ midia.descricao }}">
+                     alt="{{ midia.nome_exibicao }}">
             {% elif midia.tipo == 'pdf' %}
                 <i class="bi bi-file-earmark-pdf-fill display-3 text-danger"></i>
             {% elif midia.tipo == 'video' %}
@@ -38,9 +38,9 @@
                 <i class="bi bi-file-earmark-text display-3 text-secondary"></i>
             {% endif %}
             <p class="mt-3 mb-1">
-                <strong>{{ midia.descricao }}</strong>
+                <strong>{{ midia.nome_exibicao }}</strong>
             </p>
-            <span class="badge bg-secondary">{{ midia.get_tipo_display }}</span>
+            <span class="badge bg-secondary">{{ midia.tipo_label }}</span>
         </div>
     </div>
 

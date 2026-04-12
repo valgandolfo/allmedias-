@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ midia.descricao }} - NewMedia{% endblock %}
+{% block title %}{{ midia.nome_exibicao }} - NewMedia{% endblock %}
 
 {% block content %}
     <!-- Cabeçalho -->
@@ -8,7 +8,7 @@
         <a href="{% url 'media_lista' %}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-arrow-left"></i>
         </a>
-        <h4 class="mb-0 flex-grow-1 text-truncate">{{ midia.descricao }}</h4>
+        <h4 class="mb-0 flex-grow-1 text-truncate">{{ midia.nome_exibicao }}</h4>
         {% if midia.arquivo %}
             <button class="btn btn-sm btn-outline-primary" onclick="compartilhar()"
                     title="Compartilhar">
@@ -22,7 +22,7 @@
         {% if midia.is_imagem and midia.arquivo %}
             <img src="{{ midia.arquivo.url }}" class="img-fluid w-100"
                  style="border-radius: 12px; object-fit: cover; max-height: 360px;"
-                 alt="{{ midia.descricao }}">
+                 alt="{{ midia.nome_exibicao }}">
         {% elif midia.is_pdf %}
             <div class="p-5 text-center">
                 <i class="bi bi-file-earmark-pdf-fill display-1 text-danger"></i>
@@ -51,7 +51,7 @@
         {% else %}
             <div class="p-5 text-center">
                 <i class="bi bi-file-earmark-text display-1 text-secondary"></i>
-                <p class="mt-2 text-muted">{{ midia.get_tipo_display }}</p>
+                <p class="mt-2 text-muted">{{ midia.tipo_label }}</p>
                 {% if midia.arquivo %}
                     <a href="{{ midia.arquivo.url }}" target="_blank"
                        class="btn btn-secondary btn-sm mt-2">
@@ -65,7 +65,7 @@
     <!-- Informações -->
     <div class="card-custom p-3 mb-3">
         <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="badge bg-primary">{{ midia.get_tipo_display }}</span>
+            <span class="badge bg-primary">{{ midia.tipo_label }}</span>
             {% if midia.status == 'pendente' %}
                 <span class="badge bg-warning text-dark">Enviando...</span>
             {% elif midia.status == 'erro' %}
@@ -106,7 +106,7 @@
 <script>
 function compartilhar() {
         const rawUrl = "{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}";
-        const titulo = "{{ midia.descricao|escapejs }}";
+        const titulo = "{{ midia.nome_exibicao|escapejs }}";
         
         let finalUrl = rawUrl;
         if (rawUrl && !rawUrl.startsWith('http')) {

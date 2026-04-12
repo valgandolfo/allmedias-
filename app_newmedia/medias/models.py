@@ -60,7 +60,7 @@ class Midia(models.Model):
         ordering = ['-criado_em']
 
     def __str__(self):
-        return f"{self.descricao} ({self.get_tipo_display()})"
+        return f"{self.nome_exibicao} ({self.tipo_label})"
 
     def save(self, *args, **kwargs):
         from django.template.defaultfilters import filesizeformat
@@ -156,6 +156,40 @@ class Midia(models.Model):
         if not self.tags:
             return []
         return [t.strip() for t in self.tags.split(',') if t.strip()]
+
+    @property
+    def tipo_label(self):
+        """Rótulo humano do tipo (valores fora de TIPO_CHOICES viram texto legível)."""
+        labels = dict(self.TIPO_CHOICES)
+        t = (self.tipo or '').strip()
+        if t in labels:
+            return labels[t]
+        if not t:
+            return '—'
+        return t.replace('_', ' ').title()
+
+    @property
+    def nome_exibicao(self):
+        """
+        Nome amigável na UI: descrição do usuário, ou nome do arquivo, conforme Síntese (metadados + arquivo).
+        Evita mostrar só slug de tipo ou caminho completo do storage.
+        """
+        raw = (self.descricao or '').strip()
+        if raw:
+            if '/' in raw or '\\' in raw:
+                base = os.path.basename(raw.replace('\\', '/'))
+                if base:
+                    return base
+            if self.arquivo and raw.lower() == (self.tipo or '').lower():
+                base = os.path.basename(self.arquivo.name)
+                if base:
+                    return base
+            return raw
+        if self.arquivo:
+            base = os.path.basename(self.arquivo.name)
+            if base:
+                return base
+        return f'Mídia #{self.pk}' if self.pk else 'Mídia nova'
 
     @property
     def is_imagem(self):
