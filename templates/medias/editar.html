@@ -100,7 +100,8 @@
                                 onclick="document.getElementById('pdfInput').click()">
                             <i class="bi bi-file-earmark-pdf"></i> Selecionar PDF
                         </button>
-                        <input type="file" id="pdfInput" name="arquivo" accept=".pdf"
+                        <input type="file" id="pdfInput" name="arquivo"
+                               accept="application/pdf,.pdf,application/x-pdf"
                                style="display:none;" onchange="previewArquivo(this)">
                         <div id="pdfInfo" class="mt-2">
                             {% if midia.arquivo %}
@@ -153,10 +154,12 @@
 
     function previewArquivo(input) {
         if (input.files && input.files[0]) {
+            const f = input.files[0];
+            const nome = (f.name && f.name.trim()) ? f.name : 'documento.pdf';
             const info = document.getElementById('pdfInfo');
             if (info) {
                 info.innerHTML = `<small class="text-success">
-                    <i class="bi bi-check-circle"></i> Novo arquivo: ${input.files[0].name}
+                    <i class="bi bi-check-circle"></i> Novo arquivo: ${nome}
                 </small>`;
             }
         }

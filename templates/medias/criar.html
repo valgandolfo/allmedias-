@@ -130,14 +130,15 @@
                 </div>
             </div>
 
-            <!-- Seção: PDF -->
+            <!-- Seção: PDF (MIME + extensão: Drive/Files no Android filtram mal só ".pdf") -->
             <div id="secaoPdf" class="mb-3 section-arquivo pdf" style="display:none;">
                 <label class="form-label fw-bold">Arquivo PDF <span class="text-danger">*</span></label>
                 <button type="button" class="btn btn-primary w-100"
                         onclick="document.getElementById('pdfInput').click()">
                     <i class="bi bi-file-earmark-pdf"></i> Selecionar PDF
                 </button>
-                <input type="file" id="pdfInput" name="arquivo" accept=".pdf"
+                <input type="file" id="pdfInput" name="arquivo"
+                       accept="application/pdf,.pdf,application/x-pdf"
                        style="display:none;" onchange="previewArquivo(this, 'pdf')">
                 <div id="pdfPreview" class="mt-2" style="display:none;">
                     <small class="text-success">
@@ -303,15 +304,17 @@ function alterarTipo() {
 
     function previewArquivo(input, tipo) {
         if (input.files && input.files[0]) {
-            const nome = input.files[0].name;
-            const tamanho = (input.files[0].size / 1024).toFixed(1);
+            const f = input.files[0];
+            const nome = (f.name && f.name.trim()) ? f.name : 'documento.pdf';
+            const bytes = f.size || 0;
+            const tamanhoKb = bytes > 0 ? (bytes / 1024).toFixed(1) + ' KB' : 'tamanho ao enviar';
             const preview = document.getElementById(tipo + 'Preview');
             const span = document.getElementById(tipo + 'Nome');
-            if (span) span.textContent = `${nome} (${tamanho} KB)`;
+            if (span) span.textContent = `${nome} (${tamanhoKb})`;
             if (preview) preview.style.display = 'block';
 
             const aviso = document.getElementById('uploadWarning');
-            aviso.style.display = input.files[0].size > 5 * 1024 * 1024 ? 'block' : 'none';
+            aviso.style.display = bytes > 5 * 1024 * 1024 ? 'block' : 'none';
             validarFormulario();
         }
     }

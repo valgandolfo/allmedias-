@@ -90,16 +90,16 @@
         </div>
     </div>
 
-    <!-- Filtros rápidos -->
+    <!-- Filtros rápidos: estado ativo só via .active + CSS (.filter-btn.active) -->
     <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
-        <button class="btn btn-sm btn-primary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
-        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">&#11088; Favoritos</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="foto" onclick="filtrarTipo('foto')">Fotos</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pdf" onclick="filtrarTipo('pdf')">PDFs</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="documento" onclick="filtrarTipo('documento')">Docs</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="video" onclick="filtrarTipo('video')">Vídeos</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="audio" onclick="filtrarTipo('audio')">Áudios</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="outro" onclick="filtrarTipo('outro')">Outros</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
+        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">&#11088; Favoritos</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="foto" onclick="filtrarTipo('foto')">Fotos</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pdf" onclick="filtrarTipo('pdf')">PDFs</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="documento" onclick="filtrarTipo('documento')">Docs</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="video" onclick="filtrarTipo('video')">Vídeos</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="audio" onclick="filtrarTipo('audio')">Áudios</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="outro" onclick="filtrarTipo('outro')">Outros</button>
     </div>
 
     <!-- Mensagens -->
@@ -291,14 +291,6 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const isAtivo = btn.getAttribute('data-tipo') === tipo;
             btn.classList.toggle('active', isAtivo);
-            
-            if (btn.getAttribute('data-tipo') === 'favoritos') {
-                btn.classList.remove('btn-warning');
-                btn.classList.add('btn-outline-warning');
-            } else if (!isAtivo) {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-secondary');
-            }
         });
 
         document.querySelectorAll('.media-item').forEach(item => {
@@ -310,18 +302,10 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const isFav = btn.getAttribute('data-tipo') === 'favoritos';
             btn.classList.toggle('active', isFav);
-            btn.classList.toggle('btn-warning', isFav);
-            btn.classList.toggle('btn-outline-warning', !isFav);
-            
-            if (!isFav) {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-secondary');
-            }
         });
 
         document.querySelectorAll('.media-item').forEach(item => {
             const star = item.querySelector('.btn-star');
-            // Exibe apenas se o botão de estrela tiver a classe 'ativo' (que indica favorito=True)
             item.style.display = (star && star.classList.contains('ativo')) ? 'flex' : 'none';
         });
     }
