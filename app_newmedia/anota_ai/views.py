@@ -261,25 +261,16 @@ def processar_itens_anotacao(anotacao, texto_bruto):
     Processa o texto bruto e cria itens de anotação se for lista ou checklist.
     Para texto simples e PIX, apenas limpa os itens antigos.
     """
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    logger.info(f"[processar_itens_anotacao] Iniciando para anotação {anotacao.id}, tipo={anotacao.tipo}")
-    logger.info(f"[processar_itens_anotacao] texto_bruto: {repr(texto_bruto)}")
-    
     # Sempre limpar itens antigos ao salvar para recriar baseados no texto atual
     anotacao.itens.all().delete()
     
     if anotacao.tipo in ['texto', 'pix', 'link']:
-        logger.info(f"[processar_itens_anotacao] Tipo {anotacao.tipo} não precisa de itens")
         return
 
-    if not texto_bruto or not texto_bruto.strip():
-        logger.warning(f"[processar_itens_anotacao] texto_bruto está vazio ou None para anotação {anotacao.id}")
+    if not texto_bruto:
         return
 
     linhas = texto_bruto.split('\n')
-    logger.info(f"[processar_itens_anotacao] Processando {len(linhas)} linhas")
     numero = 1
     
     for linha in linhas:
@@ -302,18 +293,11 @@ def processar_itens_anotacao(anotacao, texto_bruto):
         elif anotacao.tipo == 'lista_numerada':
             # Remover numeração automática do início (ex: "1. Texto", "1- Texto", "1 - Texto")
             texto_item = re.sub(r'^\d+\s*[\.\-]\s*', '', linha_limpa)
-        
-        try:
-            ItemAnotacao.objects.create(
-                anotacao=anotacao,
-                numero=numero,
-                concluido=concluido,
-                texto=texto_item
-            )
-            logger.info(f"[processar_itens_anotacao] Item {numero} criado com sucesso")
-        except Exception as e:
-            logger.error(f"[processar_itens_anotacao] Erro ao criar item {numero}: {e}")
-        
+            
+        ItemAnotacao.objects.create(
+            anotacao=anotacao,
+            numero=numero,
+            concluido=concluido,
+            texto=texto_item
+        )
         numero += 1
-    
-    logger.info(f"[processar_itens_anotacao] Finalizado. Total de itens criados: {numero - 1}")

@@ -4,7 +4,7 @@ Models de mídias - NewMedia PWA
 import os
 import uuid
 import logging
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -82,15 +82,15 @@ class Midia(models.Model):
         super().save(*args, **kwargs)
 
         # Dispara a tarefa em background apenas se for um upload novo
-        # if is_novo:
-        #     try:
-        #         from django_q.tasks import async_task
-        #         transaction.on_commit(lambda: async_task(
-        #             'app_newmedia.medias.tasks.processar_ocr_arquivo',
-        #             self.id
-        #         ))
-        #     except Exception as e:
-        #         logger.error(f"[OCR] Falha ao enfileirar tarefa: {e}")
+        if is_novo:
+            try:
+                from django_q.tasks import async_task
+                transaction.on_commit(lambda: async_task(
+                    'app_newmedia.medias.tasks.processar_ocr_arquivo',
+                    self.id
+                ))
+            except Exception as e:
+                logger.error(f"[OCR] Falha ao enfileirar tarefa: {e}")
 
     # ------------------------------------------------------------------ #
     # Métodos internos                                                     #
