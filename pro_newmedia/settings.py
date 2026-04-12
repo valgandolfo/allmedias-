@@ -110,6 +110,7 @@ INSTALLED_APPS = [
     "app_newmedia.conversor",
     "app_newmedia.transferir",
     "app_newmedia.calendario",
+    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -213,6 +214,17 @@ if DATABASE_URL:
             f"Failed to parse DATABASE_URL. Refusing to start with an invalid "
             f"database configuration. Original error: {exc}"
         ) from exc
+
+# In production (DEBUG=False), SQLite is not supported — Railway has no persistent disk.
+# If DATABASES is still pointing at SQLite at this point, something went wrong.
+_db_engine = DATABASES.get("default", {}).get("ENGINE", "")
+if not DEBUG and _db_engine == "django.db.backends.sqlite3":
+    raise RuntimeError(
+        "DATABASES is configured to use SQLite3 but DEBUG=False (production mode). "
+        "SQLite3 is not supported in production on Railway because there is no "
+        "persistent storage. Please set the DATABASE_URL environment variable to a "
+        "valid MySQL or PostgreSQL connection string."
+    )
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -324,4 +336,21 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+
+# ===================================================================
+# BACKGROUND TASKS (DJANGO-Q2)
+# ===================================================================
+Q_CLUSTER = {
+    'name': 'newmedia_cluster',
+    'workers': 2,
+    'recycle': 100,
+    'timeout': 90,
+    'retry': 120,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'orm': 'default'  # usa o banco de dados principal (MySQL/SQLite)
+}
 
