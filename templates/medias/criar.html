@@ -239,16 +239,6 @@
 
 {% block extra_js %}
 <script>
-    function arquivoParecePdf(file) {
-        if (!file) return false;
-        const n = (file.name || '').toLowerCase();
-        const t = (file.type || '').toLowerCase();
-        if (n.endsWith('.pdf')) return true;
-        if (t.includes('pdf')) return true;
-        if ((t === 'application/octet-stream' || !t) && !n) return true;
-        return false;
-    }
-
     /** Campos file com o mesmo name="arquivo" no mesmo form: alguns mobile enviam partes erradas; só o ativo fica habilitado no submit. */
     function prepararInputsArquivoParaEnvio() {
         const tipo = document.getElementById('id_tipo').value;
@@ -334,12 +324,6 @@ function alterarTipo() {
     function previewArquivo(input, tipo) {
         if (input.files && input.files[0]) {
             const f = input.files[0];
-            if (tipo === 'pdf' && !arquivoParecePdf(f)) {
-                input.value = '';
-                alert('Escolha um arquivo PDF (extensão .pdf ou tipo PDF). No Google Docs: Arquivo → Baixar → PDF.');
-                validarFormulario();
-                return;
-            }
             const nome = (f.name && f.name.trim()) ? f.name : 'documento.pdf';
             const bytes = f.size || 0;
             const tamanhoKb = bytes > 0 ? (bytes / 1024).toFixed(1) + ' KB' : 'tamanho ao enviar';
