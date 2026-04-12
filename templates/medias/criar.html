@@ -130,21 +130,14 @@
                 </div>
             </div>
 
-            <!-- Seção: PDF: vários content:// (Drive) mandam octet-stream ou só listam com * /* -->
+            <!-- PDF: accept amplo abre o painel nativo (Drive, Fotos, Arquivos…) como ao compartilhar -->
             <div id="secaoPdf" class="mb-3 section-arquivo pdf" style="display:none;">
                 <label class="form-label fw-bold">Arquivo PDF <span class="text-danger">*</span></label>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-primary w-100"
-                            onclick="abrirSeletorPdf(false)">
-                        <i class="bi bi-file-earmark-pdf"></i> Selecionar PDF
-                    </button>
-                    <button type="button" class="btn btn-outline-primary w-100"
-                            onclick="abrirSeletorPdf(true)">
-                        <i class="bi bi-cloud-arrow-down"></i> Google Drive / nuvem
-                    </button>
-                </div>
-                <input type="file" id="pdfInput" name="arquivo"
-                       accept="application/pdf,.pdf,application/x-pdf,application/octet-stream"
+                <button type="button" class="btn btn-primary w-100"
+                        onclick="document.getElementById('pdfInput').click()">
+                    <i class="bi bi-file-earmark-pdf"></i> Selecionar PDF
+                </button>
+                <input type="file" id="pdfInput" name="arquivo" accept="*/*"
                        style="display:none;" onchange="previewArquivo(this, 'pdf')">
                 <div id="pdfPreview" class="mt-2" style="display:none;">
                     <small class="text-success">
@@ -246,31 +239,13 @@
 
 {% block extra_js %}
 <script>
-const PDF_ACCEPT_STRICT = 'application/pdf,.pdf,application/x-pdf,application/octet-stream';
-
-    function resetarAcceptPdf() {
-        const inp = document.getElementById('pdfInput');
-        if (inp) inp.setAttribute('accept', PDF_ACCEPT_STRICT);
-    }
-
-    // nuvem: accept amplo para Android listar Google Drive; strict = filtro PDF
-    function abrirSeletorPdf(daNuvem) {
-        lastPdfPickerWasCloud = daNuvem;
-        const inp = document.getElementById('pdfInput');
-        inp.setAttribute('accept', daNuvem ? '*/*' : PDF_ACCEPT_STRICT);
-        inp.value = '';
-        inp.click();
-    }
-
-    let lastPdfPickerWasCloud = false;
-
-    function arquivoParecePdf(file, nuvem) {
+    function arquivoParecePdf(file) {
         if (!file) return false;
         const n = (file.name || '').toLowerCase();
         const t = (file.type || '').toLowerCase();
         if (n.endsWith('.pdf')) return true;
         if (t.includes('pdf')) return true;
-        if (nuvem && (t === 'application/octet-stream' || !t)) return true;
+        if ((t === 'application/octet-stream' || !t) && !n) return true;
         return false;
     }
 
@@ -315,7 +290,6 @@ function alterarTipo() {
                     el.value = '';
                 }
             });
-        resetarAcceptPdf();
         ['pdfPreview','videoPreview','audioPreview','outrosPreview']
             .forEach(id => { document.getElementById(id).style.display = 'none'; });
         document.getElementById('previewFotoContainer').style.display = 'none';
@@ -358,12 +332,11 @@ function alterarTipo() {
     }
 
     function previewArquivo(input, tipo) {
-        if (tipo === 'pdf') resetarAcceptPdf();
         if (input.files && input.files[0]) {
             const f = input.files[0];
-            if (tipo === 'pdf' && !arquivoParecePdf(f, lastPdfPickerWasCloud)) {
+            if (tipo === 'pdf' && !arquivoParecePdf(f)) {
                 input.value = '';
-                alert('Escolha um arquivo PDF. No Google Docs use Arquivo → Baixar → PDF; depois anexe o arquivo baixado.');
+                alert('Escolha um arquivo PDF (extensão .pdf ou tipo PDF). No Google Docs: Arquivo → Baixar → PDF.');
                 validarFormulario();
                 return;
             }
