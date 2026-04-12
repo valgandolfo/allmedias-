@@ -86,15 +86,15 @@
         </div>
     </div>
 
-    <!-- Filtros rápidos -->
+    <!-- Filtros: estado ativo só .active + CSS -->
     <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
-        <button class="btn btn-sm btn-primary rounded-pill px-3 filter-btn active" data-tipo="" onclick="filtrarTipo('')">Todos</button>
-        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">⭐ Favoritos</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="texto" onclick="filtrarTipo('texto')">Texto</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="checklist" onclick="filtrarTipo('checklist')">Checklist</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="lista_numerada" onclick="filtrarTipo('lista_numerada')">Lista</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pix" onclick="filtrarTipo('pix')">PIX</button>
-        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="link" onclick="filtrarTipo('link')">🔗 Link</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="" onclick="filtrarTipo('')">Todos</button>
+        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">⭐ Favoritos</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="texto" onclick="filtrarTipo('texto')">Texto</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="checklist" onclick="filtrarTipo('checklist')">Checklist</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="lista_numerada" onclick="filtrarTipo('lista_numerada')">Lista</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pix" onclick="filtrarTipo('pix')">PIX</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="link" onclick="filtrarTipo('link')">🔗 Link</button>
     </div>
 
     <!-- Mensagens -->
@@ -256,14 +256,6 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const isAtivo = btn.getAttribute('data-tipo') === tipo;
             btn.classList.toggle('active', isAtivo);
-            
-            if (btn.getAttribute('data-tipo') === 'favoritos') {
-                btn.classList.remove('btn-warning');
-                btn.classList.add('btn-outline-warning');
-            } else if (!isAtivo) {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-secondary');
-            }
         });
 
         document.querySelectorAll('.anotacao-item').forEach(item => {
@@ -275,13 +267,6 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const isFav = btn.getAttribute('data-tipo') === 'favoritos';
             btn.classList.toggle('active', isFav);
-            btn.classList.toggle('btn-warning', isFav);
-            btn.classList.toggle('btn-outline-warning', !isFav);
-            
-            if (!isFav) {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-outline-secondary');
-            }
         });
 
         document.querySelectorAll('.anotacao-item').forEach(item => {

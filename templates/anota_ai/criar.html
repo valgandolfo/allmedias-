@@ -84,7 +84,28 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     const areaTexto = document.getElementById('areaTexto');
     const areaPix = document.getElementById('areaPix');
     const labelTexto = document.getElementById('labelTexto');
-    const textareaTexto = document.querySelector('textarea[name="texto"]');
+
+    function textareaPrincipal() {
+        return document.querySelector('#areaTexto textarea[name="texto"]');
+    }
+    function textareaLink() {
+        return document.querySelector('#areaLink textarea[name="texto"]');
+    }
+
+    /** Dois textarea name=texto no mesmo form: o POST ficava só com o último (link vazio). Desativa os que não aplicam ao tipo. */
+    function prepararCamposTextoParaEnvio() {
+        const tipo = selectTipo.value;
+        document.querySelectorAll('textarea[name="texto"]').forEach(ta => {
+            const inLink = !!ta.closest('#areaLink');
+            if (tipo === 'link') {
+                ta.disabled = !inLink;
+            } else if (tipo === 'pix') {
+                ta.disabled = true;
+            } else {
+                ta.disabled = inLink;
+            }
+        });
+    }
 
     function inserirTextoNoCursor(textarea, texto) {
         const inicio = textarea.selectionStart;
@@ -102,6 +123,7 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     }
 
     function garantirPrefixoInicial() {
+        const textareaTexto = textareaPrincipal();
         if (!textareaTexto) return;
         const tipo = selectTipo.value;
         const valorAtual = textareaTexto.value || '';
@@ -120,7 +142,8 @@ const selectTipo = document.querySelector('select[name="tipo"]');
 
     function tratarEnterListaChecklist(event) {
         if (event.key !== 'Enter' || event.shiftKey) return;
-        if (!textareaTexto) return;
+        const textareaTexto = textareaPrincipal();
+        if (!textareaTexto || event.target !== textareaTexto) return;
 
         const tipo = selectTipo.value;
         if (tipo !== 'lista_numerada' && tipo !== 'checklist') return;
@@ -177,15 +200,17 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     }
 
     function testarLink() {
-        const url = document.querySelector('textarea[name="texto"]').value.trim();
+        const ta = textareaLink();
+        const url = ta ? ta.value.trim() : '';
         if (url) window.open(url, '_blank');
     }
     
     selectTipo.addEventListener('change', toggleCampos);
-    if (textareaTexto) {
-        textareaTexto.addEventListener('keydown', tratarEnterListaChecklist);
+    const taPrincipal = textareaPrincipal();
+    if (taPrincipal) {
+        taPrincipal.addEventListener('keydown', tratarEnterListaChecklist);
     }
-    // Executar no carregamento
+    document.querySelector('form[method="post"]').addEventListener('submit', prepararCamposTextoParaEnvio);
     toggleCampos();
 </script>
 {% endblock %}

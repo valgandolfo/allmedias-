@@ -28,10 +28,12 @@ def anotacao_criar(request):
             anotacao = form.save(commit=False)
             anotacao.usuario = request.user
             anotacao.save()
-            
-            # Processar itens baseados no tipo
-            processar_itens_anotacao(anotacao, request.POST.get('texto', ''))
-            
+
+            texto_post = request.POST.get('texto', '')
+            processar_itens_anotacao(anotacao, texto_post)
+            if anotacao.tipo in ('lista_numerada', 'checklist'):
+                Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
+
             messages.success(request, 'Anotação criada com sucesso!')
             return redirect('anotacao_lista')
     else:
@@ -64,10 +66,12 @@ def anotacao_editar(request, pk):
         if form.is_valid():
             anotacao = form.save(commit=False)
             anotacao.save()
-            
-            # Reprocessar itens
-            processar_itens_anotacao(anotacao, request.POST.get('texto', ''))
-            
+
+            texto_post = request.POST.get('texto', '')
+            processar_itens_anotacao(anotacao, texto_post)
+            if anotacao.tipo in ('lista_numerada', 'checklist'):
+                Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
+
             messages.success(request, 'Anotação atualizada com sucesso!')
             return redirect('anotacao_lista')
     else:
