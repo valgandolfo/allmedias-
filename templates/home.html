@@ -7,7 +7,15 @@
 <style>
   /* App Dashboard Grid */
   .module-grid {
-    /* O .row do Bootstrap já cuida do layout */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (min-width: 992px) {
+    .module-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
   .module-card {
@@ -98,14 +106,10 @@
     align-items: center;
   }
 
-  /* Responsividade Grid */
+  /* Responsividade */
   @media (max-width: 767.98px) {
     .module-grid {
       gap: 10px;
-    }
-
-    .module-card {
-      width: auto;
     }
   }
 </style>
@@ -119,11 +123,11 @@
     <small class="fw-medium" id="clockTime">--:--</small>
   </div>
 
-  <!-- App Dashboard Grid (2 colunas em mobile e tablets/desktops pequenos) -->
-  <div class="row g-3 mb-4 px-1 module-grid">
+  <!-- App Dashboard Grid (2 colunas mobile, 3 desktop) -->
+  <div class="module-grid mb-4">
 
     <!-- Mídias -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="{% url 'media_lista' %}" class="module-card" style="--neon-color: #0ea5e9;">
         <div class="card-icon"><i class="bi bi-collection-play"></i></div>
         <div class="card-title">Minhas Mídias</div>
@@ -131,7 +135,7 @@
     </div>
 
     <!-- Conversor -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="{% url 'conversor_lista' %}" class="module-card" style="--neon-color: #10b981;">
         <div class="card-icon"><i class="bi bi-arrow-repeat"></i></div>
         <div class="card-title">Conversor</div>
@@ -139,7 +143,7 @@
     </div>
 
     <!-- Anota Ai -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="{% url 'anotacao_lista' %}" class="module-card" style="--neon-color: #f43f5e;">
         <div class="card-icon"><i class="bi bi-journal-text"></i></div>
         <div class="card-title">Anota Ai+</div>
@@ -147,7 +151,7 @@
     </div>
 
     <!-- Calendário -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="{% url 'calendario_index' %}" class="module-card" style="--neon-color: #8b5cf6;">
         <div class="card-icon"><i class="bi bi-calendar-event"></i></div>
         <div class="card-title">Calendário</div>
@@ -155,7 +159,7 @@
     </div>
 
     <!-- Transferências -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="{% url 'transferir_medias' %}" class="module-card" style="--neon-color: #f59e0b;">
         <div class="card-icon"><i class="bi bi-arrow-left-right"></i></div>
         <div class="card-title">Transferências</div>
@@ -163,7 +167,7 @@
     </div>
 
     <!-- Carteira do Google -->
-    <div class="col-6 col-lg-4">
+    <div>
       <a href="#" class="module-card" style="--neon-color: #4285F4;">
         <div class="card-icon"><i class="bi bi-google"></i></div>
         <div class="card-title text-center" style="font-size: 0.85rem; padding: 0 5px;">Carteira Google</div>
