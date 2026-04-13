@@ -126,6 +126,8 @@ class AllMediasLogoutView(LogoutView):
                 nome = request.user.username
         from django.contrib.auth import logout as auth_logout
         auth_logout(request)
+        # After logout, render the logged_out page directly (not a redirect)
+        # This is intentional to show the goodbye page
         return render(request, self.template_name, {'nome': nome})
 
 
