@@ -110,6 +110,7 @@ INSTALLED_APPS = [
     "app_newmedia.conversor",
     "app_newmedia.transferir",
     "app_newmedia.calendario",
+    "app_newmedia.smartplan",
     "django_q",
 ]
 

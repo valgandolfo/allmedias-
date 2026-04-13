@@ -42,6 +42,23 @@ def anotacao_criar(request):
     return render(request, 'anota_ai/criar.html', {'form': form})
 
 @login_required
+@require_POST
+def anotacao_salvar_itens(request, pk):
+    """
+    Grava só os itens (lista numerada / checklist) a partir do texto do textarea.
+    Usado após Enter no editor para persistir master/detail sem exigir «Salvar» no fim.
+    """
+    anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
+    if anotacao.tipo not in ('lista_numerada', 'checklist'):
+        return JsonResponse({'erro': 'Apenas lista numerada ou checklist.'}, status=400)
+
+    texto = request.POST.get('texto', '')
+    processar_itens_anotacao(anotacao, texto)
+    Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
+    return JsonResponse({'sucesso': True})
+
+
+@login_required
 def anotacao_editar(request, pk):
     """
     Edita uma anotação existente

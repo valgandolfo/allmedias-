@@ -16,6 +16,9 @@ Pillow>=10.0.0,<11.0.0
 reportlab>=4.0.0,<5.0.0
 pytesseract>=0.3.10
 PyPDF2>=3.0.0
+pdfplumber>=0.10.0,<1.0.0
+pandas>=2.1.0,<3.0.0
+openpyxl>=3.1.0,<4.0.0
 
 # Background tasks
 django-q2>=1.7.0

@@ -86,24 +86,24 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     const labelTexto = document.getElementById('labelTexto');
 
     function textareaPrincipal() {
-        return document.querySelector('#areaTexto textarea[name="texto"]');
+        return document.querySelector('#areaTexto textarea');
     }
     function textareaLink() {
-        return document.querySelector('#areaLink textarea[name="texto"]');
+        return document.querySelector('#areaLink textarea');
     }
 
-    /** Dois textarea name=texto no mesmo form: o POST ficava só com o último (link vazio). Desativa os que não aplicam ao tipo. */
+    /** Dois textarea com name=texto: o POST ficava só com o último. Só um fica com name="texto" no envio (disabled pode ser omitido no POST). */
     function prepararCamposTextoParaEnvio() {
         const tipo = selectTipo.value;
-        document.querySelectorAll('textarea[name="texto"]').forEach(ta => {
+        document.querySelectorAll('#areaTexto textarea, #areaLink textarea').forEach(ta => {
+            if (!ta) return;
             const inLink = !!ta.closest('#areaLink');
-            if (tipo === 'link') {
-                ta.disabled = !inLink;
-            } else if (tipo === 'pix') {
-                ta.disabled = true;
-            } else {
-                ta.disabled = inLink;
-            }
+            let enviar = false;
+            if (tipo === 'link') enviar = inLink;
+            else if (tipo === 'pix') enviar = false;
+            else enviar = !inLink;
+            if (enviar) ta.setAttribute('name', 'texto');
+            else ta.removeAttribute('name');
         });
     }
 

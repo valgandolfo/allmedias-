@@ -6,7 +6,7 @@
 <div class="card-custom p-3">
     <h5 class="mb-3">Editar Anotação</h5>
     
-    <form method="post">
+    <form method="post" data-salvar-itens-url="{% url 'anotacao_salvar_itens' anotacao.pk %}">
         {% csrf_token %}
         
         <div class="mb-3">
@@ -83,24 +83,49 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     const labelTexto = document.getElementById('labelTexto');
 
     function textareaPrincipal() {
-        return document.querySelector('#areaTexto textarea[name="texto"]');
+        return document.querySelector('#areaTexto textarea');
     }
     function textareaLink() {
-        return document.querySelector('#areaLink textarea[name="texto"]');
+        return document.querySelector('#areaLink textarea');
     }
 
     function prepararCamposTextoParaEnvio() {
         const tipo = selectTipo.value;
-        document.querySelectorAll('textarea[name="texto"]').forEach(ta => {
+        document.querySelectorAll('#areaTexto textarea, #areaLink textarea').forEach(ta => {
+            if (!ta) return;
             const inLink = !!ta.closest('#areaLink');
-            if (tipo === 'link') {
-                ta.disabled = !inLink;
-            } else if (tipo === 'pix') {
-                ta.disabled = true;
-            } else {
-                ta.disabled = inLink;
-            }
+            let enviar = false;
+            if (tipo === 'link') enviar = inLink;
+            else if (tipo === 'pix') enviar = false;
+            else enviar = !inLink;
+            if (enviar) ta.setAttribute('name', 'texto');
+            else ta.removeAttribute('name');
         });
+    }
+
+    function agendarSalvarItensAposEnter() {
+        const form = document.querySelector('form[data-salvar-itens-url]');
+        if (!form) return;
+        const url = form.getAttribute('data-salvar-itens-url');
+        const ta = textareaPrincipal();
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!ta || !url || !csrftoken) return;
+        clearTimeout(window.__salvarItensTimer);
+        window.__salvarItensTimer = setTimeout(async () => {
+            const fd = new FormData();
+            fd.set('csrfmiddlewaretoken', csrftoken.value);
+            fd.set('texto', ta.value);
+            try {
+                const r = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken.value },
+                    body: fd,
+                });
+                if (!r.ok) console.warn('Salvar itens:', r.status);
+            } catch (e) {
+                console.warn('Salvar itens:', e);
+            }
+        }, 300);
     }
 
     function inserirTextoNoCursor(textarea, texto) {
@@ -157,12 +182,10 @@ const selectTipo = document.querySelector('select[name="tipo"]');
             const numeroAtual = obterNumeroAtual(linhaAtual);
             const proximoNumero = numeroAtual > 0 ? numeroAtual + 1 : 1;
             inserirTextoNoCursor(textareaTexto, `\n${proximoNumero} - `);
-            return;
-        }
-
-        if (tipo === 'checklist') {
+        } else if (tipo === 'checklist') {
             inserirTextoNoCursor(textareaTexto, '\n[ ] ');
         }
+        agendarSalvarItensAposEnter();
     }
     
     function toggleCampos() {

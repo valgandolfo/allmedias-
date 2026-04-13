@@ -1,0 +1,61 @@
+import pdfplumber
+import pandas as pd
+import re
+
+def extrair_dados_fatura(pdf_path):
+    compras = []
+    
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            
+            # Padrão para compras comuns: DD/MM DESCRICAO VALOR
+            # Ex: 04/04 MP-TEORCAFE 45,90 
+            pattern_compras = re.compile(r'(\d{2}/\d{2})\s+(.*?)\s+(\d+,\d{2})')
+            
+            # Padrão para parcelamentos: DD/MM DESCRICAO XX/YY VALOR
+            # Ex: 02/04 OLV CONFECCOES 01/02 60,00 [cite: 67]
+            pattern_parcelas = re.compile(r'(\d{2}/\d{2})\s+(.*?)\s+(\d{2}/\d{2})\s+(\d+,\d{2})')
+
+            for line in text.split('\n'):
+                # Tenta primeiro o padrão de parcelas
+                match_p = pattern_parcelas.search(line)
+                if match_p:
+                    compras.append({
+                        'Data': match_p.group(1),
+                        'Descrição': match_p.group(2).strip(),
+                        'Parcela': match_p.group(3),
+                        'Valor': match_p.group(4).replace('.', '').replace(',', '.')
+                    })
+                    continue
+                
+                # Tenta o padrão de compra comum
+                match_c = pattern_compras.search(line)
+                if match_c:
+                    # Evita pegar totais ou linhas de resumo [cite: 63, 72]
+                    if "TOTAL" in match_c.group(2).upper():
+                        continue
+                        
+                    compras.append({
+                        'Data': match_c.group(1),
+                        'Descrição': match_c.group(2).strip(),
+                        'Parcela': '1/1',
+                        'Valor': match_c.group(3).replace('.', '').replace(',', '.')
+                    })
+
+    # Criar DataFrame e exportar
+    df = pd.DataFrame(compras)
+    # Converte valor para numérico para facilitar cálculos no Google Planilhas
+    df['Valor'] = pd.to_numeric(df['Valor'])
+    
+    return df
+
+# Uso do script
+arquivo_pdf = "Fatura_VISA_OK.PDF"
+df_final = extrair_dados_fatura(arquivo_pdf)
+
+# Salva em CSV configurado para o Google Planilhas (ponto e vírgula)
+df_final.to_csv("fatura_extraida.csv", index=False, sep=';', encoding='utf-8-sig')
+
+print("Extração concluída! Arquivo 'fatura_extraida.csv' gerado.")
+print(df_final.head())
