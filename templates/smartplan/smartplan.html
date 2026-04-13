@@ -111,11 +111,14 @@
                         <input type="hidden" id="mid_id" name="mid_id">
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">PDF Selecionado</label>
-                            <div class="p-3 rounded bg-dark bg-opacity-25 border border-secondary">
-                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
-                                <span id="pdfNome" class="fw-bold"></span>
-                            </div>
+                            <label class="form-label fw-bold">Descrição da Planilha <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" id="descricao" name="descricao" placeholder="Ex: Fatura Visa Abril" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tags</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" id="tags" name="tags" placeholder="Ex: fatura, visa, 2024">
+                            <div class="form-text text-muted">Separe as tags por vírgula</div>
                         </div>
 
                         <div class="mb-4">
@@ -141,7 +144,7 @@
 
                         <div class="d-flex gap-2">
                             <button type="button" onclick="salvarPlanilha()" class="btn btn-success flex-fill btn-lg fw-bold">
-                                <i class="bi bi-download me-1"></i>Extrair e Baixar
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Extrair e Salvar
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
                                 Cancelar
@@ -197,7 +200,8 @@
 
     function abrirExtracao(id, nome, url) {
         document.getElementById('mid_id').value = id;
-        document.getElementById('pdfNome').textContent = nome;
+        document.getElementById('descricao').value = nome + '_planilha';
+        document.getElementById('tags').value = '';
 
         // Reset formato para CSV
         document.getElementById('formato').value = 'csv';
@@ -214,6 +218,12 @@
     }
 
     async function salvarPlanilha() {
+        const descricao = document.getElementById('descricao').value.trim();
+        if (!descricao) {
+            document.getElementById('descricao').focus();
+            return;
+        }
+
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.add('active');
         extractModal.hide();
@@ -226,36 +236,18 @@
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            if (response.ok) {
-                // Download direto do arquivo
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
+            const data = await response.json();
+            overlay.classList.remove('active');
 
-                // Extrai nome do arquivo do header Content-Disposition
-                const disposition = response.headers.get('Content-Disposition');
-                let filename = 'planilha.csv';
-                if (disposition) {
-                    const match = disposition.match(/filename="?([^"]+)"?/);
-                    if (match) filename = match[1];
-                }
-
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-
-                mostrarToast('Planilha extraída com sucesso!', 'bg-success text-white');
+            if (data.sucesso) {
+                mostrarToast(data.mensagem, 'bg-success text-white');
+                setTimeout(() => { window.location.href = data.redirect; }, 1800);
             } else {
-                const data = await response.json();
-                mostrarToast('Erro: ' + (data.erro || 'Falha na extração'), 'bg-danger text-white');
+                mostrarToast('Erro: ' + data.erro, 'bg-danger text-white');
             }
         } catch (e) {
-            mostrarToast('Erro na comunicação com o servidor.', 'bg-danger text-white');
-        } finally {
             overlay.classList.remove('active');
+            mostrarToast('Erro na comunicação com o servidor.', 'bg-danger text-white');
         }
     }
 

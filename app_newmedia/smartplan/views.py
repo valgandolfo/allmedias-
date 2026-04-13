@@ -11,8 +11,9 @@ import pandas as pd
 import pdfplumber
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.core.files.base import ContentFile
 from django.template.defaultfilters import filesizeformat
 
 from app_newmedia.medias.models import Midia
@@ -37,7 +38,7 @@ def smartplan_lista(request):
 @login_required
 def smartplan_extrair(request):
     """
-    Recebe AJAX POST, extrai dados do PDF e retorna CSV/XLSX
+    Recebe AJAX POST, extrai dados do PDF, salva como nova Mídia e retorna redirect
     URL: /smartplan/extrair/
     """
     if request.method != 'POST':
@@ -45,9 +46,11 @@ def smartplan_extrair(request):
 
     mid_id = request.POST.get('mid_id')
     formato = request.POST.get('formato', 'csv').strip().lower()
+    descricao = request.POST.get('descricao', '').strip()
+    tags = request.POST.get('tags', '').strip()
 
-    if not mid_id:
-        return JsonResponse({'sucesso': False, 'erro': 'ID da mídia não fornecido.'})
+    if not mid_id or not descricao:
+        return JsonResponse({'sucesso': False, 'erro': 'Preencha a descrição da planilha.'})
 
     try:
         midia = Midia.objects.get(id=mid_id, usuario=request.user)
@@ -70,16 +73,29 @@ def smartplan_extrair(request):
         df = pd.DataFrame(dados)
         arquivo_bytes, content_type, ext = _converter_dataframe(df, formato)
 
-        nome_base = os.path.splitext(midia.arquivo.name)[0] if midia.arquivo.name else 'planilha'
-        nome_arquivo = f"{nome_base}.{ext}"
+        nome_arquivo = f"{descricao.replace(' ', '_')}.{ext}"
+        planilha_file = ContentFile(arquivo_bytes, name=nome_arquivo)
 
-        response = HttpResponse(arquivo_bytes, content_type=content_type)
-        response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
-        response['X-File-Size'] = filesizeformat(len(arquivo_bytes))
-        return response
+        nova_midia = Midia(
+            usuario=request.user,
+            descricao=descricao,
+            tipo='outro',
+            tags=tags,
+            status='concluido',
+        )
+        nova_midia.arquivo = planilha_file
+        nova_midia.tamanho = filesizeformat(len(arquivo_bytes))
+        nova_midia.save()
+
+        logger.info(f"[SMARTPLAN] Planilha criada: ID={nova_midia.id} | usuário={request.user.email}")
+        return JsonResponse({
+            'sucesso': True,
+            'mensagem': f'Planilha "{descricao}.{ext}" criada com sucesso!',
+            'redirect': '/medias/lista/',
+        })
 
     except Exception as e:
-        logger.error(f"[SMARTPLAN] Erro ao converter dados: {e}")
+        logger.error(f"[SMARTPLAN] Erro ao salvar planilha: {e}")
         return JsonResponse({'sucesso': False, 'erro': f'Erro ao gerar planilha: {str(e)}'})
 
 
