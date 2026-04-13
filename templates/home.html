@@ -99,77 +99,10 @@
     align-items: center;
   }
 
-  /* Sidebar Styles */
-  .sidebar {
-    background: rgba(30, 41, 59, 0.4);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    padding: 20px 10px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    height: calc(100vh - 120px);
-    position: sticky;
-    top: 90px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar-link {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    color: var(--text-main);
-    text-decoration: none;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-  }
-
-  .sidebar-link:hover,
-  .sidebar-link.active {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
-    color: white;
-  }
-
-  .sidebar-link.danger:hover {
-    background: rgba(244, 63, 94, 0.2);
-    box-shadow: inset 0 0 10px rgba(244, 63, 94, 0.2);
-    color: #f43f5e;
-  }
-
-  .sidebar-link i {
-    font-size: 1.25rem;
-    margin-right: 15px;
-    color: var(--primary-color);
-  }
-
-  .sidebar-link.danger i {
-    color: #f43f5e;
-  }
-
-  /* Responsividade Sidebar vs Grid */
+  /* Responsividade Grid */
   @media (max-width: 767.98px) {
-    .sidebar {
-      padding: 15px 5px;
-    }
-
-    .sidebar-link span {
-      display: none;
-      /* Oculta texto no mobile para caber lateralmente */
-    }
-
-    .sidebar-link i {
-      margin-right: 0;
-      font-size: 1.4rem;
-      margin: 0 auto;
-    }
-
-    .sidebar-link {
-      padding: 12px 0;
-      justify-content: center;
+    .module-grid {
+      gap: 10px;
     }
   }
 </style>
@@ -177,48 +110,8 @@
 
 {% block content %}
 <div class="container px-0">
-  <div class="row gx-4">
 
-    <!-- Sidebar -->
-    <div class="col-3 col-md-4 col-lg-3">
-      <div class="sidebar">
-        <a href="{% url 'home' %}" class="sidebar-link active">
-          <i class="bi bi-house-door"></i>
-          <span>Home</span>
-        </a>
-        <a href="{% url 'smartplan_lista' %}" class="sidebar-link">
-          <i class="bi bi-file-earmark-spreadsheet"></i>
-          <span>SmartPlan</span>
-        </a>
-        <a href="#" class="sidebar-link">
-          <i class="bi bi-info-circle"></i>
-          <span>Sobre</span>
-        </a>
-        <a href="#" class="sidebar-link">
-          <i class="bi bi-share"></i>
-          <span>Redes Sociais</span>
-        </a>
-        <div class="mt-auto">
-          <a href="{% url 'profile_edit' %}" class="sidebar-link">
-            <i class="bi bi-gear"></i>
-            <span>Configurações</span>
-          </a>
-          <form method="post" action="{% url 'logout' %}" style="margin:0;">
-            {% csrf_token %}
-            <button type="submit" class="sidebar-link danger"
-              style="width:100%; border:none; background:transparent; text-align:left;">
-              <i class="bi bi-box-arrow-right"></i>
-              <span>Sair</span>
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="col-9 col-md-8 col-lg-9">
-
-      <!-- Header Section Mimetizado (Data e Hora) -->
+  <!-- Header Section Mimetizado (Data e Hora) -->
       <div class="d-flex justify-content-between text-muted mb-4 px-1">
         <small class="fw-medium text-uppercase" style="letter-spacing: 1px;">{{ data_formatada }}</small>
         <small class="fw-medium" id="clockTime">--:--</small>
@@ -335,7 +228,6 @@
       </div>
 
     </div> <!-- End Main Content -->
-  </div> <!-- End Row -->
 </div>
 
 <script>
