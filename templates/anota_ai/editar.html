@@ -103,6 +103,14 @@ const selectTipo = document.querySelector('select[name="tipo"]');
         });
     }
 
+    // No carregamento da página, garantir que só o textarea visível tem name="texto"
+    function initNomeCampos() {
+        const taLink = textareaLink();
+        if (taLink) taLink.removeAttribute('name');
+        const taTexto = textareaPrincipal();
+        if (taTexto && !taTexto.getAttribute('name')) taTexto.setAttribute('name', 'texto');
+    }
+
     function agendarSalvarItensAposEnter() {
         const form = document.querySelector('form[data-salvar-itens-url]');
         if (!form) return;
@@ -229,6 +237,7 @@ const selectTipo = document.querySelector('select[name="tipo"]');
         taPrincipalEd.addEventListener('keydown', tratarEnterListaChecklist);
     }
     document.querySelector('form[method="post"]').addEventListener('submit', prepararCamposTextoParaEnvio);
+    initNomeCampos();
     toggleCampos();
 </script>
 {% endblock %}
