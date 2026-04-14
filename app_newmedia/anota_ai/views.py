@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import re
+import logging
 
 from .models import Anotacao, ItemAnotacao
 from .forms import AnotacaoForm
 from .utils import gerar_payload_pix
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def anotacao_lista(request):
@@ -30,6 +33,7 @@ def anotacao_criar(request):
             anotacao.save()
 
             texto_post = request.POST.get('texto', '')
+            logger.warning(f'[DEBUG] anotacao_criar: tipo={anotacao.tipo}, texto_post_len={len(texto_post)}, texto_post={repr(texto_post[:100])}')
             processar_itens_anotacao(anotacao, texto_post)
             if anotacao.tipo in ('lista_numerada', 'checklist'):
                 Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
@@ -38,7 +42,7 @@ def anotacao_criar(request):
             return redirect('anotacao_lista')
     else:
         form = AnotacaoForm()
-    
+
     return render(request, 'anota_ai/criar.html', {'form': form})
 
 @login_required
@@ -285,16 +289,21 @@ def processar_itens_anotacao(anotacao, texto_bruto):
     """
     from django.db import transaction
 
+    logger.warning(f'[DEBUG] processar_itens: tipo={anotacao.tipo}, texto_bruto_len={len(texto_bruto)}, texto_bruto={repr(texto_bruto[:100])}')
+
     # Sempre limpar itens antigos ao salvar para recriar baseados no texto atual
     anotacao.itens.all().delete()
 
     if anotacao.tipo not in ('lista_numerada', 'checklist'):
+        logger.warning(f'[DEBUG] processar_itens: tipo nao e lista/checklist, saindo.')
         return
 
     if not texto_bruto:
+        logger.warning(f'[DEBUG] processar_itens: texto_bruto vazio, saindo.')
         return
 
     linhas = texto_bruto.split('\n')
+    logger.warning(f'[DEBUG] processar_itens: linhas_count={len(linhas)}')
     novos_itens = []
     numero = 1
 
@@ -307,7 +316,6 @@ def processar_itens_anotacao(anotacao, texto_bruto):
         texto_item = linha_limpa
 
         if anotacao.tipo == 'checklist':
-            # Tentar detectar marcação de check
             if linha_limpa.startswith('☑') or linha_limpa.startswith('[x]') or linha_limpa.startswith('[X]') or linha_limpa.startswith('- [x]') or linha_limpa.startswith('- [X]'):
                 concluido = True
                 texto_item = re.sub(r'^(-\s*)?(☑|\[x\]|\[X\])\s*', '', linha_limpa)
@@ -316,10 +324,8 @@ def processar_itens_anotacao(anotacao, texto_bruto):
                 texto_item = re.sub(r'^(-\s*)?(☐|\[\]|\[ \])\s*', '', linha_limpa)
 
         elif anotacao.tipo == 'lista_numerada':
-            # Remover numeração automática do início (ex: "1. Texto", "1- Texto", "1 - Texto")
             texto_item = re.sub(r'^\d+\s*[\.\-]\s*', '', linha_limpa)
 
-        # Só adiciona se tiver texto (elimina linhas vazias)
         if texto_item.strip():
             novos_itens.append(ItemAnotacao(
                 anotacao=anotacao,
@@ -327,9 +333,14 @@ def processar_itens_anotacao(anotacao, texto_bruto):
                 concluido=concluido,
                 texto=texto_item.strip()
             ))
+            logger.warning(f'[DEBUG] processar_itens: adicionou item numero={numero}, texto={repr(texto_item[:50])}')
             numero += 1
 
-    # Grava tudo em uma única transação com bulk_create
+    logger.warning(f'[DEBUG] processar_itens: novos_itens_count={len(novos_itens)}')
+
     if novos_itens:
         with transaction.atomic():
             ItemAnotacao.objects.bulk_create(novos_itens)
+            logger.warning(f'[DEBUG] processar_itens: bulk_create executado com sucesso!')
+    else:
+        logger.warning(f'[DEBUG] processar_itens: nenhum item para criar.')
