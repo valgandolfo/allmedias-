@@ -280,28 +280,32 @@ def anotacao_item_ticar(request, item_pk):
 def processar_itens_anotacao(anotacao, texto_bruto):
     """
     Processa o texto bruto e cria itens de anotação se for lista ou checklist.
+    Usa o padrão "Delete All + Bulk Create" com transação atômica.
     Para texto simples e PIX, apenas limpa os itens antigos.
     """
+    from django.db import transaction
+
     # Sempre limpar itens antigos ao salvar para recriar baseados no texto atual
     anotacao.itens.all().delete()
-    
-    if anotacao.tipo in ['texto', 'pix', 'link']:
+
+    if anotacao.tipo not in ('lista_numerada', 'checklist'):
         return
 
     if not texto_bruto:
         return
 
     linhas = texto_bruto.split('\n')
+    novos_itens = []
     numero = 1
-    
+
     for linha in linhas:
         linha_limpa = linha.strip()
         if not linha_limpa:
             continue
-            
+
         concluido = False
         texto_item = linha_limpa
-        
+
         if anotacao.tipo == 'checklist':
             # Tentar detectar marcação de check
             if linha_limpa.startswith('☑') or linha_limpa.startswith('[x]') or linha_limpa.startswith('[X]') or linha_limpa.startswith('- [x]') or linha_limpa.startswith('- [X]'):
@@ -310,15 +314,22 @@ def processar_itens_anotacao(anotacao, texto_bruto):
             elif linha_limpa.startswith('☐') or linha_limpa.startswith('[]') or linha_limpa.startswith('[ ]') or linha_limpa.startswith('- []') or linha_limpa.startswith('- [ ]'):
                 concluido = False
                 texto_item = re.sub(r'^(-\s*)?(☐|\[\]|\[ \])\s*', '', linha_limpa)
-        
+
         elif anotacao.tipo == 'lista_numerada':
             # Remover numeração automática do início (ex: "1. Texto", "1- Texto", "1 - Texto")
             texto_item = re.sub(r'^\d+\s*[\.\-]\s*', '', linha_limpa)
-            
-        ItemAnotacao.objects.create(
-            anotacao=anotacao,
-            numero=numero,
-            concluido=concluido,
-            texto=texto_item
-        )
-        numero += 1
+
+        # Só adiciona se tiver texto (elimina linhas vazias)
+        if texto_item.strip():
+            novos_itens.append(ItemAnotacao(
+                anotacao=anotacao,
+                numero=numero,
+                concluido=concluido,
+                texto=texto_item.strip()
+            ))
+            numero += 1
+
+    # Grava tudo em uma única transação com bulk_create
+    if novos_itens:
+        with transaction.atomic():
+            ItemAnotacao.objects.bulk_create(novos_itens)
