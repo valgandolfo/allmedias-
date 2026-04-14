@@ -110,26 +110,19 @@ class AllMediasLoginView(LoginView):
         return super().form_invalid(form)
 
 
-class AllMediasLogoutView(LogoutView):
+def logout_view(request):
     """
-    View de logout — faz logout e retorna página minimalista com JS que
-    fecha a aba (browser) ou volta à tela de origem (mobile/PWA).
+    View de logout simples — faz logout e retorna página minimalista.
+    Sem herdar de LogoutView para evitar redirecionamentos ocultos do Django.
     """
-    template_name = 'registration/logged_out_minimal.html'
-    next_page = None
+    from django.contrib.auth import logout as auth_logout
+    from django.shortcuts import render
+    from django.views.decorators.csrf import csrf_protect
+    from django.views.decorators.http import require_POST
 
-    def post(self, request, *args, **kwargs):
-        from django.contrib.auth import logout as auth_logout
-        from django.shortcuts import render
-
-        # Pega URL de origem ANTES de fazer logout
-        return_url = request.POST.get('return_url', '/')
-
-        # Faz logout
-        auth_logout(request)
-
-        # Renderiza página minimalista com a URL salva
-        return render(request, self.template_name, {'return_url': return_url})
+    return_url = request.POST.get('return_url', '/')
+    auth_logout(request)
+    return render(request, 'registration/logged_out_minimal.html', {'return_url': return_url})
 
 
 class AllMediasRegistrationView(CreateView):

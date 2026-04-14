@@ -16,8 +16,8 @@ urlpatterns = [
     # Login
     path('login/', views.AllMediasLoginView.as_view(), name='login'),
     
-    # Logout  
-    path('logout/', views.AllMediasLogoutView.as_view(), name='logout'),
+    # Logout
+    path('logout/', views.logout_view, name='logout'),
     
     # Registro
     path('register/', views.AllMediasRegistrationView.as_view(), name='register'),
@@ -90,7 +90,7 @@ urlpatterns = [
 auth_urlpatterns = [
     # Django Auth URLs padrão para compatibilidade
     path('accounts/login/', views.AllMediasLoginView.as_view()),
-    path('accounts/logout/', views.AllMediasLogoutView.as_view()),
+    path('accounts/logout/', views.logout_view),
     path('accounts/signup/', views.AllMediasRegistrationView.as_view()),
     path('accounts/profile/', views.profile_view),
 ]
