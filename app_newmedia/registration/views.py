@@ -120,8 +120,8 @@ class AllMediasLogoutView(LogoutView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # URL de origem para voltar no mobile (antes do POST de logout)
-        context['return_url'] = self.request.META.get('HTTP_REFERER', '/')
+        # URL de origem: campo POST (salvo pelo JS) ou fallback
+        context['return_url'] = self.request.POST.get('return_url', '/')
         return context
 
 
