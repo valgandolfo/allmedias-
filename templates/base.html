@@ -328,6 +328,12 @@
         <div class="modal-body text-center p-4">
           <i class="bi bi-box-arrow-right fs-1 text-danger mb-2 d-block"></i>
           <h6 class="fw-bold mb-2">Deseja realmente sair?</h6>
+
+          <div id="logout-aviso-dados" class="alert alert-warning small mb-3 py-2" style="display:none;">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <strong>Atenção:</strong> Você tem dados não salvos em edição.
+          </div>
+
           <p class="text-muted small mb-3">Se tiver edições em andamento, salve antes de sair.</p>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary flex-fill rounded-pill" data-bs-dismiss="modal">
@@ -393,10 +399,29 @@
     // Modal de confirmação de saída
     let logoutModal;
     function confirmarSaida() {
+      // Verifica se há formulários com dados não salvos
+      const formsComDados = detectarDadosNaoSalvos();
+      const avisoEl = document.getElementById('logout-aviso-dados');
+      if (avisoEl) {
+        avisoEl.style.display = formsComDados ? 'block' : 'none';
+      }
       if (!logoutModal) {
         logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmModal'));
       }
       logoutModal.show();
+    }
+
+    function detectarDadosNaoSalvos() {
+      // Detecta formulários com conteúdo que difere do valor inicial
+      const forms = document.querySelectorAll('form:not(#logout-form-footer):not([method="GET"]) input, form:not(#logout-form-footer):not([method="GET"]) textarea, form:not(#logout-form-footer):not([method="GET"]) select');
+      for (const el of forms) {
+        if (el.type === 'hidden' || el.type === 'submit' || el.type === 'button') continue;
+        if (el.value && el.value !== (el.defaultValue || '')) return true;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked !== el.defaultChecked) return true;
+        }
+      }
+      return false;
     }
 
     document.getElementById('btnConfirmarSaida').addEventListener('click', function() {
