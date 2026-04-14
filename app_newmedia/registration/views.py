@@ -112,23 +112,11 @@ class AllMediasLoginView(LoginView):
 
 class AllMediasLogoutView(LogoutView):
     """
-    View customizada de logout — exibe página de despedida após deslogar.
+    View de logout — faz logout e retorna página minimalista com JS que
+    fecha a aba (browser) ou volta à tela anterior (mobile).
     """
-    template_name = 'registration/logged_out.html'
+    template_name = 'registration/logged_out_minimal.html'
     next_page = None
-
-    def post(self, request, *args, **kwargs):
-        nome = None
-        if request.user.is_authenticated:
-            try:
-                nome = request.user.profile.nome_completo or request.user.username
-            except Exception:
-                nome = request.user.username
-        from django.contrib.auth import logout as auth_logout
-        auth_logout(request)
-        # After logout, render the logged_out page directly (not a redirect)
-        # This is intentional to show the goodbye page
-        return render(request, self.template_name, {'nome': nome})
 
 
 class AllMediasRegistrationView(CreateView):

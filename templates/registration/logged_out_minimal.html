@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saindo...</title>
+</head>
+<body>
+    <script>
+        // Tenta fechar a aba/janela
+        // Se funcionar (browser com popup), fecha. Se não, volta duas paginas
+        // (pula o login e volta à tela anterior ao logout)
+        if (!window.close()) {
+            window.location.href = 'about:blank';
+        }
+        setTimeout(function() {
+            window.history.go(-2);
+        }, 500);
+    </script>
+    <p style="text-align:center;margin-top:40vh;font-family:sans-serif;color:#999;">Saindo...</p>
+</body>
+</html>
