@@ -4,13 +4,11 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import re
-import logging
+import sys
 
 from .models import Anotacao, ItemAnotacao
 from .forms import AnotacaoForm
 from .utils import gerar_payload_pix
-
-logger = logging.getLogger(__name__)
 
 @login_required
 def anotacao_lista(request):
@@ -33,7 +31,8 @@ def anotacao_criar(request):
             anotacao.save()
 
             texto_post = request.POST.get('texto', '')
-            logger.warning(f'[DEBUG] anotacao_criar: tipo={anotacao.tipo}, texto_post_len={len(texto_post)}, texto_post={repr(texto_post[:100])}')
+            sys.stderr.write(f'[DEBUG-AI] anotacao_criar: tipo={anotacao.tipo}, texto_post_len={len(texto_post)}, texto_post={repr(texto_post[:100])}\n')
+            sys.stderr.flush()
             processar_itens_anotacao(anotacao, texto_post)
             if anotacao.tipo in ('lista_numerada', 'checklist'):
                 Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
@@ -289,21 +288,25 @@ def processar_itens_anotacao(anotacao, texto_bruto):
     """
     from django.db import transaction
 
-    logger.warning(f'[DEBUG] processar_itens: tipo={anotacao.tipo}, texto_bruto_len={len(texto_bruto)}, texto_bruto={repr(texto_bruto[:100])}')
+    sys.stderr.write(f'[DEBUG-AI] processar_itens: tipo={anotacao.tipo}, texto_bruto_len={len(texto_bruto)}, texto_bruto={repr(texto_bruto[:100])}\n')
+    sys.stderr.flush()
 
     # Sempre limpar itens antigos ao salvar para recriar baseados no texto atual
     anotacao.itens.all().delete()
 
     if anotacao.tipo not in ('lista_numerada', 'checklist'):
-        logger.warning(f'[DEBUG] processar_itens: tipo nao e lista/checklist, saindo.')
+        sys.stderr.write(f'[DEBUG-AI] processar_itens: tipo nao e lista/checklist, saindo.\n')
+        sys.stderr.flush()
         return
 
     if not texto_bruto:
-        logger.warning(f'[DEBUG] processar_itens: texto_bruto vazio, saindo.')
+        sys.stderr.write(f'[DEBUG-AI] processar_itens: texto_bruto vazio, saindo.\n')
+        sys.stderr.flush()
         return
 
     linhas = texto_bruto.split('\n')
-    logger.warning(f'[DEBUG] processar_itens: linhas_count={len(linhas)}')
+    sys.stderr.write(f'[DEBUG-AI] processar_itens: linhas_count={len(linhas)}\n')
+    sys.stderr.flush()
     novos_itens = []
     numero = 1
 
@@ -333,14 +336,18 @@ def processar_itens_anotacao(anotacao, texto_bruto):
                 concluido=concluido,
                 texto=texto_item.strip()
             ))
-            logger.warning(f'[DEBUG] processar_itens: adicionou item numero={numero}, texto={repr(texto_item[:50])}')
+            sys.stderr.write(f'[DEBUG-AI] processar_itens: adicionou item numero={numero}, texto={repr(texto_item[:50])}\n')
+            sys.stderr.flush()
             numero += 1
 
-    logger.warning(f'[DEBUG] processar_itens: novos_itens_count={len(novos_itens)}')
+    sys.stderr.write(f'[DEBUG-AI] processar_itens: novos_itens_count={len(novos_itens)}\n')
+    sys.stderr.flush()
 
     if novos_itens:
         with transaction.atomic():
             ItemAnotacao.objects.bulk_create(novos_itens)
-            logger.warning(f'[DEBUG] processar_itens: bulk_create executado com sucesso!')
+            sys.stderr.write(f'[DEBUG-AI] processar_itens: bulk_create executado com sucesso!\n')
+            sys.stderr.flush()
     else:
-        logger.warning(f'[DEBUG] processar_itens: nenhum item para criar.')
+        sys.stderr.write(f'[DEBUG-AI] processar_itens: nenhum item para criar.\n')
+        sys.stderr.flush()
