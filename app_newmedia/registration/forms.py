@@ -492,19 +492,7 @@ class UserProfileForm(forms.ModelForm):
         fields = [
             'nome_completo', 'telefone', 'data_nascimento', 'foto_perfil',
             'facebook', 'instagram', 'youtube',
-            'tema_escuro', 'notificacoes_email', 'compartilhamento_publico'
         ]
-        widgets = {
-            'tema_escuro': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            }),
-            'notificacoes_email': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            }),
-            'compartilhamento_publico': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            })
-        }
     
     def clean_foto_perfil(self):
         """

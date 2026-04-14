@@ -16,7 +16,7 @@ class UserProfileAdmin(admin.ModelAdmin):
         'user', 'nome_completo', 'telefone', 'plano', 
         'total_midias', 'total_anotacoes', 'acesso_ativo', 'data_criacao'
     ]
-    list_filter = ['plano', 'tema_escuro', 'data_criacao']
+    list_filter = ['plano', 'data_criacao']
     search_fields = ['user__email', 'nome_completo', 'telefone']
     readonly_fields = ['data_criacao', 'data_atualizacao', 'ultimo_login_ip']
     
@@ -30,8 +30,8 @@ class UserProfileAdmin(admin.ModelAdmin):
         ('Acesso e Plano', {
             'fields': ('plano', 'dias_acesso', 'data_expiracao')
         }),
-        ('Preferências', {
-            'fields': ('tema_escuro', 'notificacoes_email', 'compartilhamento_publico'),
+        ('Redes Sociais', {
+            'fields': ('facebook', 'instagram', 'youtube'),
             'classes': ('collapse',)
         }),
         ('Estatísticas', {

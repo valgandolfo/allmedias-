@@ -110,24 +110,6 @@ class UserProfile(models.Model):
     )
 
     # ===================================================================
-    # PREFERÊNCIAS DO USUÁRIO
-    # ===================================================================
-    tema_escuro = models.BooleanField(
-        default=False,
-        verbose_name='Usar tema escuro'
-    )
-    
-    notificacoes_email = models.BooleanField(
-        default=True,
-        verbose_name='Receber notificações por email'
-    )
-    
-    compartilhamento_publico = models.BooleanField(
-        default=False,
-        verbose_name='Permitir compartilhamento público de mídias'
-    )
-    
-    # ===================================================================
     # ESTATÍSTICAS E CONTROLE
     # ===================================================================
     total_midias = models.IntegerField(
