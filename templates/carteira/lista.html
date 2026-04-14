@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Carteira - Compras{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">💳 Carteira</h4>
+        <small class="text-muted">Compras capturadas por notificações</small>
+    </div>
+</div>
+
+<!-- Resumo -->
+<div class="card card-custom mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center py-3">
+        <div>
+            <div class="text-muted small">Total gasto</div>
+            <div class="h4 mb-0 text-success">R$ {{ total_gasto|floatformat:2 }}</div>
+        </div>
+        <div class="text-end">
+            <div class="text-muted small">Registros</div>
+            <div class="h5 mb-0">{{ notificacoes.count }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista -->
+{% for notif in notificacoes %}
+<div class="card card-custom mb-2">
+    <div class="card-body py-3 px-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <div class="fw-bold">{{ notif.estabelecimento|default:"Compra não identificada" }}</div>
+                <div class="text-muted small mt-1">
+                    {% if notif.app_origem %}<span class="badge bg-secondary me-1">{{ notif.app_origem }}</span>{% endif %}
+                    {{ notif.criado_em|date:"d/m/Y H:i" }}
+                </div>
+                {% if notif.valor %}
+                <div class="text-success fw-bold mt-1">R$ {{ notif.valor|floatformat:2 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <details class="mt-2">
+            <summary class="text-muted small" style="cursor:pointer;">Ver notificação original</summary>
+            <div class="text-muted small mt-1 p-2 bg-dark rounded">
+                {{ notif.texto_completo }}
+            </div>
+        </details>
+    </div>
+</div>
+{% empty %}
+<div class="card card-custom">
+    <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-bell-slash display-4 d-block mb-3"></i>
+        <p class="mb-0">Nenhuma compra capturada ainda.</p>
+        <small>Configure o MacroDroid para enviar notificações.</small>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

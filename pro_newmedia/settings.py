@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "app_newmedia.transferir",
     "app_newmedia.calendario",
     "app_newmedia.smartplan",
+    "app_newmedia.carteira",
     "django_q",
 ]
 
