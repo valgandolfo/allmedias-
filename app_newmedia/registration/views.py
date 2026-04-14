@@ -118,11 +118,18 @@ class AllMediasLogoutView(LogoutView):
     template_name = 'registration/logged_out_minimal.html'
     next_page = None
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # URL de origem: campo POST (salvo pelo JS) ou fallback
-        context['return_url'] = self.request.POST.get('return_url', '/')
-        return context
+    def post(self, request, *args, **kwargs):
+        from django.contrib.auth import logout as auth_logout
+        from django.shortcuts import render
+
+        # Pega URL de origem ANTES de fazer logout
+        return_url = request.POST.get('return_url', '/')
+
+        # Faz logout
+        auth_logout(request)
+
+        # Renderiza página minimalista com a URL salva
+        return render(request, self.template_name, {'return_url': return_url})
 
 
 class AllMediasRegistrationView(CreateView):
