@@ -163,6 +163,50 @@
     .btn-fab-right { right: 20px; }
     .btn-fab-center { left: 50%; transform: translateX(-50%); }
     .btn-fab-center:hover { transform: translateX(-50%) translateY(-5px); }
+
+    /* Social Dropdown Menu */
+    .social-dropdown {
+        position: fixed;
+        bottom: 65px;
+        right: 10px;
+        background: rgba(30, 41, 59, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 6px;
+        z-index: 1001;
+        min-width: 180px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.2s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .social-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        color: var(--text-main);
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background 0.2s;
+        font-size: 0.9rem;
+    }
+    .social-dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .social-dropdown-item i {
+        font-size: 1.2rem;
+        min-width: 20px;
+        text-align: center;
+    }
+    .social-dropdown-item.text-muted {
+        pointer-events: auto;
+        opacity: 0.7;
+    }
   </style>
 
   {% block extra_css %}
@@ -226,14 +270,38 @@
           <i class="bi bi-file-earmark-spreadsheet"></i>
           <span>SmartPlan</span>
         </a>
-        <a href="#" class="footer-nav-link">
-          <i class="bi bi-info-circle"></i>
-          <span>Sobre</span>
-        </a>
-        <a href="#" class="footer-nav-link">
+        <div class="footer-nav-link position-relative" id="footer-social-trigger" onclick="toggleSocialMenu()" style="cursor:pointer;">
           <i class="bi bi-share"></i>
           <span>Redes Sociais</span>
-        </a>
+        </div>
+
+        <!-- Dropdown de Redes Sociais -->
+        <div id="footer-social-menu" class="social-dropdown" style="display:none;">
+          {% if user.profile.facebook %}
+          <a href="{{ user.profile.facebook }}" target="_blank" rel="noopener noreferrer" class="social-dropdown-item">
+            <i class="bi bi-facebook text-primary"></i>
+            <span>Facebook</span>
+          </a>
+          {% endif %}
+          {% if user.profile.instagram %}
+          <a href="{% if user.profile.instagram|slice:':4' == 'http' %}{{ user.profile.instagram }}{% else %}https://instagram.com/{{ user.profile.instagram }}{% endif %}" target="_blank" rel="noopener noreferrer" class="social-dropdown-item">
+            <i class="bi bi-instagram text-danger"></i>
+            <span>Instagram</span>
+          </a>
+          {% endif %}
+          {% if user.profile.youtube %}
+          <a href="{% if user.profile.youtube|slice:':4' == 'http' %}{{ user.profile.youtube }}{% else %}https://youtube.com/@{{ user.profile.youtube }}{% endif %}" target="_blank" rel="noopener noreferrer" class="social-dropdown-item">
+            <i class="bi bi-youtube text-danger"></i>
+            <span>YouTube</span>
+          </a>
+          {% endif %}
+          {% if not user.profile.facebook and not user.profile.instagram and not user.profile.youtube %}
+          <a href="{% url 'profile_edit' %}" class="social-dropdown-item text-muted">
+            <i class="bi bi-plus-circle"></i>
+            <span>Adicionar redes sociais</span>
+          </a>
+          {% endif %}
+        </div>
         <a href="{% url 'profile_edit' %}" class="footer-nav-link {% if 'profile_edit' in request.path %}active{% endif %}">
           <i class="bi bi-gear"></i>
           <span>Configurações</span>
@@ -270,6 +338,26 @@
         this.style.opacity = "0.7";
         setTimeout(() => (this.style.opacity = "1"), 200);
       });
+    });
+
+    // Dropdown de Redes Sociais no footer
+    let socialMenuOpen = false;
+    function toggleSocialMenu() {
+      const menu = document.getElementById('footer-social-menu');
+      socialMenuOpen = !socialMenuOpen;
+      menu.style.display = socialMenuOpen ? 'block' : 'none';
+    }
+
+    // Fecha ao clicar fora
+    document.addEventListener('click', function(e) {
+      if (socialMenuOpen) {
+        const trigger = document.getElementById('footer-social-trigger');
+        const menu = document.getElementById('footer-social-menu');
+        if (trigger && menu && !trigger.contains(e.target) && !menu.contains(e.target)) {
+          menu.style.display = 'none';
+          socialMenuOpen = false;
+        }
+      }
     });
   </script>
 
