@@ -113,10 +113,16 @@ class AllMediasLoginView(LoginView):
 class AllMediasLogoutView(LogoutView):
     """
     View de logout — faz logout e retorna página minimalista com JS que
-    fecha a aba (browser) ou volta à tela anterior (mobile).
+    fecha a aba (browser) ou volta à tela de origem (mobile/PWA).
     """
     template_name = 'registration/logged_out_minimal.html'
     next_page = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # URL de origem para voltar no mobile (antes do POST de logout)
+        context['return_url'] = self.request.META.get('HTTP_REFERER', '/')
+        return context
 
 
 class AllMediasRegistrationView(CreateView):

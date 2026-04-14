@@ -7,15 +7,19 @@
 </head>
 <body>
     <script>
-        // Tenta fechar a aba/janela
-        // Se funcionar (browser com popup), fecha. Se não, volta duas paginas
-        // (pula o login e volta à tela anterior ao logout)
-        if (!window.close()) {
-            window.location.href = 'about:blank';
-        }
-        setTimeout(function() {
-            window.history.go(-2);
-        }, 500);
+        (function() {
+            // 1) Tenta fechar a aba (funciona em browser/desktop)
+            var tentouFechar = false;
+            try {
+                window.close();
+                tentouFechar = true;
+            } catch(e) {}
+
+            // 2) Se não fechou, aguarda e volta para a tela de origem
+            setTimeout(function() {
+                window.location.replace('{{ return_url }}');
+            }, 300);
+        })();
     </script>
     <p style="text-align:center;margin-top:40vh;font-family:sans-serif;color:#999;">Saindo...</p>
 </body>
