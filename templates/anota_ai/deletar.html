@@ -29,7 +29,7 @@
             </div>
         {% elif anotacao.tipo == 'checklist' %}
             <ul class="list-unstyled mb-0 small">
-                {% for item in anotacao.itens.all|slice:":8" %}
+                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
                     <li class="mb-1">
                         <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-1"></i>
                         {{ item.texto }}
@@ -40,7 +40,7 @@
             </ul>
         {% elif anotacao.tipo == 'lista_numerada' %}
             <ol class="mb-0 small ps-3">
-                {% for item in anotacao.itens.all|slice:":8" %}
+                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
                     <li class="mb-1">{{ item.texto }}</li>
                 {% empty %}
                     <li class="text-muted">Sem itens na lista.</li>

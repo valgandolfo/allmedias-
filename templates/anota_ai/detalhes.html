@@ -55,20 +55,88 @@
                 {% endif %}
             </div>
         {% elif anotacao.tipo == 'checklist' %}
-            <ul class="list-unstyled">
-                {% for item in anotacao.itens.all %}
-                <li class="mb-2">
-                    <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-2"></i>
-                    <span class="{% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
-                </li>
-                {% endfor %}
-            </ul>
+            <style>
+                .checklist-item-zebrado {
+                    background: rgba(255,255,255,0.03);
+                    border-left: 3px solid transparent;
+                    border-radius: 8px;
+                    padding: 10px 14px;
+                    margin-bottom: 6px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    transition: background 0.15s;
+                }
+                .checklist-item-zebrado:nth-child(odd) {
+                    background: rgba(255,255,255,0.06);
+                }
+                .checklist-item-zebrado:hover {
+                    background: rgba(14,165,233,0.1);
+                    border-left-color: var(--primary-color);
+                }
+                .checklist-item-zebrado .check-icon {
+                    font-size: 1.1rem;
+                    flex-shrink: 0;
+                }
+                .checklist-item-zebrado .check-text {
+                    flex: 1;
+                    font-size: 0.92rem;
+                }
+            </style>
+            {% for item in anotacao.itens.all|dictsort:"numero" %}
+            <div class="checklist-item-zebrado">
+                <i class="bi check-icon {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %}"></i>
+                <span class="check-text {% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
+            </div>
+            {% empty %}
+            <div class="text-muted text-center py-3">Checklist sem itens.</div>
+            {% endfor %}
         {% elif anotacao.tipo == 'lista_numerada' %}
-            <ol class="list-group list-group-numbered">
-                {% for item in anotacao.itens.all %}
-                <li class="list-group-item border-0 px-0">{{ item.texto }}</li>
-                {% endfor %}
-            </ol>
+            <style>
+                .lista-item-zebrado {
+                    background: rgba(255,255,255,0.03);
+                    border-left: 3px solid transparent;
+                    border-radius: 8px;
+                    padding: 10px 14px;
+                    margin-bottom: 6px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    transition: background 0.15s;
+                }
+                .lista-item-zebrado:nth-child(odd) {
+                    background: rgba(255,255,255,0.06);
+                }
+                .lista-item-zebrado:hover {
+                    background: rgba(14,165,233,0.1);
+                    border-left-color: var(--primary-color);
+                }
+                .lista-item-numero {
+                    background: var(--primary-color);
+                    color: white;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    min-width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                .lista-item-texto {
+                    flex: 1;
+                    font-size: 0.92rem;
+                }
+            </style>
+            {% for item in anotacao.itens.all|dictsort:"numero" %}
+            <div class="lista-item-zebrado">
+                <span class="lista-item-numero">{{ item.numero }}</span>
+                <span class="lista-item-texto">{{ item.texto }}</span>
+            </div>
+            {% empty %}
+            <div class="text-muted text-center py-3">Lista sem itens.</div>
+            {% endfor %}
         {% elif anotacao.tipo == 'link' %}
             <div class="card border-0 shadow-sm rounded-3 p-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
