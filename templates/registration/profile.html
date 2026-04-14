@@ -63,6 +63,45 @@
         </div>
     </div>
 
+    <!-- Redes Sociais -->
+    <h6 class="text-uppercase text-muted fw-bold mb-3 ms-2" style="font-size: 0.8rem;">Redes Sociais</h6>
+    <div class="card card-custom mb-4">
+        <ul class="list-group list-group-flush">
+            {% if profile.facebook %}
+            <li class="list-group-item d-flex align-items-center py-3 border-bottom-0">
+                <i class="bi bi-facebook text-primary fs-5 me-3"></i>
+                <div>
+                    <div class="small text-muted">Facebook</div>
+                    <div class="fw-medium">{{ profile.facebook }}</div>
+                </div>
+            </li>
+            {% endif %}
+            {% if profile.instagram %}
+            <li class="list-group-item d-flex align-items-center py-3 border-bottom-0">
+                <i class="bi bi-instagram text-danger fs-5 me-3"></i>
+                <div>
+                    <div class="small text-muted">Instagram</div>
+                    <div class="fw-medium">{{ profile.instagram }}</div>
+                </div>
+            </li>
+            {% endif %}
+            {% if profile.youtube %}
+            <li class="list-group-item d-flex align-items-center py-3 border-bottom-0">
+                <i class="bi bi-youtube text-danger fs-5 me-3"></i>
+                <div>
+                    <div class="small text-muted">YouTube</div>
+                    <div class="fw-medium">{{ profile.youtube }}</div>
+                </div>
+            </li>
+            {% endif %}
+            {% if not profile.facebook and not profile.instagram and not profile.youtube %}
+            <li class="list-group-item py-3 border-bottom-0">
+                <div class="text-muted small">Nenhuma rede social cadastrada.</div>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
     <!-- Assinatura e Sistema -->
     <h6 class="text-uppercase text-muted fw-bold mb-3 ms-2" style="font-size: 0.8rem;">Plano e Acesso</h6>
     <div class="card card-custom mb-4">

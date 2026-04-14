@@ -89,6 +89,27 @@ class UserProfile(models.Model):
     )
     
     # ===================================================================
+    # REDES SOCIAIS
+    # ===================================================================
+    facebook = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Facebook'
+    )
+
+    instagram = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Instagram'
+    )
+
+    youtube = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='YouTube'
+    )
+
+    # ===================================================================
     # PREFERÊNCIAS DO USUÁRIO
     # ===================================================================
     tema_escuro = models.BooleanField(

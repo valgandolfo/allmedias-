@@ -101,25 +101,25 @@
 
                 <hr class="mb-4">
 
-                <!-- Seção: Preferências -->
-                <h6 class="text-uppercase text-muted fw-bold mb-3 small">Preferências</h6>
-                <div class="mb-3 form-check form-switch py-2">
-                    {{ form.tema_escuro }}
-                    <label class="form-check-label pt-1" for="{{ form.tema_escuro.id_for_label }}">
-                        Ativar tema escuro (Dark Mode)
-                    </label>
+                <!-- Seção: Redes Sociais -->
+                <h6 class="text-uppercase text-muted fw-bold mb-3 small">Redes Sociais</h6>
+
+                <div class="mb-3">
+                    <label for="{{ form.facebook.id_for_label }}" class="form-label text-muted small mb-1">Facebook</label>
+                    {{ form.facebook }}
+                    {% if form.facebook.errors %}<div class="text-danger small mt-1">{{ form.facebook.errors.0 }}</div>{% endif %}
                 </div>
-                <div class="mb-3 form-check form-switch py-2">
-                    {{ form.notificacoes_email }}
-                    <label class="form-check-label pt-1" for="{{ form.notificacoes_email.id_for_label }}">
-                        Receber notificações por e-mail
-                    </label>
+
+                <div class="mb-3">
+                    <label for="{{ form.instagram.id_for_label }}" class="form-label text-muted small mb-1">Instagram</label>
+                    {{ form.instagram }}
+                    {% if form.instagram.errors %}<div class="text-danger small mt-1">{{ form.instagram.errors.0 }}</div>{% endif %}
                 </div>
-                <div class="mb-4 form-check form-switch py-2">
-                    {{ form.compartilhamento_publico }}
-                    <label class="form-check-label pt-1" for="{{ form.compartilhamento_publico.id_for_label }}">
-                        Permitir compartilhamento público de mídias
-                    </label>
+
+                <div class="mb-4">
+                    <label for="{{ form.youtube.id_for_label }}" class="form-label text-muted small mb-1">YouTube</label>
+                    {{ form.youtube }}
+                    {% if form.youtube.errors %}<div class="text-danger small mt-1">{{ form.youtube.errors.0 }}</div>{% endif %}
                 </div>
 
                 <!-- Botão de Salvar -->

@@ -456,11 +456,42 @@ class UserProfileForm(forms.ModelForm):
         label='Foto de Perfil',
         help_text='Recomendado: 300x300px, máximo 2MB'
     )
-    
+
+    facebook = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu perfil do Facebook (URL ou username)'
+        }),
+        label='Facebook'
+    )
+
+    instagram = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu perfil do Instagram (username)'
+        }),
+        label='Instagram'
+    )
+
+    youtube = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Seu canal do YouTube (URL ou nome)'
+        }),
+        label='YouTube'
+    )
+
     class Meta:
         model = UserProfile
         fields = [
             'nome_completo', 'telefone', 'data_nascimento', 'foto_perfil',
+            'facebook', 'instagram', 'youtube',
             'tema_escuro', 'notificacoes_email', 'compartilhamento_publico'
         ]
         widgets = {
