@@ -194,8 +194,8 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
 
     function abrirMenu(id, titulo, tipo) {
         document.getElementById('modalTitle').innerText = titulo;
-        document.getElementById('linkEditar').href = `/anotacoes/${id}/editar/`;
-        document.getElementById('linkDeletar').href = `/anotacoes/${id}/deletar/`;
+        document.getElementById('linkEditar').href = `/anotacoes/${id}/form/`;
+        document.getElementById('linkDeletar').href = `/anotacoes/${id}/?acao=deletar`;
         document.getElementById('linkCompartilhar').onclick = function(event) {
             event.preventDefault();
             compartilharAnotacao(id);

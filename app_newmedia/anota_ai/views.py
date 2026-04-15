@@ -19,30 +19,57 @@ def anotacao_lista(request):
     return render(request, 'anota_ai/lista.html', {'anotacoes': anotacoes})
 
 @login_required
-def anotacao_criar(request):
+def anotacao_form(request, pk=None):
     """
-    Cria uma nova anotação
+    View unificada: cria e edita anotacao.
+    Se pk=None → criar (form zerado)
+    Se pk existe → editar (form com dados)
     """
+    anotacao = None
+    if pk is not None:
+        anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
+        # Se for lista ou checklist, reconstruir texto a partir dos itens
+        if anotacao.tipo in ['lista_numerada', 'checklist'] and not anotacao.texto:
+            itens = anotacao.itens.all().order_by('numero')
+            linhas = []
+            for item in itens:
+                prefixo = ""
+                if anotacao.tipo == 'checklist':
+                    prefixo = "☑ " if item.concluido else "☐ "
+                elif anotacao.tipo == 'lista_numerada':
+                    prefixo = f"{item.numero} - "
+                linhas.append(f"{prefixo}{item.texto}")
+            anotacao.texto = "\n".join(linhas)
+
     if request.method == 'POST':
-        form = AnotacaoForm(request.POST)
+        if anotacao:
+            form = AnotacaoForm(request.POST, instance=anotacao)
+        else:
+            form = AnotacaoForm(request.POST)
+
         if form.is_valid():
             anotacao = form.save(commit=False)
-            anotacao.usuario = request.user
+            if not anotacao.usuario_id:
+                anotacao.usuario = request.user
             anotacao.save()
 
             texto_post = request.POST.get('texto', '')
-            sys.stderr.write(f'[DEBUG-AI] anotacao_criar: tipo={anotacao.tipo}, texto_post_len={len(texto_post)}, texto_post={repr(texto_post[:100])}\n')
-            sys.stderr.flush()
             processar_itens_anotacao(anotacao, texto_post)
             if anotacao.tipo in ('lista_numerada', 'checklist'):
                 Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
 
-            messages.success(request, 'Anotação criada com sucesso!')
+            messages.success(request, 'Anotação salva com sucesso!')
             return redirect('anotacao_lista')
     else:
-        form = AnotacaoForm()
+        if anotacao:
+            form = AnotacaoForm(instance=anotacao)
+        else:
+            form = AnotacaoForm()
 
-    return render(request, 'anota_ai/criar.html', {'form': form})
+    return render(request, 'anota_ai/form.html', {
+        'form': form,
+        'anotacao': anotacao,
+    })
 
 @login_required
 @require_POST
@@ -62,50 +89,19 @@ def anotacao_salvar_itens(request, pk):
 
 
 @login_required
-def anotacao_editar(request, pk):
+def anotacao_detalhes(request, pk=None):
     """
-    Edita uma anotação existente
+    View unificada de detalhes/confirmacao de exclusao.
+    Se pk=None → redireciona para lista
+    Se ?acao=deletar → confirma exclusao inline
+    Caso contrario → mostra conteudo da anotacao
     """
+    if pk is None:
+        return redirect('anotacao_lista')
+
     anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
-    
-    # Se for lista ou checklist, reconstruir o texto original a partir dos itens para exibição no form
-    if anotacao.tipo in ['lista_numerada', 'checklist'] and not anotacao.texto:
-        itens = anotacao.itens.all().order_by('numero')
-        linhas = []
-        for item in itens:
-            prefixo = ""
-            if anotacao.tipo == 'checklist':
-                prefixo = "☑ " if item.concluido else "☐ "
-            elif anotacao.tipo == 'lista_numerada':
-                prefixo = f"{item.numero} - "
-            linhas.append(f"{prefixo}{item.texto}")
-        anotacao.texto = "\n".join(linhas)
+    acao = request.GET.get('acao', 'ver')
 
-    if request.method == 'POST':
-        form = AnotacaoForm(request.POST, instance=anotacao)
-        if form.is_valid():
-            anotacao = form.save(commit=False)
-            anotacao.save()
-
-            texto_post = request.POST.get('texto', '')
-            processar_itens_anotacao(anotacao, texto_post)
-            if anotacao.tipo in ('lista_numerada', 'checklist'):
-                Anotacao.objects.filter(pk=anotacao.pk).update(texto=None)
-
-            messages.success(request, 'Anotação atualizada com sucesso!')
-            return redirect('anotacao_lista')
-    else:
-        form = AnotacaoForm(instance=anotacao)
-    
-    return render(request, 'anota_ai/editar.html', {'form': form, 'anotacao': anotacao})
-
-@login_required
-def anotacao_detalhes(request, pk):
-    """
-    Exibe detalhes da anotação
-    """
-    anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
-    
     pix_payload = ""
     if anotacao.tipo == 'pix':
         pix_payload = gerar_payload_pix(
@@ -114,10 +110,17 @@ def anotacao_detalhes(request, pk):
             anotacao.pix_cidade,
             anotacao.pix_valor
         )
-        
+
+    # Se acao = deletar e POST confirmado
+    if acao == 'deletar' and request.method == 'POST':
+        anotacao.delete()
+        messages.success(request, 'Anotação excluída com sucesso!')
+        return redirect('anotacao_lista')
+
     return render(request, 'anota_ai/detalhes.html', {
         'anotacao': anotacao,
-        'pix_payload': pix_payload
+        'pix_payload': pix_payload,
+        'acao': acao,
     })
 
 @login_required
@@ -139,20 +142,6 @@ def anotacao_ticar(request, pk):
         'total_itens': total_itens,
         'concluidos': concluidos,
     })
-
-@login_required
-def anotacao_deletar(request, pk):
-    """
-    Exclui uma anotação
-    """
-    anotacao = get_object_or_404(Anotacao, pk=pk, usuario=request.user)
-    
-    if request.method == 'POST':
-        anotacao.delete()
-        messages.success(request, 'Anotação excluída com sucesso!')
-        return redirect('anotacao_lista')
-    
-    return render(request, 'anota_ai/deletar.html', {'anotacao': anotacao})
 
 @login_required
 def anotacao_favoritar(request, pk):

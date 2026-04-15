@@ -1,8 +1,68 @@
 {% extends 'base.html' %}
 
-{% block title %}Detalhes da Anotação - NewMedia{% endblock %}
+{% block title %}
+{% if acao == 'deletar' %}Excluir{% else %}Detalhes{% endif %} - NewMedia
+{% endblock %}
 
 {% block content %}
+
+<!-- ==================== MODO: CONFIRMAR EXCLUSAO ==================== -->
+{% if acao == 'deletar' %}
+<div class="card-custom p-4">
+    <div class="text-center mb-3 text-danger">
+        <i class="bi bi-exclamation-triangle display-5"></i>
+    </div>
+    <h4 class="text-center mb-1">Excluir Anotação?</h4>
+    <p class="text-muted text-center mb-4">
+        Confirme a exclusão de <strong>"{{ anotacao.titulo }}"</strong>.<br>
+        Esta ação não pode ser desfeita.
+    </p>
+
+    <div class="border rounded p-3 bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="text-truncate pe-2">{{ anotacao.titulo }}</strong>
+            <span class="badge bg-secondary">{{ anotacao.get_tipo_display }}</span>
+        </div>
+        {% if anotacao.tipo == 'pix' %}
+            <div class="small">
+                <div><strong>Chave:</strong> <span class="font-monospace">{{ anotacao.pix_chave|default:"-" }}</span></div>
+                <div><strong>Favorecido:</strong> {{ anotacao.pix_favorecido|default:"-" }}</div>
+            </div>
+        {% elif anotacao.tipo == 'checklist' %}
+            <ul class="list-unstyled mb-0 small">
+                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
+                    <li class="mb-1">
+                        <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-1"></i>
+                        {{ item.texto }}
+                    </li>
+                {% empty %}
+                    <li class="text-muted">Sem itens.</li>
+                {% endfor %}
+            </ul>
+        {% elif anotacao.tipo == 'lista_numerada' %}
+            <ol class="mb-0 small ps-3">
+                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
+                    <li class="mb-1">{{ item.texto }}</li>
+                {% empty %}
+                    <li class="text-muted">Sem itens.</li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <div class="small" style="white-space: pre-wrap;">{{ anotacao.texto|default:"Sem conteúdo."|truncatechars:150 }}</div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+            <a href="{% url 'anotacao_detalhes' anotacao.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- ==================== MODO: VER CONTEUDO ==================== -->
+{% else %}
 <div class="card-custom p-4">
     <div class="d-flex justify-content-between align-items-start mb-3">
         <h4 class="mb-0">{{ anotacao.titulo }}</h4>
@@ -12,24 +72,27 @@
                 <i class="bi bi-check2-square"></i>
             </a>
             {% endif %}
-            <a href="{% url 'anotacao_editar' anotacao.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'anotacao_deletar' anotacao.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></a>
+            <a href="{% url 'anotacao_form' anotacao.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'anotacao_detalhes' anotacao.pk %}?acao=deletar" class="btn btn-outline-danger btn-sm" title="Excluir">
+                <i class="bi bi-trash"></i>
+            </a>
         </div>
     </div>
-    
+
     <div class="text-muted small mb-3">
         {{ anotacao.get_tipo_display }} • {{ anotacao.criado_em|date:"d/m/Y H:i" }}
     </div>
-    
+
     <hr>
-    
+
     <div class="mt-3">
         {% if anotacao.tipo == 'pix' %}
             <div class="bg-light p-3 rounded text-center mb-3">
                 <h5 class="mb-3">Escaneie o QR Code</h5>
                 {% if pix_payload %}
                 <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
-                
                 <div class="input-group mb-3">
                     <input type="text" class="form-control font-monospace text-muted small" value="{{ pix_payload }}" id="pixCopiaCola" readonly>
                     <button class="btn btn-outline-primary" type="button" onclick="copiarPix()">
@@ -40,25 +103,18 @@
                     </button>
                 </div>
                 {% else %}
-                <p class="text-danger">Não foi possível gerar o código Pix. Verifique os dados (Chave, Favorecido e Cidade são obrigatórios).</p>
+                <p class="text-danger">Não foi possível gerar o código Pix. Verifique os dados.</p>
                 {% endif %}
             </div>
-            
             <div class="bg-light p-3 rounded">
                 <p><strong>Nome:</strong> {{ anotacao.pix_nome|default:"-" }}</p>
                 <p><strong>Chave:</strong> <span class="text-primary font-monospace">{{ anotacao.pix_chave }}</span> <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_chave }}')"><i class="bi bi-clipboard"></i></button></p>
-                <p>
-                    <strong>Favorecido:</strong> {{ anotacao.pix_favorecido }}
-                    <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_favorecido|default:''|escapejs }}')">
-                        <i class="bi bi-clipboard"></i>
-                    </button>
-                </p>
+                <p><strong>Favorecido:</strong> {{ anotacao.pix_favorecido }} <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_favorecido|default:''|escapejs }}')"><i class="bi bi-clipboard"></i></button></p>
                 <p><strong>Cidade:</strong> {{ anotacao.pix_cidade|default:"-" }}</p>
                 <p><strong>Banco:</strong> {{ anotacao.pix_banco|default:"-" }}</p>
-                {% if anotacao.pix_valor %}
-                <p><strong>Valor:</strong> R$ {{ anotacao.pix_valor }}</p>
-                {% endif %}
+                {% if anotacao.pix_valor %}<p><strong>Valor:</strong> R$ {{ anotacao.pix_valor }}</p>{% endif %}
             </div>
+
         {% elif anotacao.tipo == 'checklist' %}
             <style>
                 .checklist-item-zebrado {
@@ -72,30 +128,18 @@
                     gap: 10px;
                     transition: background 0.15s;
                 }
-                .checklist-item-zebrado:nth-child(odd) {
-                    background: rgba(255,255,255,0.06);
-                }
-                .checklist-item-zebrado:hover {
-                    background: rgba(14,165,233,0.1);
-                    border-left-color: var(--primary-color);
-                }
-                .checklist-item-zebrado .check-icon {
-                    font-size: 1.1rem;
-                    flex-shrink: 0;
-                }
-                .checklist-item-zebrado .check-text {
-                    flex: 1;
-                    font-size: 0.92rem;
-                }
+                .checklist-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
+                .checklist-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
             </style>
             {% for item in anotacao.itens.all|dictsort:"numero" %}
             <div class="checklist-item-zebrado">
-                <i class="bi check-icon {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %}"></i>
-                <span class="check-text {% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
+                <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-2"></i>
+                <span class="{% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
             </div>
             {% empty %}
             <div class="text-muted text-center py-3">Checklist sem itens.</div>
             {% endfor %}
+
         {% elif anotacao.tipo == 'lista_numerada' %}
             <style>
                 .lista-item-zebrado {
@@ -109,13 +153,8 @@
                     gap: 12px;
                     transition: background 0.15s;
                 }
-                .lista-item-zebrado:nth-child(odd) {
-                    background: rgba(255,255,255,0.06);
-                }
-                .lista-item-zebrado:hover {
-                    background: rgba(14,165,233,0.1);
-                    border-left-color: var(--primary-color);
-                }
+                .lista-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
+                .lista-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
                 .lista-item-numero {
                     background: var(--primary-color);
                     color: white;
@@ -129,19 +168,16 @@
                     justify-content: center;
                     flex-shrink: 0;
                 }
-                .lista-item-texto {
-                    flex: 1;
-                    font-size: 0.92rem;
-                }
             </style>
             {% for item in anotacao.itens.all|dictsort:"numero" %}
             <div class="lista-item-zebrado">
                 <span class="lista-item-numero">{{ item.numero }}</span>
-                <span class="lista-item-texto">{{ item.texto }}</span>
+                <span>{{ item.texto }}</span>
             </div>
             {% empty %}
             <div class="text-muted text-center py-3">Lista sem itens.</div>
             {% endfor %}
+
         {% elif anotacao.tipo == 'link' %}
             <div class="card border-0 shadow-sm rounded-3 p-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
@@ -149,102 +185,72 @@
                     <span class="fw-bold text-primary fs-5">Link</span>
                 </div>
                 <hr class="my-2">
-                <div class="mb-2">
-                    <span class="text-muted small">Descrição</span>
-                    <div class="fw-semibold mt-1">{{ anotacao.titulo }}</div>
-                </div>
+                <div class="mb-2"><span class="text-muted small">Descrição</span><div class="fw-semibold mt-1">{{ anotacao.titulo }}</div></div>
                 {% if anotacao.texto %}
                 <div class="mt-3">
                     <span class="text-muted small">Link</span>
                     <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="text-break text-primary font-monospace small flex-grow-1"
-                              style="word-break: break-all;">{{ anotacao.texto }}</span>
-                        <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer"
-                           class="btn btn-primary btn-sm flex-shrink-0" title="Abrir link">
-                            <i class="bi bi-box-arrow-up-right"></i>
-                        </a>
+                        <span class="text-break text-primary font-monospace small flex-grow-1" style="word-break: break-all;">{{ anotacao.texto }}</span>
+                        <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm flex-shrink-0" title="Abrir link"><i class="bi bi-box-arrow-up-right"></i></a>
                     </div>
                 </div>
                 <div class="d-grid mt-4">
-                    <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer"
-                       class="btn btn-primary">
-                        <i class="bi bi-box-arrow-up-right me-2"></i>Abrir Link
-                    </a>
+                    <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="bi bi-box-arrow-up-right me-2"></i>Abrir Link</a>
                 </div>
                 {% else %}
                 <p class="text-muted mt-2">Nenhum link cadastrado.</p>
                 {% endif %}
             </div>
+
         {% else %}
             <div class="text-break" style="white-space: pre-wrap;">{{ anotacao.texto }}</div>
         {% endif %}
     </div>
-    
+
     <div class="mt-4 pt-3 border-top">
         <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary w-100">Voltar para Lista</a>
     </div>
 </div>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script>
-    {% if pix_payload %}
-    (function() {
-        var canvas = document.createElement('canvas');
-        QRCode.toCanvas(canvas, '{{ pix_payload|escapejs }}', { width: 250, margin: 2 }, function (error) {
-            if (error) {
-                console.error("Erro ao gerar QR Code:", error);
-                return;
-            }
-            var container = document.getElementById('qrcode');
-            if (container) {
-                container.innerHTML = '';
-                container.appendChild(canvas);
-            }
-        });
-    })();
+{% if anotacao.tipo == 'pix' and pix_payload %}
+(function() {
+    var canvas = document.createElement('canvas');
+    QRCode.toCanvas(canvas, '{{ pix_payload|escapejs }}', { width: 250, margin: 2 }, function (error) {
+        if (error) { console.error("Erro ao gerar QR Code:", error); return; }
+        var container = document.getElementById('qrcode');
+        if (container) { container.innerHTML = ''; container.appendChild(canvas); }
+    });
+})();
 
-    function copiarPix() {
-        var copyText = document.getElementById("pixCopiaCola");
-        copyText.select();
-        copyText.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(copyText.value).then(() => {
-            alert('Pix Copia e Cola copiado!');
-        });
-    }
+function copiarPix() {
+    var copyText = document.getElementById("pixCopiaCola");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value).then(() => { alert('Pix Copia e Cola copiado!'); });
+}
 
-    async function compartilharPix() {
-        const payload = document.getElementById("pixCopiaCola").value;
-        const canvas = document.querySelector('#qrcode canvas');
-        const textToShare = "{{ anotacao.titulo }}\n\nPix Copia e Cola:\n" + payload;
-        
-        if (navigator.share) {
-            try {
-                if (canvas) {
-                    canvas.toBlob(async (blob) => {
-                        const file = new File([blob], 'qrcode-pix.png', { type: 'image/png' });
-                        const filesArray = navigator.canShare && navigator.canShare({ files: [file] }) ? [file] : [];
-                        
-                        await navigator.share({
-                            title: '{{ anotacao.titulo|escapejs }}',
-                            text: textToShare,
-                            files: filesArray
-                        });
-                    });
-                } else {
-                    await navigator.share({
-                        title: '{{ anotacao.titulo|escapejs }}',
-                        text: textToShare
-                    });
-                }
-            } catch (err) {
-                console.error("Erro ao compartilhar", err);
-            }
-        } else {
-            alert("O seu navegador não suporta compartilhamento nativo. Utilize o botão copiar.");
-        }
-    }
-    {% endif %}
+async function compartilharPix() {
+    const payload = document.getElementById("pixCopiaCola").value;
+    const canvas = document.querySelector('#qrcode canvas');
+    const textToShare = "{{ anotacao.titulo }}\n\nPix Copia e Cola:\n" + payload;
+    if (navigator.share) {
+        try {
+            if (canvas) {
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], 'qrcode-pix.png', { type: 'image/png' });
+                    const filesArray = navigator.canShare && navigator.canShare({ files: [file] }) ? [file] : [];
+                    await navigator.share({ title: '{{ anotacao.titulo|escapejs }}', text: textToShare, files: filesArray });
+                });
+            } else { await navigator.share({ title: '{{ anotacao.titulo|escapejs }}', text: textToShare }); }
+        } catch (err) { console.error("Erro ao compartilhar", err); }
+    } else { alert("O seu navegador não suporta compartilhamento nativo. Utilize o botão copiar."); }
+}
+{% endif %}
 </script>
 {% endblock %}
