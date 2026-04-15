@@ -175,9 +175,6 @@
                     <a href="#" id="linkCompartilhar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
                         <i class="bi bi-share"></i> Compartilhar
                     </a>
-                    <a href="#" id="linkTicar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom d-none">
-                        <i class="bi bi-check2-square"></i> Ticar
-                    </a>
                     <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
                         <i class="bi bi-pencil"></i> Editar
                     </a>
@@ -203,10 +200,6 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
             event.preventDefault();
             compartilharAnotacao(id);
         };
-        const linkTicar = document.getElementById('linkTicar');
-        const isChecklist = tipo === 'checklist';
-        linkTicar.classList.toggle('d-none', !isChecklist);
-        linkTicar.href = isChecklist ? `/anotacoes/${id}/ticar/` : '#';
         optionsModal.show();
     }
 

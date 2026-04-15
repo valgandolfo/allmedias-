@@ -7,6 +7,11 @@
     <div class="d-flex justify-content-between align-items-start mb-3">
         <h4 class="mb-0">{{ anotacao.titulo }}</h4>
         <div class="d-flex gap-2">
+            {% if anotacao.tipo == 'checklist' %}
+            <a href="{% url 'anotacao_ticar' anotacao.pk %}" class="btn btn-outline-success btn-sm" title="Ticar Checklist">
+                <i class="bi bi-check2-square"></i>
+            </a>
+            {% endif %}
             <a href="{% url 'anotacao_editar' anotacao.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
             <a href="{% url 'anotacao_deletar' anotacao.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></a>
         </div>

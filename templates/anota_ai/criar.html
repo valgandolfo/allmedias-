@@ -22,10 +22,16 @@
         <!-- Área de Texto / Lista -->
         <div id="areaTexto" class="mb-3">
             <label class="form-label" id="labelTexto">Texto</label>
-            {{ form.texto }}
+            <div id="textareaWrapper" style="position:relative;">
+                {{ form.texto }}
+                <div id="scrollIndicator" style="display:none; position:absolute; bottom:8px; right:12px; font-size:0.7rem; color:#94a3b8; pointer-events:none;">
+                    ↓ role para ver mais
+                </div>
+            </div>
             <div class="form-text" id="helpTexto">
                 Para listas e checklists, escreva um item por linha.
             </div>
+            <div id="itemCounter" class="form-text" style="color:var(--primary-color); display:none;"></div>
         </div>
         
         <!-- Área PIX (inicialmente oculta) -->
@@ -76,6 +82,49 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Textarea zebrado para lista/checklist */
+    #areaTexto textarea {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 10px 12px;
+        transition: background 0.2s;
+    }
+    #areaTexto textarea.zebra-ativo {
+        background-image: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent 1.59em,
+            rgba(14, 165, 233, 0.06) 1.6em,
+            rgba(14, 165, 233, 0.06) 1.61em
+        );
+        background-attachment: local;
+    }
+    #textareaWrapper {
+        max-height: 280px;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    #areaTexto textarea.scroll-ativo {
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+    #areaTexto textarea.scroll-ativo::-webkit-scrollbar {
+        width: 6px;
+    }
+    #areaTexto textarea.scroll-ativo::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    #itemCounter {
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -219,9 +268,45 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     const taPrincipal = textareaPrincipal();
     if (taPrincipal) {
         taPrincipal.addEventListener('keydown', tratarEnterListaChecklist);
+        taPrincipal.addEventListener('input', function() {
+            atualizarZebraEScroll(this);
+        });
     }
     document.querySelector('form[method="post"]').addEventListener('submit', prepararCamposTextoParaEnvio);
     initNomeCampos();
     toggleCampos();
+
+    // Atualiza zebrado e scroll automatico
+    function atualizarZebraEScroll(textarea) {
+        const tipo = selectTipo.value;
+        const linhas = textarea.value.split('\n').filter(l => l.trim());
+        const counter = document.getElementById('itemCounter');
+        const indicator = document.getElementById('scrollIndicator');
+
+        if (tipo === 'lista_numerada' || tipo === 'checklist') {
+            textarea.classList.add('zebra-ativo');
+            counter.style.display = 'block';
+            counter.textContent = `${linhas.length} ${linhas.length === 1 ? 'item' : 'itens'}`;
+
+            // Auto-scroll: quando passa de 5 linhas, ativa scroll
+            if (linhas.length > 5) {
+                textarea.classList.add('scroll-ativo');
+                textarea.style.maxHeight = '250px';
+                indicator.style.display = 'block';
+                // Scroll para o final quando adiciona nova linha
+                textarea.scrollTop = textarea.scrollHeight;
+            } else {
+                textarea.classList.remove('scroll-ativo');
+                textarea.style.maxHeight = '';
+                indicator.style.display = 'none';
+            }
+        } else {
+            textarea.classList.remove('zebra-ativo');
+            counter.style.display = 'none';
+            textarea.classList.remove('scroll-ativo');
+            textarea.style.maxHeight = '';
+            indicator.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}
