@@ -221,12 +221,14 @@ const selectTipo = document.querySelector('select[name="tipo"]');
             const numeroAtual = obterNumeroAtual(linhaAtual);
             const proximoNumero = numeroAtual > 0 ? numeroAtual + 1 : 1;
             inserirTextoNoCursor(textareaTexto, `\n${proximoNumero} - `);
-            return;
-        }
-
-        if (tipo === 'checklist') {
+        } else if (tipo === 'checklist') {
             inserirTextoNoCursor(textareaTexto, '\n[ ] ');
         }
+
+        // Scroll imediato para o final apos Enter
+        setTimeout(() => {
+            textareaTexto.scrollTop = textareaTexto.scrollHeight;
+        }, 10);
     }
     
     function toggleCampos() {

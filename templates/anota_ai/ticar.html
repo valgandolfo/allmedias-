@@ -4,16 +4,18 @@
 
 {% block extra_css %}
 <style>
-.checklist-shell {
-        background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
-        border: 1px solid #dbe7ff;
+    .checklist-shell {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
         border-radius: 16px;
         padding: 14px;
-        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
     .checklist-header {
-        background: #ffffff;
-        border: 1px solid #e9eef5;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--glass-border);
         border-radius: 12px;
         padding: 12px 14px;
         margin-bottom: 12px;
@@ -21,26 +23,37 @@
     .checklist-title {
         font-weight: 700;
         margin-bottom: 3px;
-        color: #243b53;
+        color: var(--text-main);
     }
     .checklist-meta {
         font-size: 12px;
-        color: #52606d;
+        color: #94a3b8;
     }
     .checklist-meta strong {
-        color: #0d6efd;
+        color: var(--primary-color);
     }
     .checklist-items-box {
-        background: #fff;
-        border: 1px solid #e9eef5;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--glass-border);
         border-radius: 12px;
         overflow: hidden;
+        max-height: 65vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+    .checklist-items-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    .checklist-items-box::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
     }
     .check-item-btn {
         width: 100%;
         border: 0;
-        border-bottom: 1px solid #f0f2f5;
-        background: transparent;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.03);
         text-align: left;
         padding: 14px 14px;
         display: flex;
@@ -48,24 +61,28 @@
         gap: 10px;
         transition: background-color 0.15s ease;
     }
+    .check-item-btn:nth-child(odd) {
+        background: rgba(255,255,255,0.06);
+    }
     .check-item-btn:hover {
-        background: #f8fbff;
+        background: rgba(14,165,233,0.1);
     }
     .check-item-btn:active {
-        background: #eef4ff;
+        background: rgba(14,165,233,0.15);
     }
     .check-item-btn:last-child { border-bottom: none; }
     .check-item-prefix {
         font-weight: 700;
         min-width: 36px;
-        color: #495057;
+        color: var(--text-main);
     }
     .check-item-text {
-        color: #1f2933;
+        color: var(--text-main);
+        flex: 1;
     }
     .check-item-text.done {
         text-decoration: line-through;
-        color: #6c757d;
+        color: #94a3b8;
     }
 </style>
 {% endblock %}

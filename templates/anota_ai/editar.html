@@ -242,6 +242,12 @@ const selectTipo = document.querySelector('select[name="tipo"]');
         } else if (tipo === 'checklist') {
             inserirTextoNoCursor(textareaTexto, '\n[ ] ');
         }
+
+        // Scroll imediato para o final apos Enter
+        setTimeout(() => {
+            textareaTexto.scrollTop = textareaTexto.scrollHeight;
+        }, 10);
+
         agendarSalvarItensAposEnter();
     }
     
