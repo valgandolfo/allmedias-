@@ -1,6 +1,7 @@
 {% extends 'crud/detalhes_base.html' %}
 
 {% block crud_title %}Anota Aí+{% endblock %}
+{% block list_url %}{% url 'anotacao_lista' %}{% endblock %}
 
 {% block child_css %}
 <style>
@@ -246,7 +247,6 @@
 {% if acao == 'ticar' %}
     <!-- ==================== MODO: TICAR ==================== -->
     <div class="d-flex align-items-center gap-2 mb-4">
-        <a href="{% url 'anotacao_lista' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
         <div><h4 class="mb-0">✅ Ticar Checklist</h4><small class="text-muted">{{ anotacao.titulo }}</small></div>
     </div>
 
@@ -375,9 +375,7 @@
             {% endif %}
         </div>
 
-        <div class="mt-4 pt-3 border-top">
-            <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary w-100">Voltar para Lista</a>
-        </div>
+
     </div>
 {% endif %}
 {% endblock %}

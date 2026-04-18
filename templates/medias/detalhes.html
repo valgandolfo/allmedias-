@@ -1,6 +1,7 @@
 {% extends 'crud/detalhes_base.html' %}
 
 {% block crud_title %}Minhas Mídias{% endblock %}
+{% block list_url %}{% url 'media_lista' %}{% endblock %}
 
 {% block child_css %}
 <style>
@@ -179,7 +180,6 @@
 {% block detail_view %}
 <!-- Cabeçalho -->
 <div class="d-flex align-items-center gap-2 mb-4">
-    <a href="{% url 'media_lista' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
     <h4 class="mb-0 flex-grow-1 text-truncate">{{ midia.nome_exibicao }}</h4>
     {% if midia.arquivo %}
         <button class="btn btn-sm btn-outline-primary" onclick="compartilhar()" title="Compartilhar"><i class="bi bi-share"></i></button>

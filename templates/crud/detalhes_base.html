@@ -13,6 +13,13 @@
 {% endblock %}
 
 {% block content %}
+    <!-- Botão de Voltar Global -->
+    <div class="mb-3">
+        <a href="{% block list_url %}javascript:history.back(){% endblock %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+    </div>
+
     {% if acao == 'criar' or acao == 'editar' %}
         <!-- ==================== MODO: CRIAR/EDITAR ==================== -->
         {% block form_view %}{% endblock %}
