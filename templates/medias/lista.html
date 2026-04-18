@@ -1,19 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'crud/lista_base.html' %}
 
-{% block title %}Minhas Mídias - NewMedia{% endblock %}
+{% block crud_title %}Minhas Mídias{% endblock %}
+{% block crud_icon %}&#128193;{% endblock %}
+{% block crud_subtitle %}Biblioteca centralizada{% endblock %}
 
-{% block extra_css %}
+{% block child_css %}
 <style>
-.media-item {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-    }
-    .media-item:last-child { border-bottom: none; }
-
     .media-thumb {
         width: 55px;
         height: 55px;
@@ -25,12 +17,8 @@
         overflow: hidden;
         flex-shrink: 0;
     }
-    .media-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
+    .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    
     .media-info { flex: 1; min-width: 0; }
     .media-titulo {
         font-weight: 600;
@@ -42,7 +30,7 @@
         text-overflow: ellipsis;
     }
     .media-meta { font-size: 12px; color: #777; }
-
+    
     .btn-star {
         color: #ccc;
         font-size: 1.2rem;
@@ -54,174 +42,133 @@
     }
     .btn-star.ativo { color: #ffc107; }
 
-    
-    
-    
-
-    .search-bar {
-        position: sticky;
-        top: -15px;
-        z-index: 100;
-        background: var(--bg-color);
-        padding: 10px 0;
+    /* Ajustes específicos para o modo grid nas Mídias */
+    .layout-grid .media-thumb {
+        width: 100%;
+        height: 120px;
+        border-radius: 8px;
+        margin-bottom: 5px;
     }
-
-    .filter-btn.active {
-        background-color: var(--primary-color) !important;
-        color: white !important;
-        border-color: var(--primary-color) !important;
-    }
-
-    /* FAB acima do footer */
-    .btn-fab {
-        bottom: 80px !important;
-    }
+    .layout-grid .media-info { width: 100%; }
+    .layout-grid .media-titulo { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 14px; }
+    .layout-grid .badge-size { position: absolute; top: 10px; left: 10px; z-index: 10; }
 </style>
 {% endblock %}
 
-{% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="mb-0">&#128193; Minhas Mídias</h4>
-            <small class="text-muted">Biblioteca centralizada</small>
+{% block filters %}
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
+<button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">&#11088; Favoritos</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="foto" onclick="filtrarTipo('foto')">Fotos</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pdf" onclick="filtrarTipo('pdf')">PDFs</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="documento" onclick="filtrarTipo('documento')">Docs</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="video" onclick="filtrarTipo('video')">Vídeos</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="audio" onclick="filtrarTipo('audio')">Áudios</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="outro" onclick="filtrarTipo('outro')">Outros</button>
+{% endblock %}
+
+{% block list_content %}
+    {% for midia in medias %}
+    <div class="crud-item media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.nome_exibicao|lower }}">
+
+        <!-- Thumbnail -->
+        <div class="media-thumb" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
+            {% if midia.miniatura %}
+                <img src="{{ midia.miniatura.url }}" alt="{{ midia.nome_exibicao }}">
+            {% elif midia.is_imagem and midia.arquivo %}
+                <img src="{{ midia.arquivo.url }}" alt="{{ midia.nome_exibicao }}">
+            {% elif midia.tipo == 'video' %}
+                <i class="bi bi-play-circle-fill fs-1 text-primary"></i>
+            {% elif midia.tipo == 'audio' %}
+                <i class="bi bi-music-note-beamed fs-1 text-success"></i>
+            {% elif midia.tipo == 'pdf' %}
+                <i class="bi bi-file-earmark-pdf-fill fs-1 text-danger"></i>
+            {% elif midia.tipo == 'documento' %}
+                <i class="bi bi-file-earmark-word-fill fs-1 text-primary"></i>
+            {% else %}
+                <i class="bi bi-file-earmark-text fs-1 text-secondary"></i>
+            {% endif %}
         </div>
-    </div>
 
-    <!-- Barra de busca -->
-    <div class="search-bar">
-        <div class="input-group card-custom">
-            <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarMedias()">
-        </div>
-    </div>
-
-    <!-- Filtros rápidos: estado ativo só via .active + CSS (.filter-btn.active) -->
-    <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
-        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="favoritos" onclick="filtrarFavoritos()">&#11088; Favoritos</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="foto" onclick="filtrarTipo('foto')">Fotos</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pdf" onclick="filtrarTipo('pdf')">PDFs</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="documento" onclick="filtrarTipo('documento')">Docs</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="video" onclick="filtrarTipo('video')">Vídeos</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="audio" onclick="filtrarTipo('audio')">Áudios</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="outro" onclick="filtrarTipo('outro')">Outros</button>
-    </div>
-
-    <!-- Mensagens -->
-    {% if messages %}
-        {% for msg in messages %}
-            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-                {{ msg }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Informações -->
+        <div class="media-info" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="media-titulo pe-2">{{ midia.nome_exibicao }}</span>
+                <!-- Botão de Favorito -->
+                <button class="btn-star {% if midia.favorito %}ativo{% endif %}"
+                    onclick="event.stopPropagation(); toggleFavorito({{ midia.pk }}, this)" title="Favoritar">
+                    <i class="bi bi-star-fill"></i>
+                </button>
             </div>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Lista de mídias -->
-    <div class="card-custom" id="mediaList">
-        {% for midia in medias %}
-        <div class="media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.nome_exibicao|lower }}">
-
-            <!-- Thumbnail -->
-            <div class="media-thumb" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
-                {% if midia.miniatura %}
-                    <img src="{{ midia.miniatura.url }}" alt="{{ midia.nome_exibicao }}">
-                {% elif midia.is_imagem and midia.arquivo %}
-                    <img src="{{ midia.arquivo.url }}" alt="{{ midia.nome_exibicao }}">
-                {% elif midia.tipo == 'video' %}
-                    <i class="bi bi-play-circle-fill fs-4 text-primary"></i>
-                {% elif midia.tipo == 'audio' %}
-                    <i class="bi bi-music-note-beamed fs-4 text-success"></i>
-                {% elif midia.tipo == 'pdf' %}
-                    <i class="bi bi-file-earmark-pdf-fill fs-4 text-danger"></i>
-                {% elif midia.tipo == 'documento' %}
-                    <i class="bi bi-file-earmark-word-fill fs-4 text-primary"></i>
-                {% else %}
-                    <i class="bi bi-file-earmark-text fs-4 text-secondary"></i>
-                {% endif %}
-            </div>
-
-            <!-- Informações -->
-            <div class="media-info" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <span class="media-titulo pe-2">{{ midia.nome_exibicao }}</span>
-                    <!-- Botão de Favorito usando booleano do model -->
-                    <button class="btn-star {% if midia.favorito %}ativo{% endif %}"
-                        onclick="event.stopPropagation(); toggleFavorito({{ midia.pk }}, this)" title="Favoritar">
-                        <i class="bi bi-star-fill"></i>
-                    </button>
-                </div>
-                <div class="media-meta d-flex justify-content-between align-items-center">
-                    <span>{{ midia.tipo_label }} &bull; {{ midia.criado_em|date:"d/m H:i" }}</span>
-                    {% if midia.tamanho %}
-                        <span class="text-primary fw-bold" style="font-size: 11px;">
-                            {{ midia.tamanho }}
-                        </span>
-                    {% endif %}
-                </div>
-                {% if midia.status == 'pendente' %}
-                    <span class="badge-size bg-warning text-dark mt-1">
-                        <i class="bi bi-cloud-arrow-up"></i> Enviando...
+            <div class="media-meta d-flex justify-content-between align-items-center">
+                <span>{{ midia.tipo_label }} <span class="d-none d-sm-inline">&bull; {{ midia.criado_em|date:"d/m H:i" }}</span></span>
+                {% if midia.tamanho %}
+                    <span class="text-primary fw-bold" style="font-size: 11px;">
+                        {{ midia.tamanho }}
                     </span>
                 {% endif %}
             </div>
-
-            <!-- Menu de opções -->
-            <div class="text-secondary px-2" onclick="abrirMenu({{ midia.pk }}, '{{ midia.nome_exibicao|escapejs }}', '{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}', '{{ midia.tipo }}')">
-                <i class="bi bi-three-dots-vertical fs-5"></i>
-            </div>
+            {% if midia.status == 'pendente' %}
+                <span class="badge-size bg-warning text-dark mt-1 position-absolute" style="top: 10px; left: 10px; z-index: 10;">
+                    <i class="bi bi-cloud-arrow-up"></i> Enviando...
+                </span>
+            {% endif %}
         </div>
-        {% empty %}
-        <div class="p-5 text-center text-muted">
-            <i class="bi bi-cloud-upload display-4"></i>
-            <p class="mt-2">Nenhuma mídia encontrada.</p>
-            <a href="{% url 'media_criar' %}" class="btn btn-primary btn-sm mt-2">
-                Adicionar primeira mídia
-            </a>
-        </div>
-        {% endfor %}
-    </div>
 
-    <!-- Botão flutuante: Nova mídia (direita) -->
-    {% url 'media_criar' as url_media_criar %}
-    {% include "components/fab.html" with url=url_media_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Adicionar" %}
-
-    <!-- Botão flutuante: Voltar para home (esquerda) -->
-
-    <!-- Modal de opções -->
-    <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-bottom">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0 mt-2">
-                    <a href="#" id="linkCompartilhar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
-                        <i class="bi bi-share"></i> Compartilhar
-                    </a>
-                    <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
-                        <i class="bi bi-pencil"></i> Editar
-                    </a>
-                    <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
-                        <i class="bi bi-trash"></i> Excluir
-                    </a>
-                </div>
-            </div>
+        <!-- Menu de opções -->
+        <div class="text-secondary px-2" onclick="abrirMenu({{ midia.pk }}, '{{ midia.nome_exibicao|escapejs }}', '{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}', '{{ midia.tipo }}')">
+            <i class="bi bi-three-dots-vertical fs-5"></i>
         </div>
     </div>
+    {% empty %}
+    <div class="p-5 text-center text-muted" style="grid-column: 1 / -1;">
+        <i class="bi bi-cloud-upload display-4"></i>
+        <p class="mt-2">Nenhuma mídia encontrada.</p>
+        <a href="{% url 'media_criar' %}" class="btn btn-primary btn-sm mt-2">
+            Adicionar primeira mídia
+        </a>
+    </div>
+    {% endfor %}
 {% endblock %}
 
-{% block extra_js %}
+{% block fab %}
+{% url 'media_criar' as url_media_criar %}
+{% include "components/fab.html" with url=url_media_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Adicionar" %}
+{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-bottom">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 mt-2">
+                <a href="#" id="linkCompartilhar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                    <i class="bi bi-share"></i> Compartilhar
+                </a>
+                <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
+                    <i class="bi bi-trash"></i> Excluir
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block child_js %}
 <script>
-const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+    const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
     let midiaSelecionada = null;
 
     function abrirMenu(id, titulo, arquivoUrl, tipo) {
         midiaSelecionada = { id, titulo, arquivoUrl, tipo };
         document.getElementById('modalTitle').innerText = titulo;
-        document.getElementById('linkEditar').href = `/medias/${id}/editar/`;
-        document.getElementById('linkDeletar').href = `/medias/${id}/deletar/`;
+        document.getElementById('linkEditar').href = `/medias/${id}/form/`;
+        document.getElementById('linkDeletar').href = `/medias/${id}/?acao=deletar`;
         document.getElementById('linkCompartilhar').onclick = function(event) {
             event.preventDefault();
             compartilharMidia();
@@ -276,14 +223,13 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
 
             await navigator.share(dadosCompartilhamento);
         } catch (erro) {
-            // Cancelamento do usuário não precisa exibir erro.
             if (erro && erro.name === 'AbortError') return;
             console.error('Erro ao compartilhar:', erro);
             alert('Não foi possível compartilhar essa mídia agora.');
         }
     }
 
-    function filtrarMedias() {
+    function filtrarItens() {
         const termo = document.getElementById('searchInput').value.toLowerCase();
         document.querySelectorAll('.media-item').forEach(item => {
             const titulo = item.getAttribute('data-titulo');
@@ -316,7 +262,6 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
 
     async function toggleFavorito(id, btn) {
         try {
-            // Efeito visual imediato (Optimistic UI)
             btn.classList.toggle('ativo');
             btn.style.transform = 'scale(1.4)';
             setTimeout(() => btn.style.transform = 'scale(1)', 200);
@@ -330,12 +275,10 @@ const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal')
             });
 
             if (!resp.ok) {
-                // Reverte em caso de erro
                 btn.classList.toggle('ativo');
                 console.error('Erro ao favoritar: resposta não ok');
             }
         } catch (e) {
-            // Reverte em caso de erro
             btn.classList.toggle('ativo');
             console.error('Erro ao favoritar:', e);
         }

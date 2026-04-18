@@ -23,79 +23,68 @@ def media_lista(request):
 
     return render(request, 'medias/lista.html', {
         'medias': medias,
+        'crud_name': 'medias',
     })
 
 
 @login_required
-def media_criar(request):
+def media_form(request, pk=None):
     """
-    Formulário de criação de mídia
-    URL: /medias/criar/
+    Formulário unificado de criação e edição de mídia
+    URL: /medias/criar/ ou /medias/<pk>/form/
     """
-    if request.method == 'POST':
-        form = MidiaForm(request.POST, request.FILES)
-        if form.is_valid():
-            midia = form.save(commit=False)
-            midia.usuario = request.user
-            midia.status = 'concluido' if midia.arquivo else 'pendente'
-            midia.save()
-            logger.info(f"Mídia criada: ID={midia.id} | usuário={request.user.email}")
-            messages.success(request, 'Mídia criada com sucesso!')
-            return redirect('media_lista')
-        else:
-            messages.error(request, 'Corrija os erros abaixo.')
+    if pk:
+        midia = get_object_or_404(Midia, pk=pk, usuario=request.user)
+        acao = 'editar'
     else:
-        form = MidiaForm()
-
-    return render(request, 'medias/criar.html', {'form': form})
-
-
-@login_required
-def media_detalhes(request, pk):
-    """
-    Exibe os detalhes de uma mídia
-    URL: /medias/<pk>/
-    """
-    midia = get_object_or_404(Midia, pk=pk, usuario=request.user)
-    return render(request, 'medias/detalhes.html', {'midia': midia})
-
-
-@login_required
-def media_editar(request, pk):
-    """
-    Formulário de edição de mídia
-    URL: /medias/<pk>/editar/
-    """
-    midia = get_object_or_404(Midia, pk=pk, usuario=request.user)
+        midia = None
+        acao = 'criar'
 
     if request.method == 'POST':
         form = MidiaForm(request.POST, request.FILES, instance=midia)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Mídia atualizada com sucesso!')
+            midia_obj = form.save(commit=False)
+            midia_obj.usuario = request.user
+            midia_obj.status = 'concluido' if midia_obj.arquivo else 'pendente'
+            midia_obj.save()
+            
+            if acao == 'criar':
+                logger.info(f"Mídia criada: ID={midia_obj.id} | usuário={request.user.email}")
+                messages.success(request, 'Mídia criada com sucesso!')
+            else:
+                messages.success(request, 'Mídia atualizada com sucesso!')
+                
             return redirect('media_lista')
         else:
             messages.error(request, 'Corrija os erros abaixo.')
     else:
         form = MidiaForm(instance=midia)
 
-    return render(request, 'medias/editar.html', {'form': form, 'midia': midia})
+    return render(request, 'medias/detalhes.html', {
+        'form': form,
+        'midia': midia,
+        'acao': acao
+    })
 
 
 @login_required
-def media_deletar(request, pk):
+def media_detalhes(request, pk):
     """
-    Confirmação e exclusão de mídia
-    URL: /medias/<pk>/deletar/
+    Exibe os detalhes de uma mídia ou a tela de exclusão
+    URL: /medias/<pk>/
     """
     midia = get_object_or_404(Midia, pk=pk, usuario=request.user)
+    acao = request.GET.get('acao', 'ver')
 
-    if request.method == 'POST':
+    if acao == 'deletar' and request.method == 'POST':
         midia.delete()
         messages.success(request, 'Mídia excluída com sucesso!')
         return redirect('media_lista')
 
-    return render(request, 'medias/deletar.html', {'midia': midia})
+    return render(request, 'medias/detalhes.html', {
+        'midia': midia,
+        'acao': acao
+    })
 
 
 @login_required

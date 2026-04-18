@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{% block crud_title %}Lista{% endblock %} - NewMedia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-bar {
+        position: sticky;
+        top: -15px;
+        z-index: 100;
+        background: var(--bg-color);
+        padding: 10px 0;
+    }
+    .filter-btn.active {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    /* CSS GENERICO DA LISTA E GRID */
+    /* Modo Lista (default) */
+    .layout-lista .crud-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        background: transparent;
+    }
+    .layout-lista .crud-item:last-child { border-bottom: none; }
+    
+    /* Modo Grid */
+    .layout-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 0; /* Padding is handled inside the grid container or body */
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .layout-grid .crud-item {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 15px 10px;
+        position: relative;
+        display: flex;
+        gap: 10px;
+        cursor: pointer;
+    }
+    
+    .layout-grid .crud-item .text-secondary {
+        position: absolute;
+        top: 10px;
+        right: 5px;
+        padding: 5px;
+        z-index: 10;
+    }
+    
+    /* Child specifics handled inside child_css */
+</style>
+{% block child_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="mb-0">{% block crud_icon %}{% endblock %} {% block crud_title_display %}Lista{% endblock %}</h4>
+            <small class="text-muted">{% block crud_subtitle %}{% endblock %}</small>
+        </div>
+        <div>
+            <!-- Botões de View Toggle -->
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="setLayout('list')" id="btn-layout-list"><i class="bi bi-list-ul"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="setLayout('grid')" id="btn-layout-grid"><i class="bi bi-grid-fill"></i></button>
+        </div>
+    </div>
+
+    <!-- Barra de busca -->
+    <div class="search-bar">
+        <div class="input-group card-custom">
+            <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
+        </div>
+    </div>
+
+    <!-- Filtros rápidos -->
+    <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">
+        {% block filters %}{% endblock %}
+    </div>
+
+    <!-- Mensagens -->
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Container Lista/Grid -->
+    <div class="card-custom layout-lista" id="crudList">
+        {% block list_content %}{% endblock %}
+    </div>
+
+    <!-- FAB -->
+    {% block fab %}{% endblock %}
+
+    <!-- Modal -->
+    {% block modal %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Nome dinâmico para salvar o layout de cada crud separadamente
+    const crudName = window.location.pathname.replace(/\//g, '_');
+
+    function setLayout(mode) {
+        const container = document.getElementById('crudList');
+        const btnList = document.getElementById('btn-layout-list');
+        const btnGrid = document.getElementById('btn-layout-grid');
+        
+        if (mode === 'grid') {
+            container.classList.remove('layout-lista');
+            container.classList.add('layout-grid');
+            btnGrid.classList.add('active');
+            btnList.classList.remove('active');
+            localStorage.setItem(crudName + '_layout', 'grid');
+        } else {
+            container.classList.remove('layout-grid');
+            container.classList.add('layout-lista');
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+            localStorage.setItem(crudName + '_layout', 'list');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem(crudName + '_layout') || 'list';
+        setLayout(saved);
+    });
+</script>
+{% block child_js %}{% endblock %}
+{% endblock %}

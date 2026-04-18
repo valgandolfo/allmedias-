@@ -66,9 +66,10 @@ def anotacao_form(request, pk=None):
         else:
             form = AnotacaoForm()
 
-    return render(request, 'anota_ai/form.html', {
+    return render(request, 'anota_ai/detalhes.html', {
         'form': form,
         'anotacao': anotacao,
+        'acao': 'editar' if anotacao else 'criar',
     })
 
 @login_required
@@ -136,11 +137,12 @@ def anotacao_ticar(request, pk):
     itens = anotacao.itens.all().order_by('numero')
     total_itens = itens.count()
     concluidos = itens.filter(concluido=True).count()
-    return render(request, 'anota_ai/ticar.html', {
+    return render(request, 'anota_ai/detalhes.html', {
         'anotacao': anotacao,
         'itens': itens,
         'total_itens': total_itens,
         'concluidos': concluidos,
+        'acao': 'ticar',
     })
 
 @login_required

@@ -1,221 +1,389 @@
-{% extends 'base.html' %}
+{% extends 'crud/detalhes_base.html' %}
 
-{% block title %}
-{% if acao == 'deletar' %}Excluir{% else %}Detalhes{% endif %} - NewMedia
+{% block crud_title %}Anota Aí+{% endblock %}
+
+{% block child_css %}
+<style>
+/* ================= CSS FORMULARIO ================= */
+    #areaTexto textarea {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        padding: 10px 12px;
+        transition: background 0.2s;
+    }
+    #areaTexto textarea.zebra-ativo {
+        background-image: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent 1.59em,
+            rgba(14, 165, 233, 0.06) 1.6em,
+            rgba(14, 165, 233, 0.06) 1.61em
+        );
+        background-attachment: local;
+    }
+    #textareaWrapper {
+        max-height: 280px;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    #areaTexto textarea.scroll-ativo {
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+    #areaTexto textarea.scroll-ativo::-webkit-scrollbar { width: 6px; }
+    #areaTexto textarea.scroll-ativo::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    #itemCounter { font-weight: 600; }
+
+/* ================= CSS TICAR ================= */
+    .checklist-shell {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .checklist-header {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+    }
+    .checklist-title { font-weight: 700; margin-bottom: 3px; color: var(--text-main); }
+    .checklist-meta { font-size: 12px; color: #94a3b8; }
+    .checklist-meta strong { color: var(--primary-color); }
+    .checklist-items-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        overflow: hidden;
+        max-height: 65vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) transparent;
+    }
+    .checklist-items-box::-webkit-scrollbar { width: 6px; }
+    .checklist-items-box::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
+    .check-item-btn {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.03);
+        text-align: left;
+        padding: 14px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.15s ease;
+    }
+    .check-item-btn:nth-child(odd) { background: rgba(255,255,255,0.06); }
+    .check-item-btn:hover { background: rgba(14,165,233,0.1); }
+    .check-item-btn:active { background: rgba(14,165,233,0.15); }
+    .check-item-btn:last-child { border-bottom: none; }
+    .check-item-prefix { font-weight: 700; min-width: 36px; color: var(--text-main); }
+    .check-item-text { color: var(--text-main); flex: 1; }
+    .check-item-text.done { text-decoration: line-through; color: #94a3b8; }
+
+/* ================= CSS DETALHES ================= */
+    .checklist-item-zebrado {
+        background: rgba(255,255,255,0.03);
+        border-left: 3px solid transparent;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.15s;
+    }
+    .checklist-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
+    .checklist-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
+
+    .lista-item-zebrado {
+        background: rgba(255,255,255,0.03);
+        border-left: 3px solid transparent;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.15s;
+    }
+    .lista-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
+    .lista-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
+    .lista-item-numero {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 700;
+        font-size: 0.75rem;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
 {% endblock %}
 
-{% block content %}
+{% block form_view %}
+<div class="card-custom p-3">
+    <h5 class="mb-3">{% if anotacao %}Editar Anotação{% else %}Criar Nova Anotação{% endif %}</h5>
 
-<!-- ==================== MODO: CONFIRMAR EXCLUSAO ==================== -->
-{% if acao == 'deletar' %}
-<div class="card-custom p-4">
-    <div class="text-center mb-3 text-danger">
-        <i class="bi bi-exclamation-triangle display-5"></i>
-    </div>
-    <h4 class="text-center mb-1">Excluir Anotação?</h4>
-    <p class="text-muted text-center mb-4">
-        Confirme a exclusão de <strong>"{{ anotacao.titulo }}"</strong>.<br>
-        Esta ação não pode ser desfeita.
-    </p>
-
-    <div class="border rounded p-3 bg-light">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <strong class="text-truncate pe-2">{{ anotacao.titulo }}</strong>
-            <span class="badge bg-secondary">{{ anotacao.get_tipo_display }}</span>
-        </div>
-        {% if anotacao.tipo == 'pix' %}
-            <div class="small">
-                <div><strong>Chave:</strong> <span class="font-monospace">{{ anotacao.pix_chave|default:"-" }}</span></div>
-                <div><strong>Favorecido:</strong> {{ anotacao.pix_favorecido|default:"-" }}</div>
-            </div>
-        {% elif anotacao.tipo == 'checklist' %}
-            <ul class="list-unstyled mb-0 small">
-                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
-                    <li class="mb-1">
-                        <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-1"></i>
-                        {{ item.texto }}
-                    </li>
-                {% empty %}
-                    <li class="text-muted">Sem itens.</li>
-                {% endfor %}
-            </ul>
-        {% elif anotacao.tipo == 'lista_numerada' %}
-            <ol class="mb-0 small ps-3">
-                {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
-                    <li class="mb-1">{{ item.texto }}</li>
-                {% empty %}
-                    <li class="text-muted">Sem itens.</li>
-                {% endfor %}
-            </ol>
-        {% else %}
-            <div class="small" style="white-space: pre-wrap;">{{ anotacao.texto|default:"Sem conteúdo."|truncatechars:150 }}</div>
-        {% endif %}
-    </div>
-
-    <form method="post" class="mt-4">
+    <form method="post">
         {% csrf_token %}
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-danger">Sim, Excluir</button>
-            <a href="{% url 'anotacao_detalhes' anotacao.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+
+        <div class="mb-3">
+            <label class="form-label">Título</label>
+            {{ form.titulo }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            {% if anotacao %}
+                <input type="text" class="form-control" value="{{ anotacao.get_tipo_display }}" readonly>
+                {{ form.tipo }}
+            {% else %}
+                {{ form.tipo }}
+            {% endif %}
+        </div>
+
+        <!-- Área de Texto / Lista -->
+        <div id="areaTexto" class="mb-3">
+            <label class="form-label" id="labelTexto">Texto</label>
+            <div id="textareaWrapper" style="position:relative;">
+                {{ form.texto }}
+                <div id="scrollIndicator" style="display:none; position:absolute; bottom:8px; right:12px; font-size:0.7rem; color:#94a3b8; pointer-events:none;">
+                    ↓ role para ver mais
+                </div>
+            </div>
+            <div class="form-text" id="helpTexto">
+                Para listas e checklists, escreva um item por linha.
+            </div>
+            <div id="itemCounter" class="form-text" style="color:var(--primary-color); display:none;"></div>
+        </div>
+
+        <!-- Área PIX -->
+        <div id="areaPix" class="d-none">
+            <div class="mb-3"><label class="form-label">Nome do PIX</label>{{ form.pix_nome }}</div>
+            <div class="mb-3"><label class="form-label">Chave PIX</label>{{ form.pix_chave }}</div>
+            <div class="mb-3"><label class="form-label">Favorecido (Obrigatório)</label>{{ form.pix_favorecido }}</div>
+            <div class="mb-3"><label class="form-label">Cidade do Favorecido (Obrigatório)</label>{{ form.pix_cidade }}</div>
+            <div class="mb-3"><label class="form-label">Banco</label>{{ form.pix_banco }}</div>
+            <div class="mb-3"><label class="form-label">Valor (Opcional)</label>{{ form.pix_valor }}</div>
+        </div>
+
+        <!-- Área LINK -->
+        <div id="areaLink" class="d-none">
+            <div class="mb-3">
+                <label class="form-label">URL do Link</label>
+                <div class="input-group">
+                    {{ form.texto }}
+                    <button type="button" class="btn btn-outline-secondary" id="btnTestarLink" title="Testar link" onclick="testarLink()">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                </div>
+                <div class="form-text">Cole aqui o endereço completo (ex: https://...)</div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">{% if anotacao %}Salvar Alterações{% else %}Salvar Anotação{% endif %}</button>
+            <a href="{% url 'anotacao_lista' %}" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
 </div>
-
-<!-- ==================== MODO: VER CONTEUDO ==================== -->
-{% else %}
-<div class="card-custom p-4">
-    <div class="d-flex justify-content-between align-items-start mb-3">
-        <h4 class="mb-0">{{ anotacao.titulo }}</h4>
-        <div class="d-flex gap-2">
-            {% if anotacao.tipo == 'checklist' %}
-            <a href="{% url 'anotacao_ticar' anotacao.pk %}" class="btn btn-outline-success btn-sm" title="Ticar Checklist">
-                <i class="bi bi-check2-square"></i>
-            </a>
-            {% endif %}
-            <a href="{% url 'anotacao_form' anotacao.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
-                <i class="bi bi-pencil"></i>
-            </a>
-            <a href="{% url 'anotacao_detalhes' anotacao.pk %}?acao=deletar" class="btn btn-outline-danger btn-sm" title="Excluir">
-                <i class="bi bi-trash"></i>
-            </a>
-        </div>
-    </div>
-
-    <div class="text-muted small mb-3">
-        {{ anotacao.get_tipo_display }} • {{ anotacao.criado_em|date:"d/m/Y H:i" }}
-    </div>
-
-    <hr>
-
-    <div class="mt-3">
-        {% if anotacao.tipo == 'pix' %}
-            <div class="bg-light p-3 rounded text-center mb-3">
-                <h5 class="mb-3">Escaneie o QR Code</h5>
-                {% if pix_payload %}
-                <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control font-monospace text-muted small" value="{{ pix_payload }}" id="pixCopiaCola" readonly>
-                    <button class="btn btn-outline-primary" type="button" onclick="copiarPix()">
-                        <i class="bi bi-clipboard"></i> Copiar
-                    </button>
-                    <button class="btn btn-outline-success" type="button" onclick="compartilharPix()">
-                        <i class="bi bi-share"></i> Compartilhar
-                    </button>
-                </div>
-                {% else %}
-                <p class="text-danger">Não foi possível gerar o código Pix. Verifique os dados.</p>
-                {% endif %}
-            </div>
-            <div class="bg-light p-3 rounded">
-                <p><strong>Nome:</strong> {{ anotacao.pix_nome|default:"-" }}</p>
-                <p><strong>Chave:</strong> <span class="text-primary font-monospace">{{ anotacao.pix_chave }}</span> <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_chave }}')"><i class="bi bi-clipboard"></i></button></p>
-                <p><strong>Favorecido:</strong> {{ anotacao.pix_favorecido }} <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_favorecido|default:''|escapejs }}')"><i class="bi bi-clipboard"></i></button></p>
-                <p><strong>Cidade:</strong> {{ anotacao.pix_cidade|default:"-" }}</p>
-                <p><strong>Banco:</strong> {{ anotacao.pix_banco|default:"-" }}</p>
-                {% if anotacao.pix_valor %}<p><strong>Valor:</strong> R$ {{ anotacao.pix_valor }}</p>{% endif %}
-            </div>
-
-        {% elif anotacao.tipo == 'checklist' %}
-            <style>
-                .checklist-item-zebrado {
-                    background: rgba(255,255,255,0.03);
-                    border-left: 3px solid transparent;
-                    border-radius: 8px;
-                    padding: 10px 14px;
-                    margin-bottom: 6px;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    transition: background 0.15s;
-                }
-                .checklist-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
-                .checklist-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
-            </style>
-            {% for item in anotacao.itens.all|dictsort:"numero" %}
-            <div class="checklist-item-zebrado">
-                <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-2"></i>
-                <span class="{% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
-            </div>
-            {% empty %}
-            <div class="text-muted text-center py-3">Checklist sem itens.</div>
-            {% endfor %}
-
-        {% elif anotacao.tipo == 'lista_numerada' %}
-            <style>
-                .lista-item-zebrado {
-                    background: rgba(255,255,255,0.03);
-                    border-left: 3px solid transparent;
-                    border-radius: 8px;
-                    padding: 10px 14px;
-                    margin-bottom: 6px;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    transition: background 0.15s;
-                }
-                .lista-item-zebrado:nth-child(odd) { background: rgba(255,255,255,0.06); }
-                .lista-item-zebrado:hover { background: rgba(14,165,233,0.1); border-left-color: var(--primary-color); }
-                .lista-item-numero {
-                    background: var(--primary-color);
-                    color: white;
-                    font-weight: 700;
-                    font-size: 0.75rem;
-                    min-width: 28px;
-                    height: 28px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex-shrink: 0;
-                }
-            </style>
-            {% for item in anotacao.itens.all|dictsort:"numero" %}
-            <div class="lista-item-zebrado">
-                <span class="lista-item-numero">{{ item.numero }}</span>
-                <span>{{ item.texto }}</span>
-            </div>
-            {% empty %}
-            <div class="text-muted text-center py-3">Lista sem itens.</div>
-            {% endfor %}
-
-        {% elif anotacao.tipo == 'link' %}
-            <div class="card border-0 shadow-sm rounded-3 p-3">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="fs-3">🔗</span>
-                    <span class="fw-bold text-primary fs-5">Link</span>
-                </div>
-                <hr class="my-2">
-                <div class="mb-2"><span class="text-muted small">Descrição</span><div class="fw-semibold mt-1">{{ anotacao.titulo }}</div></div>
-                {% if anotacao.texto %}
-                <div class="mt-3">
-                    <span class="text-muted small">Link</span>
-                    <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="text-break text-primary font-monospace small flex-grow-1" style="word-break: break-all;">{{ anotacao.texto }}</span>
-                        <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm flex-shrink-0" title="Abrir link"><i class="bi bi-box-arrow-up-right"></i></a>
-                    </div>
-                </div>
-                <div class="d-grid mt-4">
-                    <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="bi bi-box-arrow-up-right me-2"></i>Abrir Link</a>
-                </div>
-                {% else %}
-                <p class="text-muted mt-2">Nenhum link cadastrado.</p>
-                {% endif %}
-            </div>
-
-        {% else %}
-            <div class="text-break" style="white-space: pre-wrap;">{{ anotacao.texto }}</div>
-        {% endif %}
-    </div>
-
-    <div class="mt-4 pt-3 border-top">
-        <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary w-100">Voltar para Lista</a>
-    </div>
-</div>
-{% endif %}
-
 {% endblock %}
 
-{% block extra_js %}
+{% block delete_info %}
+<div class="border rounded p-3 bg-light text-start mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong class="text-truncate pe-2">{{ anotacao.titulo }}</strong>
+        <span class="badge bg-secondary">{{ anotacao.get_tipo_display }}</span>
+    </div>
+    {% if anotacao.tipo == 'pix' %}
+        <div class="small">
+            <div><strong>Chave:</strong> <span class="font-monospace">{{ anotacao.pix_chave|default:"-" }}</span></div>
+            <div><strong>Favorecido:</strong> {{ anotacao.pix_favorecido|default:"-" }}</div>
+        </div>
+    {% elif anotacao.tipo == 'checklist' %}
+        <ul class="list-unstyled mb-0 small">
+            {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
+                <li class="mb-1">
+                    <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-1"></i>
+                    {{ item.texto }}
+                </li>
+            {% empty %}
+                <li class="text-muted">Sem itens.</li>
+            {% endfor %}
+        </ul>
+    {% elif anotacao.tipo == 'lista_numerada' %}
+        <ol class="mb-0 small ps-3">
+            {% for item in anotacao.itens.all|dictsort:"numero"|slice:":8" %}
+                <li class="mb-1">{{ item.texto }}</li>
+            {% empty %}
+                <li class="text-muted">Sem itens.</li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <div class="small" style="white-space: pre-wrap;">{{ anotacao.texto|default:"Sem conteúdo."|truncatechars:150 }}</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block delete_cancel_url %}{% url 'anotacao_detalhes' anotacao.pk %}{% endblock %}
+
+{% block detail_view %}
+{% if acao == 'ticar' %}
+    <!-- ==================== MODO: TICAR ==================== -->
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <a href="{% url 'anotacao_lista' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+        <div><h4 class="mb-0">✅ Ticar Checklist</h4><small class="text-muted">{{ anotacao.titulo }}</small></div>
+    </div>
+
+    <div class="checklist-shell">
+        <div class="checklist-header">
+            <div class="checklist-title">{{ anotacao.titulo }}</div>
+            <div class="checklist-meta">
+                Marcados: <strong id="qtdConcluidos">{{ concluidos }}</strong> de
+                <strong id="qtdTotal">{{ total_itens }}</strong>
+            </div>
+        </div>
+
+        <div class="checklist-items-box">
+            {% if itens %}
+                {% for item in itens %}
+                    <button type="button" class="check-item-btn" data-item-id="{{ item.id }}">
+                        <span class="check-item-prefix">{% if item.concluido %}[X]{% else %}[ ]{% endif %}</span>
+                        <span class="check-item-text {% if item.concluido %}done{% endif %}">{{ item.texto }}</span>
+                    </button>
+                {% endfor %}
+            {% else %}
+                <div class="p-4 text-center text-muted">Checklist sem itens.</div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <!-- ==================== MODO: VER CONTEUDO ==================== -->
+    <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h4 class="mb-0">{{ anotacao.titulo }}</h4>
+            <div class="d-flex gap-2">
+                {% if anotacao.tipo == 'checklist' %}
+                <a href="{% url 'anotacao_ticar' anotacao.pk %}" class="btn btn-outline-success btn-sm" title="Ticar Checklist">
+                    <i class="bi bi-check2-square"></i>
+                </a>
+                {% endif %}
+                <a href="{% url 'anotacao_form' anotacao.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'anotacao_detalhes' anotacao.pk %}?acao=deletar" class="btn btn-outline-danger btn-sm" title="Excluir">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="text-muted small mb-3">
+            {{ anotacao.get_tipo_display }} • {{ anotacao.criado_em|date:"d/m/Y H:i" }}
+        </div>
+
+        <hr>
+
+        <div class="mt-3">
+            {% if anotacao.tipo == 'pix' %}
+                <div class="bg-light p-3 rounded text-center mb-3">
+                    <h5 class="mb-3">Escaneie o QR Code</h5>
+                    {% if pix_payload %}
+                    <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control font-monospace text-muted small" value="{{ pix_payload }}" id="pixCopiaCola" readonly>
+                        <button class="btn btn-outline-primary" type="button" onclick="copiarPix()">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                        <button class="btn btn-outline-success" type="button" onclick="compartilharPix()">
+                            <i class="bi bi-share"></i> Compartilhar
+                        </button>
+                    </div>
+                    {% else %}
+                    <p class="text-danger">Não foi possível gerar o código Pix. Verifique os dados.</p>
+                    {% endif %}
+                </div>
+                <div class="bg-light p-3 rounded text-dark">
+                    <p><strong>Nome:</strong> {{ anotacao.pix_nome|default:"-" }}</p>
+                    <p><strong>Chave:</strong> <span class="text-primary font-monospace">{{ anotacao.pix_chave }}</span> <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_chave }}')"><i class="bi bi-clipboard"></i></button></p>
+                    <p><strong>Favorecido:</strong> {{ anotacao.pix_favorecido }} <button class="btn btn-sm btn-link" onclick="navigator.clipboard.writeText('{{ anotacao.pix_favorecido|default:''|escapejs }}')"><i class="bi bi-clipboard"></i></button></p>
+                    <p><strong>Cidade:</strong> {{ anotacao.pix_cidade|default:"-" }}</p>
+                    <p><strong>Banco:</strong> {{ anotacao.pix_banco|default:"-" }}</p>
+                    {% if anotacao.pix_valor %}<p><strong>Valor:</strong> R$ {{ anotacao.pix_valor }}</p>{% endif %}
+                </div>
+
+            {% elif anotacao.tipo == 'checklist' %}
+                {% for item in anotacao.itens.all|dictsort:"numero" %}
+                <div class="checklist-item-zebrado">
+                    <i class="bi {% if item.concluido %}bi-check-square-fill text-success{% else %}bi-square{% endif %} me-2"></i>
+                    <span class="{% if item.concluido %}text-decoration-line-through text-muted{% endif %}">{{ item.texto }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted text-center py-3">Checklist sem itens.</div>
+                {% endfor %}
+
+            {% elif anotacao.tipo == 'lista_numerada' %}
+                {% for item in anotacao.itens.all|dictsort:"numero" %}
+                <div class="lista-item-zebrado">
+                    <span class="lista-item-numero">{{ item.numero }}</span>
+                    <span>{{ item.texto }}</span>
+                </div>
+                {% empty %}
+                <div class="text-muted text-center py-3">Lista sem itens.</div>
+                {% endfor %}
+
+            {% elif anotacao.tipo == 'link' %}
+                <div class="card border-0 shadow-sm rounded-3 p-3 text-dark">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="fs-3">🔗</span>
+                        <span class="fw-bold text-primary fs-5">Link</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="mb-2"><span class="text-muted small">Descrição</span><div class="fw-semibold mt-1">{{ anotacao.titulo }}</div></div>
+                    {% if anotacao.texto %}
+                    <div class="mt-3">
+                        <span class="text-muted small">Link</span>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="text-break text-primary font-monospace small flex-grow-1" style="word-break: break-all;">{{ anotacao.texto }}</span>
+                            <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm flex-shrink-0" title="Abrir link"><i class="bi bi-box-arrow-up-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <a href="{{ anotacao.texto }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="bi bi-box-arrow-up-right me-2"></i>Abrir Link</a>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mt-2">Nenhum link cadastrado.</p>
+                    {% endif %}
+                </div>
+
+            {% else %}
+                <div class="text-break" style="white-space: pre-wrap;">{{ anotacao.texto }}</div>
+            {% endif %}
+        </div>
+
+        <div class="mt-4 pt-3 border-top">
+            <a href="{% url 'anotacao_lista' %}" class="btn btn-secondary w-100">Voltar para Lista</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block child_js %}
+<!-- ================= JS DETALHES ================= -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <script>
 {% if anotacao.tipo == 'pix' and pix_payload %}
@@ -253,4 +421,213 @@ async function compartilharPix() {
 }
 {% endif %}
 </script>
+
+{% if acao == 'criar' or acao == 'editar' %}
+<!-- ================= JS FORMULARIO ================= -->
+<script>
+const selectTipo = document.querySelector('select[name="tipo"]');
+    const areaTexto = document.getElementById('areaTexto');
+    const areaPix = document.getElementById('areaPix');
+    const labelTexto = document.getElementById('labelTexto');
+
+    function textareaPrincipal() { return document.querySelector('#areaTexto textarea'); }
+    function textareaLink() { return document.querySelector('#areaLink textarea'); }
+
+    function prepararCamposTextoParaEnvio() {
+        const tipo = selectTipo.value;
+        document.querySelectorAll('#areaTexto textarea, #areaLink textarea').forEach(ta => {
+            if (!ta) return;
+            const inLink = !!ta.closest('#areaLink');
+            let enviar = false;
+            if (tipo === 'link') enviar = inLink;
+            else if (tipo === 'pix') enviar = false;
+            else enviar = !inLink;
+            if (enviar) ta.setAttribute('name', 'texto');
+            else ta.removeAttribute('name');
+        });
+    }
+
+    function initNomeCampos() {
+        const taLink = textareaLink();
+        if (taLink) taLink.removeAttribute('name');
+        const taTexto = textareaPrincipal();
+        if (taTexto && !taTexto.getAttribute('name')) taTexto.setAttribute('name', 'texto');
+    }
+
+    function inserirTextoNoCursor(textarea, texto) {
+        const inicio = textarea.selectionStart;
+        const fim = textarea.selectionEnd;
+        const atual = textarea.value;
+        textarea.value = atual.slice(0, inicio) + texto + atual.slice(fim);
+        const novaPosicao = inicio + texto.length;
+        textarea.selectionStart = novaPosicao;
+        textarea.selectionEnd = novaPosicao;
+    }
+
+    function obterNumeroAtual(linha) {
+        const match = linha.match(/^\s*(\d+)\s*-\s*/);
+        return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function garantirPrefixoInicial() {
+        const textareaTexto = textareaPrincipal();
+        if (!textareaTexto) return;
+        const tipo = selectTipo.value;
+        const valorAtual = textareaTexto.value || '';
+        const temConteudo = valorAtual.trim().length > 0;
+
+        if (tipo === 'lista_numerada' && !temConteudo) {
+            textareaTexto.value = '1 - ';
+            textareaTexto.selectionStart = textareaTexto.value.length;
+            textareaTexto.selectionEnd = textareaTexto.value.length;
+        } else if (tipo === 'checklist' && !temConteudo) {
+            textareaTexto.value = '[ ] ';
+            textareaTexto.selectionStart = textareaTexto.value.length;
+            textareaTexto.selectionEnd = textareaTexto.value.length;
+        }
+    }
+
+    function tratarEnterListaChecklist(event) {
+        if (event.key !== 'Enter' || event.shiftKey) return;
+        const textareaTexto = textareaPrincipal();
+        if (!textareaTexto || event.target !== textareaTexto) return;
+
+        const tipo = selectTipo.value;
+        if (tipo !== 'lista_numerada' && tipo !== 'checklist') return;
+
+        event.preventDefault();
+
+        const inicio = textareaTexto.selectionStart;
+        const fim = textareaTexto.selectionEnd;
+        const textoAtual = textareaTexto.value;
+        const inicioLinha = textoAtual.lastIndexOf('\n', inicio - 1) + 1;
+        const fimLinha = textoAtual.indexOf('\n', inicio);
+        const fimRealLinha = fimLinha === -1 ? textoAtual.length : fimLinha;
+        const linhaAtual = textoAtual.slice(inicioLinha, fimRealLinha);
+
+        if (tipo === 'lista_numerada') {
+            const numeroAtual = obterNumeroAtual(linhaAtual);
+            const proximoNumero = numeroAtual > 0 ? numeroAtual + 1 : 1;
+            inserirTextoNoCursor(textareaTexto, `\n${proximoNumero} - `);
+        } else if (tipo === 'checklist') {
+            inserirTextoNoCursor(textareaTexto, '\n[ ] ');
+        }
+
+        setTimeout(() => { textareaTexto.scrollTop = textareaTexto.scrollHeight; }, 10);
+    }
+
+    function toggleCampos() {
+        const tipo = selectTipo.value;
+        const areaLink = document.getElementById('areaLink');
+
+        if (tipo === 'pix') {
+            areaTexto.classList.add('d-none');
+            areaPix.classList.remove('d-none');
+            areaLink.classList.add('d-none');
+        } else if (tipo === 'link') {
+            areaTexto.classList.add('d-none');
+            areaPix.classList.add('d-none');
+            areaLink.classList.remove('d-none');
+        } else {
+            areaTexto.classList.remove('d-none');
+            areaPix.classList.add('d-none');
+            areaLink.classList.add('d-none');
+
+            if (tipo === 'checklist') labelTexto.innerText = 'Itens do Checklist (um por linha)';
+            else if (tipo === 'lista_numerada') labelTexto.innerText = 'Itens da Lista (um por linha)';
+            else labelTexto.innerText = 'Texto da Anotação';
+
+            garantirPrefixoInicial();
+        }
+    }
+
+    function testarLink() {
+        const ta = textareaLink();
+        const url = ta ? ta.value.trim() : '';
+        if (url) window.open(url, '_blank');
+    }
+
+    selectTipo.addEventListener('change', toggleCampos);
+    const taPrincipal = textareaPrincipal();
+    if (taPrincipal) {
+        taPrincipal.addEventListener('keydown', tratarEnterListaChecklist);
+        taPrincipal.addEventListener('input', function() { atualizarZebraEScroll(this); });
+    }
+    document.querySelector('form[method="post"]').addEventListener('submit', prepararCamposTextoParaEnvio);
+    initNomeCampos();
+    toggleCampos();
+
+    function atualizarZebraEScroll(textarea) {
+        const tipo = selectTipo.value;
+        const linhas = textarea.value.split('\n').filter(l => l.trim());
+        const counter = document.getElementById('itemCounter');
+        const indicator = document.getElementById('scrollIndicator');
+
+        if (tipo === 'lista_numerada' || tipo === 'checklist') {
+            textarea.classList.add('zebra-ativo');
+            counter.style.display = 'block';
+            counter.textContent = `${linhas.length} ${linhas.length === 1 ? 'item' : 'itens'}`;
+
+            if (linhas.length > 5) {
+                textarea.classList.add('scroll-ativo');
+                textarea.style.maxHeight = '250px';
+                indicator.style.display = 'block';
+                textarea.scrollTop = textarea.scrollHeight;
+            } else {
+                textarea.classList.remove('scroll-ativo');
+                textarea.style.maxHeight = '';
+                indicator.style.display = 'none';
+            }
+        } else {
+            textarea.classList.remove('zebra-ativo');
+            counter.style.display = 'none';
+            textarea.classList.remove('scroll-ativo');
+            textarea.style.maxHeight = '';
+            indicator.style.display = 'none';
+        }
+    }
+</script>
+{% endif %}
+
+{% if acao == 'ticar' %}
+<!-- ================= JS TICAR ================= -->
+<script>
+async function ticarItemChecklist(itemId, btn) {
+        try {
+            const resp = await fetch(`/anotacoes/item/${itemId}/ticar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.sucesso) throw new Error(data.erro || 'Erro ao ticar item');
+
+            const prefixo = btn.querySelector('.check-item-prefix');
+            const texto = btn.querySelector('.check-item-text');
+            const qtdConcluidos = document.getElementById('qtdConcluidos');
+            if (data.concluido) {
+                prefixo.innerText = '[X]';
+                texto.classList.add('done');
+                if (qtdConcluidos) qtdConcluidos.innerText = String(Number(qtdConcluidos.innerText || '0') + 1);
+            } else {
+                prefixo.innerText = '[ ]';
+                texto.classList.remove('done');
+                if (qtdConcluidos) qtdConcluidos.innerText = String(Math.max(0, Number(qtdConcluidos.innerText || '0') - 1));
+            }
+        } catch (e) {
+            console.error('Erro ao ticar item:', e);
+        }
+    }
+
+    document.querySelectorAll('.check-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+            ticarItemChecklist(itemId, this);
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}
