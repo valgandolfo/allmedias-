@@ -1,124 +1,177 @@
-# Padrão de CRUD - NewMedia (2 Arquivos HTML)
+# Padrão de CRUD - NewMedia (Arquitetura Pai-Filho)
 
-Para manter o projeto limpo, padronizado e evitar a proliferação de arquivos HTML desnecessários, adotamos um padrão estrito para as operações de CRUD (Create, Read, Update, Delete) nos módulos do sistema. 
+Para manter o projeto extremamente limpo, padronizado, e altamente escalável, adotamos uma arquitetura de herança rigorosa para os CRUDs (Create, Read, Update, Delete) de todos os módulos.
 
-**Todo CRUD deve possuir apenas dois (2) arquivos de template HTML principais:**
+O sistema baseia-se em um **CRUD-Pai genérico** e **CRUDs-Filhos específicos**. O principal objetivo é não repetir código HTML, CSS ou JavaScript. 
+
+Todo módulo (ex: `anota_ai`, `medias`) deve ter **apenas dois (2) arquivos** HTML:
 1. `lista.html`
 2. `detalhes.html`
 
-## 1. O Arquivo `lista.html`
-**Responsabilidade:** Visualização das coleções de dados, filtragem, paginação e navegação inicial.
-- Deve conter a estrutura de lista (cards zebrados, grids ou tabelas).
-- Deve incluir uma barra de pesquisa e opções de filtros (se houver).
-- O botão `(+)` (geralmente um FAB) aponta para a rota de Criação.
-- O clique em um item da lista aponta para a rota de Detalhes (`/item/<id>/`).
-- O clique no menu de opções (`...`) do item, direciona para as ações rápidas, que por sua vez chamam rotas específicas com a ação correspondente (ex: `/item/<id>/form/` para Editar ou `/item/<id>/?acao=deletar` para Excluir).
+---
 
-## 2. O Arquivo `detalhes.html`
-**Responsabilidade:** Agrupar TODAS as telas e interações envolvendo um único registro.
+## 🏗️ 1. O CRUD Pai (A Inteligência Base)
+A pasta `templates/crud/` contém a "casca" que dita o comportamento de todo o sistema. Se houver um bug genérico ou se for preciso mudar uma cor no layout principal, altera-se apenas o CRUD Pai.
 
-Em vez de criar `form.html`, `criar.html`, `editar.html`, `excluir.html`, centralizamos as interfaces em `detalhes.html`. Este template reage a uma variável de contexto enviada pela View (ex: `acao`).
+### `crud/lista_base.html`
+**Responsabilidades:**
+- Controla a interface da lista de itens e a barra de pesquisa genérica.
+- Contém o **View Toggle (Lista vs Grid)**, salvando a preferência no `localStorage` do navegador.
+- Requer que o filho implemente blocos como `{% block list_content %}`.
 
-### Estrutura Interna do `detalhes.html`
-O template deve utilizar uma cadeia sequencial de `{% if %}` e `{% elif %}` baseada na ação requerida. A interface HTML, o Título da Página e o JavaScript devem mudar com base nessa ação.
+### `crud/detalhes_base.html`
+**Responsabilidades:**
+- Redireciona a tela baseado na variável de contexto `acao` enviada pelo backend (ex: `criar`, `editar`, `deletar`, ou padrão/ver).
+- Fornece o container de formulário e a tela oficial (padronizada) de confirmação de Exclusão (com ícone vermelho de perigo).
+
+---
+
+## 👨‍👦 2. Como criar um CRUD Filho
+
+Se você for criar ou manter um módulo (ex: `Clientes`), você criará apenas dois arquivos na pasta do seu app (`templates/clientes/`):
+
+### Passo A: Criando `lista.html`
 
 ```html
-{% extends 'base.html' %}
+{% extends 'crud/lista_base.html' %}
 
-{% block title %}
-{% if acao == 'deletar' %}Excluir Registro
-{% elif acao == 'criar' %}Incluir Registro
-{% elif acao == 'editar' %}Editar Registro
-{% else %}Detalhes do Registro{% endif %} - NewMedia
+<!-- 1. Textos do Cabeçalho -->
+{% block crud_title %}Meus Clientes{% endblock %}
+{% block crud_icon %}👥{% endblock %}
+{% block crud_subtitle %}Gerenciamento de contatos{% endblock %}
+
+<!-- 2. Botões de Filtro -->
+{% block filters %}
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="all" onclick="filtrarTipo('all')">Todos</button>
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" data-tipo="pj" onclick="filtrarTipo('pj')">Empresas</button>
 {% endblock %}
 
-{% block content %}
-    
-    <!-- 1. MODO: INCLUIR OU EDITAR (FORMULÁRIO) -->
-    {% if acao == 'criar' or acao == 'editar' %}
-        <div class="card-custom p-3">
-            <h5 class="mb-3">
-                {% if acao == 'editar' %}Editar Registro{% else %}Incluir Registro{% endif %}
-            </h5>
-            <form method="post">
-                {% csrf_token %}
-                <!-- Seu formulário aqui -->
-                <button type="submit">Salvar</button>
-            </form>
+<!-- 3. Loop da Lista. Atenção para a classe 'crud-item' e os atributos 'data-' usados no JS de filtro do CRUD Pai -->
+{% block list_content %}
+    {% for cliente in clientes %}
+    <div class="crud-item cliente-item" data-tipo="{{ cliente.tipo }}" data-titulo="{{ cliente.nome|lower }}">
+        <!-- O layout aqui deve estar preparado para o modo GRID via CSS -->
+        <div class="cliente-info" onclick="window.location.href='{% url 'cliente_detalhes' cliente.pk %}'">
+            <strong>{{ cliente.nome }}</strong>
         </div>
-
-    <!-- 2. MODO: EXCLUIR (CONFIRMAÇÃO) -->
-    {% elif acao == 'deletar' %}
-        <div class="card-custom p-4 text-center">
-            <h4 class="text-danger">Excluir Registro?</h4>
-            <p>Confirme a exclusão deste item. A ação não pode ser desfeita.</p>
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Sim, Excluir</button>
-            </form>
+        <!-- Menu de três pontinhos -->
+        <div onclick="abrirMenu({{ cliente.pk }}, '{{ cliente.nome|escapejs }}')">
+            <i class="bi bi-three-dots-vertical fs-5"></i>
         </div>
-
-    <!-- 3. MODO PADRÃO: VER DETALHES -->
-    {% else %}
-        <div class="card-custom p-4">
-            <h4>{{ objeto.titulo }}</h4>
-            <p>{{ objeto.descricao }}</p>
-            
-            <!-- Botões de Ação na View de Detalhes -->
-            <a href="{% url 'meu_app_form' objeto.pk %}" class="btn">Editar</a>
-            <a href="{% url 'meu_app_detalhes' objeto.pk %}?acao=deletar" class="btn">Excluir</a>
-        </div>
-    {% endif %}
-
+    </div>
+    {% empty %}
+        <p>Nenhum cliente cadastrado.</p>
+    {% endfor %}
 {% endblock %}
+
+<!-- 4. Botão FAB Flutuante -->
+{% block fab %}
+{% url 'cliente_form' as url_criar %}
+{% include "components/fab.html" with url=url_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Novo" %}
+{% endblock %}
+
+<!-- 5. Modal de Opções (acionado pelos três pontinhos) -->
+{% block modal %}
+<!-- (Ver exemplo na lista.html de anota_ai ou medias) -->
+{% endblock %}
+
+<!-- 6. Scripts (Filtro e Menu) e CSS (Configurar a adaptação para .layout-grid .cliente-item) -->
+{% block child_js %} ... {% endblock %}
+{% block child_css %} ... {% endblock %}
 ```
 
-## Como configurar a `views.py`
+### Passo B: Criando `detalhes.html`
 
-As Views também devem ser otimizadas. Você não precisa de uma view para cada template, mas pode ter funções de View que mapeiam para as intenções do usuário, e ao final, todas renderizam o `detalhes.html` enviando a ação correta no contexto.
+```html
+{% extends 'crud/detalhes_base.html' %}
 
-**Exemplo Prático:**
+{% block crud_title %}Clientes{% endblock %}
 
+<!-- 1. BLOCO FORMULÁRIO (Usado para ação 'criar' ou 'editar') -->
+{% block form_view %}
+<div class="card-custom p-3">
+    <h5>{% if cliente %}Editar{% else %}Criar{% endif %}</h5>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Salvar</button>
+    </form>
+</div>
+{% endblock %}
+
+<!-- 2. BLOCO EXCLUSÃO (Para ação 'deletar') -->
+<!-- Define como os dados do item aparecerão na tela de aviso de exclusão -->
+{% block delete_info %}
+<div class="border p-3 bg-light text-center">
+    <strong>{{ cliente.nome }}</strong> - {{ cliente.email }}
+</div>
+{% endblock %}
+{% block delete_cancel_url %}{% url 'cliente_detalhes' cliente.pk %}{% endblock %}
+
+<!-- 3. BLOCO LEITURA / VER DETALHES (Modo Padrão) -->
+{% block detail_view %}
+<div class="card-custom p-4">
+    <h4>{{ cliente.nome }}</h4>
+    <p>{{ cliente.email }}</p>
+    <!-- OBRIGATÓRIO: Botões de Editar e Excluir apontando corretamente -->
+    <a href="{% url 'cliente_form' cliente.pk %}" class="btn btn-outline-primary">Editar</a>
+    <a href="{% url 'cliente_detalhes' cliente.pk %}?acao=deletar" class="btn btn-outline-danger">Excluir</a>
+</div>
+{% endblock %}
+
+<!-- 4. CSS e JS Específico do formulário ou da visualização -->
+{% block child_js %} ... {% endblock %}
+{% block child_css %} ... {% endblock %}
+```
+
+---
+
+## ⚙️ 3. Configurando a `views.py` e `urls.py` do Filho
+
+Para que o template Pai reaja corretamente, o backend precisa estar minimalista:
+
+### `urls.py` (Exatamente 4 rotas necessárias)
 ```python
-# View para Lista (Renderiza lista.html)
-def item_lista(request):
-    itens = Item.objects.all()
-    return render(request, 'meu_app/lista.html', {'itens': itens})
+urlpatterns = [
+    path('lista/', views.cliente_lista, name='cliente_lista'),
+    path('criar/', views.cliente_form, name='cliente_form'),
+    path('<int:pk>/', views.cliente_detalhes, name='cliente_detalhes'),
+    path('<int:pk>/form/', views.cliente_form, name='cliente_form'), # Usa mesma view de criar
+]
+```
 
-# View para Formulário (Criar/Editar) (Renderiza detalhes.html)
-def item_form(request, pk=None):
-    if pk:
-        item = get_object_or_404(Item, pk=pk)
-        acao = 'editar'
+### `views.py` (Lógica Unificada)
+```python
+# 1. View de Lista (Manda os itens)
+def cliente_lista(request):
+    clientes = Cliente.objects.all()
+    # Importante passar 'crud_name' único para o View Toggle salvar certinho no localStorage (ex: 'clientes_layout')
+    return render(request, 'clientes/lista.html', {'clientes': clientes, 'crud_name': 'clientes'})
+
+# 2. View de Formulário (Cria e Edita na mesma função, passando a 'acao')
+def cliente_form(request, pk=None):
+    cliente = get_object_or_404(Cliente, pk=pk) if pk else None
+    acao = 'editar' if pk else 'criar'
+    
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            return redirect('cliente_lista')
     else:
-        item = None
-        acao = 'criar'
-    
-    # Lógica do Formulário (POST e GET)...
-    
-    return render(request, 'meu_app/detalhes.html', {
-        'form': form,
-        'acao': acao,
-        'item': item
-    })
+        form = ClienteForm(instance=cliente)
 
-# View para Ver Detalhes e Excluir (Renderiza detalhes.html)
-def item_detalhes(request, pk):
-    item = get_object_or_404(Item, pk=pk)
+    return render(request, 'clientes/detalhes.html', {'form': form, 'cliente': cliente, 'acao': acao})
+
+# 3. View de Leitura/Exclusão (Trata exclusão via GET '?acao=deletar')
+def cliente_detalhes(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
     acao = request.GET.get('acao', 'ver')
     
+    # Se bater no modo deletar E for um POST confirmando a tela:
     if acao == 'deletar' and request.method == 'POST':
-        item.delete()
-        return redirect('item_lista')
+        cliente.delete()
+        return redirect('cliente_lista')
         
-    return render(request, 'meu_app/detalhes.html', {
-        'item': item,
-        'acao': acao
-    })
+    return render(request, 'clientes/detalhes.html', {'cliente': cliente, 'acao': acao})
 ```
-
-## Vantagens desta Abordagem
-- Redução brutal na quantidade de templates.
-- Todo CSS/JS pertinente às operações em um registro fica centralizado em um só arquivo.
-- O controle de renderização recai sobre a "ação" vinda da View.
-- Padrão uniforme, todos os apps mantêm a mesma inteligência na UI.

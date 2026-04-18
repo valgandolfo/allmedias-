@@ -21,11 +21,13 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 - **Storage**: Wasabi S3 (prod) / Local (dev)
 - **Autenticação**: Django Sessions
 
-### **Filosofia de Desenvolvimento**
+### **Filosofia de Desenvolvimento e UI**
 - ✅ **Menos camadas**: Navegador → Django → Banco/S3
 - ✅ **PWA nativo**: Site instalável como app na home screen
 - ✅ **Assincronicidade e Performace**: Operações custosas (como OCR de imagens) são jogadas para fila de processamento sem prender a tela do usuário.
 - ✅ **Mobile-first**: Design responsivo (CSS Grid nativo), botões FAB (Floating Action Button), prioridade na usabilidade em telas pequenas.
+- ✅ **Arquitetura CRUD-Pai/Filho**: O sistema adota a filosofia DRY (*Don't Repeat Yourself*). Todos os módulos utilizam uma herança central de templates (`templates/crud/lista_base.html` e `detalhes_base.html`). Isso restringe cada módulo a ter **apenas 2 arquivos** HTML de interface (`lista.html` e `detalhes.html`), delegando a renderização interna a variáveis de estado (ex: `acao = criar|editar|deletar`).
+- ✅ **View Toggle Dinâmico**: As telas de lista oferecem alternância instantânea entre visualização em Lista e Grid/Cards via troca de classe CSS disparada por JavaScript. A preferência de visualização do usuário é salva no `localStorage` do dispositivo, dispensando consultas ao banco de dados e garantindo persistência imediata e offline por módulo.
 
 ---
 
