@@ -193,40 +193,40 @@
 
         optionsModal.hide();
         const { titulo, arquivoUrl, tipo } = midiaSelecionada;
+        
+        let finalUrl = arquivoUrl;
+        if (arquivoUrl && !arquivoUrl.startsWith('http')) finalUrl = window.location.origin + (arquivoUrl.startsWith('/') ? '' : '/') + arquivoUrl;
 
         if (!navigator.share) {
-            window.open(arquivoUrl, '_blank');
-            alert('Seu navegador não suporta compartilhamento nativo. O arquivo foi aberto em uma nova aba.');
+            window.open(finalUrl, '_blank');
             return;
         }
 
         try {
-            const resposta = await fetch(arquivoUrl, { credentials: 'same-origin' });
-            if (!resposta.ok) throw new Error('Falha ao carregar arquivo para compartilhamento');
+            // Tenta baixar o arquivo para compartilhar fisicamente
+            const resposta = await fetch(finalUrl);
+            if (!resposta.ok) throw new Error('Falha HTTP');
 
             const blob = await resposta.blob();
-            const nomeArquivo = obterNomeArquivo(arquivoUrl, tipo);
-            const arquivo = new File([blob], nomeArquivo, {
-                type: blob.type || 'application/octet-stream'
-            });
-
-            const dadosCompartilhamento = {
-                title: titulo,
-                text: titulo,
-            };
+            const nomeArquivo = obterNomeArquivo(finalUrl, tipo);
+            const arquivo = new File([blob], nomeArquivo, { type: blob.type || 'application/octet-stream' });
 
             if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
-                dadosCompartilhamento.files = [arquivo];
-            } else {
-                dadosCompartilhamento.url = `${window.location.origin}${arquivoUrl}`;
+                await navigator.share({
+                    title: titulo,
+                    files: [arquivo]
+                });
+                return; // Sucesso ao compartilhar o arquivo
             }
-
-            await navigator.share(dadosCompartilhamento);
         } catch (erro) {
-            if (erro && erro.name === 'AbortError') return;
-            console.error('Erro ao compartilhar:', erro);
-            alert('Não foi possível compartilhar essa mídia agora.');
+            console.warn('Falha ao baixar arquivo para compartilhar (CORS ou erro de rede). Compartilhando link como fallback...', erro);
         }
+        
+        // Fallback: compartilha o link
+        navigator.share({
+            title: titulo,
+            url: finalUrl
+        }).catch(err => console.warn('Compartilhar link cancelado:', err));
     }
 
     function filtrarItens() {

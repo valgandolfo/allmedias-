@@ -248,14 +248,37 @@
 {% block child_js %}
 {% if acao == 'ver' %}
 <script>
-    function compartilhar() {
+    async function compartilhar() {
         const rawUrl = "{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}";
         const titulo = "{{ midia.nome_exibicao|escapejs }}";
         let finalUrl = rawUrl;
         if (rawUrl && !rawUrl.startsWith('http')) finalUrl = window.location.origin + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
 
         if (navigator.share) {
-            navigator.share({ title: titulo, url: finalUrl }).catch(err => console.warn('Compartilhar cancelado:', err));
+            try {
+                // Tenta baixar o arquivo para compartilhar fisicamente (útil para PDFs e Imagens)
+                const response = await fetch(finalUrl);
+                const blob = await response.blob();
+                
+                let filename = titulo;
+                {% if midia.tipo == 'pdf' %} if(!filename.toLowerCase().endsWith('.pdf')) filename += '.pdf'; {% endif %}
+                {% if midia.tipo == 'foto' %} if(!filename.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/)) filename += '.jpg'; {% endif %}
+
+                const file = new File([blob], filename, { type: blob.type });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: titulo,
+                        files: [file]
+                    });
+                    return; // Compartilhamento do arquivo físico foi um sucesso
+                }
+            } catch (err) {
+                console.warn('Falha ao compartilhar o arquivo físico (CORS ou suporte), usando fallback do link...', err);
+            }
+
+            // Fallback: compartilha o link
+            navigator.share({ title: titulo, url: finalUrl }).catch(err => console.warn('Compartilhar link cancelado:', err));
         } else {
             navigator.clipboard.writeText(finalUrl).then(() => alert('Link copiado!')).catch(() => alert('Use o link: ' + finalUrl));
         }
