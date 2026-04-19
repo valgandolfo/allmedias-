@@ -59,5 +59,51 @@
 {% endblock %}
 
 {% block extra_js %}
+{% if acao == 'ver' or acao == 'ticar' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let touchstartX = 0;
+    let touchendX = 0;
+    const threshold = 100; // minimum pixels to be considered a swipe
+
+    const nextUrl = "{{ next_url|default:'' }}";
+    const prevUrl = "{{ prev_url|default:'' }}";
+    const bloquearSwipe = {{ bloquear_swipe|yesno:"true,false" }};
+
+    function handleGesture() {
+        if (touchendX < touchstartX - threshold) {
+            // Swipe para a esquerda -> Próximo (mais antigo)
+            if (bloquearSwipe && nextUrl) {
+                alert("Limite de rolagem de fotos/vídeos atingido. Volte à lista para recarregar.");
+            } else if (nextUrl) {
+                window.location.href = nextUrl;
+            }
+        }
+        if (touchendX > touchstartX + threshold) {
+            // Swipe para a direita -> Anterior (mais novo)
+            if (bloquearSwipe && prevUrl) {
+                alert("Limite de rolagem de fotos/vídeos atingido. Volte à lista para recarregar.");
+            } else if (prevUrl) {
+                window.location.href = prevUrl;
+            }
+        }
+    }
+
+    // Adiciona os listeners ao body, mas pode ser restrito a uma div se conflitar com carrosséis
+    document.body.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    document.body.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        // Evita swipe acidental se o usuário estiver rolando muito na vertical
+        let touchstartY = e.changedTouches[0].screenY;
+        let touchendY = e.changedTouches[0].screenY; // touchend event doesn't easily expose startY, we only check X diff, 
+        // mas um threshold de 100px na horizontal já ajuda.
+        handleGesture();
+    }, {passive: true});
+});
+</script>
+{% endif %}
 {% block child_js %}{% endblock %}
 {% endblock %}

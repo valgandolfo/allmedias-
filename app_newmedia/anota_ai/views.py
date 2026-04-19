@@ -118,10 +118,28 @@ def anotacao_detalhes(request, pk=None):
         messages.success(request, 'Anotação excluída com sucesso!')
         return redirect('anotacao_lista')
 
+    # Lógica de Swipe Navigation (Anotações não tem limite)
+    next_url = None
+    prev_url = None
+
+    # Próxima anotação (mais antiga)
+    next_anotacao = Anotacao.objects.filter(usuario=request.user, criado_em__lt=anotacao.criado_em).order_by('-criado_em').first()
+    # Anotação anterior (mais nova)
+    prev_anotacao = Anotacao.objects.filter(usuario=request.user, criado_em__gt=anotacao.criado_em).order_by('criado_em').first()
+
+    from django.urls import reverse
+    if next_anotacao:
+        next_url = reverse('anotacao_detalhes', args=[next_anotacao.pk])
+    if prev_anotacao:
+        prev_url = reverse('anotacao_detalhes', args=[prev_anotacao.pk])
+
     return render(request, 'anota_ai/detalhes.html', {
         'anotacao': anotacao,
         'pix_payload': pix_payload,
         'acao': acao,
+        'next_url': next_url,
+        'prev_url': prev_url,
+        'bloquear_swipe': False,
     })
 
 @login_required

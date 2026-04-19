@@ -81,9 +81,38 @@ def media_detalhes(request, pk):
         messages.success(request, 'Mídia excluída com sucesso!')
         return redirect('media_lista')
 
+    # Lógica de Swipe Navigation
+    try:
+        swipe_count = int(request.GET.get('swipe_count', 0))
+    except ValueError:
+        swipe_count = 0
+
+    next_url = None
+    prev_url = None
+    bloquear_swipe = False
+
+    if midia.tipo in ['foto', 'video'] and swipe_count >= 10:
+        bloquear_swipe = True
+    else:
+        novo_swipe_count = swipe_count + 1
+        
+        # Próxima mídia (mais antiga)
+        next_midia = Midia.objects.filter(usuario=request.user, criado_em__lt=midia.criado_em).order_by('-criado_em').first()
+        # Mídia anterior (mais nova)
+        prev_midia = Midia.objects.filter(usuario=request.user, criado_em__gt=midia.criado_em).order_by('criado_em').first()
+
+        from django.urls import reverse
+        if next_midia:
+            next_url = f"{reverse('media_detalhes', args=[next_midia.pk])}?swipe_count={novo_swipe_count}"
+        if prev_midia:
+            prev_url = f"{reverse('media_detalhes', args=[prev_midia.pk])}?swipe_count={novo_swipe_count}"
+
     return render(request, 'medias/detalhes.html', {
         'midia': midia,
-        'acao': acao
+        'acao': acao,
+        'next_url': next_url,
+        'prev_url': prev_url,
+        'bloquear_swipe': bloquear_swipe,
     })
 
 
