@@ -32,7 +32,9 @@ def api_receber_notificacao(request):
             data = json.loads(request.body)
         else:
             print(f"POST Data: {request.POST}")
-            data = request.POST
+            print(f"GET Data: {request.GET}")
+            # Se enviou na aba 2 (Query Parameters), cai no GET. Se mandou na aba 3 (Body), cai no POST.
+            data = request.POST if request.POST else request.GET
 
         texto = data.get('texto', data.get('notification_text', ''))
         app_origem = data.get('app', data.get('notification_application', ''))
