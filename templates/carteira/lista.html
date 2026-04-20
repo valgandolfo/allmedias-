@@ -8,6 +8,9 @@
         <h4 class="mb-0">💳 Carteira</h4>
         <small class="text-muted">Compras capturadas por notificações</small>
     </div>
+    <button class="btn btn-sm btn-outline-info rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalMacrodroid">
+        <i class="bi bi-phone-vibrate"></i> Configurar MacroDroid
+    </button>
 </div>
 
 <!-- Resumo -->
@@ -57,4 +60,63 @@
     </div>
 </div>
 {% endfor %}
+
+<!-- Modal MacroDroid -->
+<div class="modal fade" id="modalMacrodroid" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-custom text-white border-0" style="background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title"><i class="bi bi-robot text-info"></i> Integração MacroDroid</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted mb-3">Para enviar as notificações de compras do seu celular para esta carteira, use a ação "Requisição HTTP" no MacroDroid com as configurações abaixo:</p>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-info">Método HTTP</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control bg-dark text-white border-secondary" value="POST" readonly>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-info">URL da API</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="api_url" value="https://{{ request.get_host }}/carteira/api/notificacao/" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url')"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-info">Tipo de Conteúdo (Content-Type)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control bg-dark text-white border-secondary" value="application/json" readonly>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-info">Corpo (Body JSON)</label>
+                    <textarea class="form-control bg-dark text-white border-secondary font-monospace" id="api_body" rows="6" readonly style="font-size: 12px;">{
+  "texto": "[not_title] - [not_ticker]",
+  "app": "[not_app_name]",
+  "user_token": "{{ user.profile.api_token }}"
+}</textarea>
+                    <button class="btn btn-sm btn-outline-secondary w-100 mt-2" onclick="copiarTexto('api_body')"><i class="bi bi-clipboard"></i> Copiar Corpo JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarTexto(elementId) {
+    var copyText = document.getElementById(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value).then(function() {
+        alert("Copiado para a área de transferência!");
+    });
+}
+</script>
+
 {% endblock %}

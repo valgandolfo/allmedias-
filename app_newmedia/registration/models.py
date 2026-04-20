@@ -130,6 +130,14 @@ class UserProfile(models.Model):
         verbose_name='Último IP de Login'
     )
     
+    api_token = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True,
+        unique=True,
+        verbose_name='Token de Integração API'
+    )
+    
     # ===================================================================
     # TIMESTAMPS
     # ===================================================================
@@ -160,6 +168,11 @@ class UserProfile(models.Model):
         # Calcular data de expiração se não estiver definida
         if not self.data_expiracao and self.dias_acesso > 0:
             self.data_expiracao = timezone.now() + timezone.timedelta(days=self.dias_acesso)
+            
+        # Gerar token de API se não existir
+        if not self.api_token:
+            import secrets
+            self.api_token = secrets.token_hex(16)
         
         # Otimizar foto de perfil — SOMENTE se for um novo upload (não commitado ainda)
         # Usar _committed=False evita abrir arquivos já salvos no Drive/S3

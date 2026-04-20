@@ -43,7 +43,7 @@ def api_receber_notificacao(request):
         user_token = data.get('user_token', '')
         from django.contrib.auth.models import User
         try:
-            usuario = User.objects.get(auth_token__key=user_token)
+            usuario = User.objects.get(profile__api_token=user_token)
         except (User.DoesNotExist, Exception):
             # Fallback: tenta por email no header ou token
             return JsonResponse({

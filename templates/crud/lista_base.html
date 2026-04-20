@@ -113,7 +113,11 @@
     </div>
 
     <!-- FAB -->
-    {% block fab %}{% endblock %}
+    {% block fab %}
+    <a href="{% block fab_url %}#{% endblock %}" class="btn-fab btn-fab-right" title="Adicionar" style="--neon-color: var(--primary-color);">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+    {% endblock %}
 
     <!-- Modal -->
     {% block modal %}{% endblock %}

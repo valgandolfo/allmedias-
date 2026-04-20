@@ -130,10 +130,7 @@
     {% endfor %}
 {% endblock %}
 
-{% block fab %}
-{% url 'media_criar' as url_media_criar %}
-{% include "components/fab.html" with url=url_media_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Adicionar" %}
-{% endblock %}
+{% block fab_url %}{% url 'media_criar' %}{% endblock %}
 
 {% block modal %}
 <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">

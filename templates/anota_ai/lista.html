@@ -106,10 +106,7 @@
     {% endfor %}
 {% endblock %}
 
-{% block fab %}
-{% url 'anotacao_criar' as url_anotacao_criar %}
-{% include "components/fab.html" with url=url_anotacao_criar icon="bi-plus-lg" position="right" color="var(--primary-color)" title="Adicionar" %}
-{% endblock %}
+{% block fab_url %}{% url 'anotacao_criar' %}{% endblock %}
 
 {% block modal %}
 <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
