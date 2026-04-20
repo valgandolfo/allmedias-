@@ -90,18 +90,27 @@
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-info">Tipo de Conteúdo (Content-Type)</label>
                     <div class="input-group input-group-sm">
-                        <input type="text" class="form-control bg-dark text-white border-secondary" value="application/json" readonly>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" value="application/x-www-form-urlencoded" readonly>
                     </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">Corpo (Body JSON)</label>
-                    <textarea class="form-control bg-dark text-white border-secondary font-monospace" id="api_body" rows="6" readonly style="font-size: 12px;">{
-  "texto": "[not_title] - [not_ticker]",
-  "app": "[not_app_name]",
-  "user_token": "{{ user.profile.api_token }}"
-}</textarea>
-                    <button class="btn btn-sm btn-outline-secondary w-100 mt-2" onclick="copiarTexto('api_body')"><i class="bi bi-clipboard"></i> Copiar Corpo JSON</button>
+                    <label class="form-label small fw-bold text-info">Parâmetros (Form Data)</label>
+                    <ul class="list-group list-group-flush bg-transparent small font-monospace">
+                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
+                            <span class="text-warning">texto</span> : <span class="text-light">[not_title] - [not_ticker]</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
+                            <span class="text-warning">app</span> : <span class="text-light">[not_app_name]</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-2 border-bottom-0">
+                            <span class="text-warning">user_token</span> : 
+                            <div class="input-group input-group-sm mt-1">
+                                <input type="text" class="form-control bg-dark text-white border-secondary" id="api_token" value="{{ user.profile.api_token }}" readonly>
+                                <button class="btn btn-outline-secondary" onclick="copiarTexto('api_token')"><i class="bi bi-clipboard"></i> Copiar Token</button>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
