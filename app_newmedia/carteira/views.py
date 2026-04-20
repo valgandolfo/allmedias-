@@ -87,6 +87,12 @@ def carteira_lista(request):
     """
     Lista de notificações de compras do usuário logado
     """
+    # Garante que o usuário tem um token de API gerado
+    if hasattr(request.user, 'profile') and not request.user.profile.api_token:
+        import secrets
+        request.user.profile.api_token = secrets.token_hex(16)
+        request.user.profile.save(update_fields=['api_token'])
+
     notificacoes = NotificacaoCompra.objects.filter(
         usuario=request.user
     ).order_by('-criado_em')
