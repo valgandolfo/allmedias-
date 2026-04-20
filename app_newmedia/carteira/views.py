@@ -23,17 +23,25 @@ def api_receber_notificacao(request):
     Recebe JSON com: texto, app_origem, timestamp, e dados do usuário.
     """
     try:
+        print(f"--- NOVA REQUISICAO MACRODROID ---")
+        print(f"Content-Type: {request.content_type}")
+        
         # MacroDroid pode enviar via POST form ou JSON
         if request.content_type == 'application/json':
+            print(f"Body Bruto: {request.body}")
             data = json.loads(request.body)
         else:
+            print(f"POST Data: {request.POST}")
             data = request.POST
 
         texto = data.get('texto', data.get('notification_text', ''))
         app_origem = data.get('app', data.get('notification_application', ''))
         timestamp = data.get('timestamp', '')
 
+        print(f"Texto: '{texto}' | App: '{app_origem}'")
+
         if not texto:
+            print("Erro: Texto vazio")
             return JsonResponse({
                 'sucesso': False,
                 'erro': 'Texto da notificação é obrigatório'
@@ -41,10 +49,14 @@ def api_receber_notificacao(request):
 
         # Identificar usuário via token/chave
         user_token = data.get('user_token', '')
+        print(f"Token Recebido: '{user_token}'")
+        
         from django.contrib.auth.models import User
         try:
             usuario = User.objects.get(profile__api_token=user_token)
-        except (User.DoesNotExist, Exception):
+            print(f"Usuário identificado: {usuario.username}")
+        except (User.DoesNotExist, Exception) as e:
+            print(f"Erro ao identificar usuário: {e}")
             # Fallback: tenta por email no header ou token
             return JsonResponse({
                 'sucesso': False,
