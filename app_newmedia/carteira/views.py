@@ -36,13 +36,23 @@ def api_receber_notificacao(request):
             # Se enviou na aba 2 (Query Parameters), cai no GET. Se mandou na aba 3 (Body), cai no POST.
             data = request.POST if request.POST else request.GET
 
-        texto = data.get('texto', data.get('notification_text', ''))
-        app_origem = data.get('app', data.get('notification_application', ''))
-        timestamp = data.get('timestamp', '')
+        # Captura o texto da notificação (tentando vários nomes de campos possíveis)
+        texto_recebido = data.get('texto') or data.get('notification_text') or data.get('message') or ''
+        app_origem = data.get('app') or data.get('notification_application') or data.get('package') or ''
+        
+        # Se veio vazio mas tem body bruto (em alguns casos de erro de formatação)
+        if not texto_recebido and request.body:
+             try:
+                 # Tenta ler como string se não foi parseado antes
+                 raw_text = request.body.decode('utf-8')
+                 if 'texto=' in raw_text:
+                     from urllib.parse import parse_qs
+                     texto_recebido = parse_qs(raw_text).get('texto', [''])[0]
+             except: pass
 
-        print(f"Texto: '{texto}' | App: '{app_origem}'")
+        print(f"Texto Recebido: '{texto_recebido}' | App: '{app_origem}'")
 
-        if not texto:
+        if not texto_recebido:
             print("Erro: Texto vazio")
             return JsonResponse({
                 'sucesso': False,
@@ -65,13 +75,13 @@ def api_receber_notificacao(request):
                 'erro': 'Usuário não identificado. Verifique o user_token.'
             }, status=401)
 
-        # Parse do texto
-        dados_parse = NotificacaoCompra.parse_notificacao(texto)
+        # Parse do texto_recebido
+        dados_parse = NotificacaoCompra.parse_notificacao(texto_recebido)
 
         # Salva a notificação
         notificacao = NotificacaoCompra.objects.create(
             usuario=usuario,
-            texto_completo=texto,
+            texto_completo=texto_recebido,
             app_origem=app_origem or dados_parse.get('instituicao', 'Desconhecido'),
             valor=dados_parse['valor'],
             estabelecimento=dados_parse['estabelecimento'],
