@@ -72,9 +72,11 @@ def api_receber_notificacao(request):
         notificacao = NotificacaoCompra.objects.create(
             usuario=usuario,
             texto_completo=texto,
-            app_origem=app_origem,
+            app_origem=app_origem or dados_parse.get('instituicao', 'Desconhecido'),
             valor=dados_parse['valor'],
             estabelecimento=dados_parse['estabelecimento'],
+            data_compra=dados_parse['data'] or datetime.now().date(),
+            hora_compra=dados_parse['hora'] or datetime.now().time(),
         )
 
         return JsonResponse({
@@ -82,6 +84,7 @@ def api_receber_notificacao(request):
             'id': notificacao.pk,
             'valor': str(notificacao.valor) if notificacao.valor else None,
             'estabelecimento': notificacao.estabelecimento,
+            'data': notificacao.data_compra.strftime('%d/%m/%Y') if notificacao.data_compra else None,
         })
 
     except json.JSONDecodeError:

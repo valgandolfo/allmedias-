@@ -1,38 +1,37 @@
-# Status da Integração: Carteira & MacroDroid
+# Status da Integração: Carteira & MacroDroid (CONCLUÍDO)
 
-Este documento registra o estado atual do desenvolvimento do módulo "Carteira" do AllMedias e sua integração com o aplicativo MacroDroid, permitindo que retomemos o trabalho no futuro exatamente de onde paramos.
+Este documento registra a configuração final funcional da integração entre o AllMedias e o MacroDroid via dispositivo Xiaomi.
 
-## 1. O que foi feito e está funcionando (Backend/Frontend)
-- **Criação Segura de Tokens:** O sistema agora gera automaticamente um `api_token` único (usando criptografia `secrets` do Python) para cada usuário. Este token substitui o sistema de login padrão (sessão/cookies) para rotas de API em background.
-- **Webhook Recebedor (`carteira/api/notificacao/`):** A view foi configurada com `@csrf_exempt` para receber as requisições de servidores e aparelhos externos.
-- **Suporte a Form-Data:** O Webhook foi otimizado para receber dados via `application/x-www-form-urlencoded` em vez de JSON puro. Isso resolve o problema de caracteres especiais (aspas, quebras de linha) que vêm nas notificações dos bancos e quebravam o MacroDroid.
-- **UI (Interface):** 
-  - O link estático da Carteira foi removido do rodapé global (footer).
-  - O acesso à Carteira foi redirecionado para o "Card" (Dashboard) da Tela Inicial.
-  - Foi criado um Modal inteligente na tela da Carteira que puxa automaticamente o Token do usuário e exibe instruções de integração.
+## 1. O que foi feito e validado
+- **Criação Segura de Tokens:** O sistema gera um `api_token` único por usuário para autenticação de background.
+- **Webhook Recebedor:** Localizado em `https://igeracao.com.br/carteira/api/notificacao/`.
+- **Parsing Inteligente:** O sistema agora identifica:
+  - Valores monetários (R$, $, €, etc).
+  - Estabelecimentos e remetentes de PIX (usando preposições "em", "no", "de", "para").
+- **Compatibilidade Xiaomi/MIUI:** Ajustes de permissões realizados com sucesso.
 
-## 2. Testes de Produção Realizados
-Foi disparada uma requisição HTTP via console direto para o servidor de produção no Railway:
-`curl -X POST https://igeracao.com.br/carteira/api/notificacao/ ...`
+## 2. Configuração Final do MacroDroid
+Para garantir o funcionamento, a macro deve seguir estes parâmetros:
 
-**Resultado:** Sucesso (Código 200). O servidor processou, identificou a conta corretamente e inseriu a notificação "fake" no banco de dados. Isso **prova** que não há bloqueios de rede no Railway ou erros de código no Django.
+- **Gatilho:** Notificação Recebida.
+  - **Apps:** Bancos (Nubank, Inter, etc) e Google Wallet.
+  - **Filtro de Texto:** `PIX|Compra|recebido|transferência` (Regex).
+- **Ação:** Requisição HTTP (POST).
+  - **URL:** `https://igeracao.com.br/carteira/api/notificacao/` (Obrigatório a barra no final).
+  - **Tipo de Conteúdo:** `application/x-www-form-urlencoded`.
+  - **Parâmetros:**
+    - `texto` : `{not_title} - {not_ticker}` (ou `[not_title]` dependendo da versão).
+    - `app` : `{not_app_name}` (ou `[not_app_name]`).
+    - `user_token` : `SEU_TOKEN_COPIADO_DO_SITE` (Texto puro).
 
-## 3. Pendências / Próximos Passos (Onde paramos)
+## 3. Checklist de Manutenção (Xiaomi/HyperOS)
+Se o sistema parar de receber notificações, verifique:
+1. **Acesso a Notificações:** (Configurações > Acesso a Notificações). Se necessário, desative e ative o MacroDroid novamente.
+2. **Início Automático:** Deve estar **ATIVO** para o MacroDroid.
+3. **Economia de Bateria:** Deve estar em **"Nenhuma Restrição"**.
+4. **Log do Sistema:** No MacroDroid, verifique se aparece `HTTP response code: 200` nas novas entradas.
 
-O gargalo atual encontra-se exclusivamente no ambiente físico do celular (Xiaomi / MacroDroid). O sinal de disparo do celular não está conseguindo "sair" do aparelho em direção à nuvem.
-
-**Para a próxima sessão, devemos investigar os bloqueios do Android:**
-1. **Restrições da MIUI/HyperOS:** Garantir que o MacroDroid tenha permissão irrestrita de rodar em segundo plano e acessar dados móveis/wi-fi em background.
-2. **Revisão Visual do MacroDroid:** Verificar se as variáveis estão inseridas na aba de **"Parâmetros"** da Requisição HTTP (e se a aba Cabeçalhos está vazia).
-3. **Erros de Digitação Invisíveis:** Refazer a requisição no MacroDroid do zero para limpar possíveis espaços em branco invisíveis inseridos pelo teclado mobile na URL ou no nome do parâmetro (`user_token`).
-
-## 4. Configuração Padrão do MacroDroid (Resumo)
-- **Gatilho:** Notificações de Bancos selecionados (Nubank, Itaú, etc) com a Regex `PIX|Compra`.
-- **Ação:** Requisição HTTP.
-- **URL:** `https://igeracao.com.br/carteira/api/notificacao/`
-- **Método:** `POST`
-- **Tipo de Conteúdo:** `application/x-www-form-urlencoded`
-- **Parâmetros (Form Data):**
-  - `texto` : `[not_title] - [not_ticker]`
-  - `app` : `[not_app_name]`
-  - `user_token` : `TOKEN_COPIADO_DO_SITE` (Sem colchetes ou aspas).
+## 4. Testes realizados
+- [x] Teste via CURL (Servidor OK).
+- [x] Teste manual via MacroDroid (Conexão OK).
+- [x] Teste real via Gatilho de Notificação (Gatilho OK).

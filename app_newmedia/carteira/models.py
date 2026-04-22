@@ -79,15 +79,17 @@ class NotificacaoCompra(models.Model):
         """
         resultado = {
             'valor': None,
-            'estabelecimento': '',
+            'estabelecimento': 'Não identificado',
+            'instituicao': '',
             'data': None,
             'hora': None,
         }
 
-        # Extrair valor monetário (R$ 45,90 ou 45.90)
+        # 1. Extrair valor monetário
         match_valor = re.search(
-            r'[R$€$]?\s*([\d]{1,3}(?:[.\d]{3})*[,.]\d{2})',
-            texto_completo
+            r'(?:R\$|\$|€)?\s*([\d]{1,3}(?:[.\d]{3})*[,.]\d{2})',
+            texto_completo,
+            re.IGNORECASE
         )
         if match_valor:
             valor_str = match_valor.group(1).replace('.', '').replace(',', '.')
@@ -96,22 +98,48 @@ class NotificacaoCompra(models.Model):
             except ValueError:
                 pass
 
-        # Padrões comuns de notificação de compra
-        # "Compra de R$ 45,90 em Mercado Livre"
+        # 2. Extrair Estabelecimento ou Remetente
         match_estab = re.search(
-            r'(?:em|na|no|estabelecimento)\s+([A-ZÀ][\w\s&.\-]{2,50})',
-            texto_completo
+            r'(?:em|na|no|de|para|estabelecimento)\s+([A-ZÀ][\w\s&.\-]{2,50})',
+            texto_completo,
+            re.IGNORECASE
         )
         if match_estab:
             resultado['estabelecimento'] = match_estab.group(1).strip()
-
-        # Se não encontrou por "em", tenta extrair o nome mais relevante
-        if not resultado['estabelecimento']:
-            match_estab2 = re.search(
-                r'(?:(?:compra|pagamento|débito).*?)[A-ZÀ][A-ZÀ\w\s&.\-]{5,40}',
-                texto_completo
+        else:
+            match_fallback = re.search(
+                r'(?:compra|pix|pagamento|transferência).*?([A-ZÀ][\A-ZÀ\w\s&.\-]{3,40})',
+                texto_completo,
+                re.IGNORECASE
             )
-            if match_estab2:
-                resultado['estabelecimento'] = match_estab2.group(0).strip()
+            if match_fallback:
+                resultado['estabelecimento'] = match_fallback.group(1).strip()
+
+        # 3. Extrair Instituição Bancária (se estiver no texto)
+        match_banco = re.search(
+            r'(?:no|pelo|via)\s+(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Banco do Brasil)',
+            texto_completo,
+            re.IGNORECASE
+        )
+        if match_banco:
+            resultado['instituicao'] = match_banco.group(1).strip()
+
+        # 4. Extrair Data e Hora (se houver no texto, ex: 21/04 às 14:30)
+        match_data = re.search(r'(\d{2}/\d{2}(?:/\d{4})?)', texto_completo)
+        if match_data:
+            from datetime import datetime
+            try:
+                data_str = match_data.group(1)
+                if len(data_str) == 5: # dd/mm
+                    data_str += f"/{datetime.now().year}"
+                resultado['data'] = datetime.strptime(data_str, '%d/%m/%Y').date()
+            except: pass
+
+        match_hora = re.search(r'(\d{2}:\d{2}(?::\d{2})?)', texto_completo)
+        if match_hora:
+            from datetime import datetime
+            try:
+                resultado['hora'] = datetime.strptime(match_hora.group(1), '%H:%M').time()
+            except: pass
 
         return resultado

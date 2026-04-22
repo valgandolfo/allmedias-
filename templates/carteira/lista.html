@@ -29,26 +29,41 @@
 
 <!-- Lista -->
 {% for notif in notificacoes %}
-<div class="card card-custom mb-2">
+<div class="card card-custom mb-2 border-0 shadow-sm" style="background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent-color) !important;">
     <div class="card-body py-3 px-3">
         <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
-                <div class="fw-bold">{{ notif.estabelecimento|default:"Compra não identificada" }}</div>
-                <div class="text-muted small mt-1">
-                    {% if notif.app_origem %}<span class="badge bg-secondary me-1">{{ notif.app_origem }}</span>{% endif %}
-                    {{ notif.criado_em|date:"d/m/Y H:i" }}
+                <div class="d-flex align-items-center mb-1">
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-2">
+                        <i class="bi bi-bank"></i> {{ notif.app_origem|default:"Banco" }}
+                    </span>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3"></i> {{ notif.data_compra|date:"d/m/Y"|default:notif.criado_em|date:"d/m/Y" }} 
+                        às {{ notif.hora_compra|time:"H:i"|default:notif.criado_em|date:"H:i" }}
+                    </small>
                 </div>
+                
+                <div class="h5 mb-1 fw-bold text-white">{{ notif.estabelecimento|default:"Compra não identificada" }}</div>
+                
                 {% if notif.valor %}
-                <div class="text-success fw-bold mt-1">R$ {{ notif.valor|floatformat:2 }}</div>
+                <div class="h4 mb-0 text-success font-monospace fw-bold">R$ {{ notif.valor|floatformat:2 }}</div>
                 {% endif %}
             </div>
-        </div>
-        <details class="mt-2">
-            <summary class="text-muted small" style="cursor:pointer;">Ver notificação original</summary>
-            <div class="text-muted small mt-1 p-2 bg-dark rounded">
-                {{ notif.texto_completo }}
+            <div class="text-end">
+                 <button class="btn btn-link btn-sm text-muted p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#notif-{{ notif.id }}">
+                    <i class="bi bi-info-circle"></i> Detalhes
+                </button>
             </div>
-        </details>
+        </div>
+
+        <div class="collapse mt-3" id="notif-{{ notif.id }}">
+            <div class="card card-body bg-dark border-secondary p-2 small">
+                <div class="text-info fw-bold mb-1 small">Texto original capturado:</div>
+                <div class="text-muted italic" style="font-size: 0.85rem; line-height: 1.4;">
+                    "{{ notif.texto_completo }}"
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% empty %}
