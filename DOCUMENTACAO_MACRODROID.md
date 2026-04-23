@@ -10,19 +10,16 @@ Este documento registra a configuração final funcional da integração entre o
   - Estabelecimentos e remetentes de PIX (usando preposições "em", "no", "de", "para").
 - **Compatibilidade Xiaomi/MIUI:** Ajustes de permissões realizados com sucesso.
 
-## 2. Configuração Final do MacroDroid
-Para garantir o funcionamento, a macro deve seguir estes parâmetros:
+## 2. Configuração Final do MacroDroid (Recomendado)
+Para evitar problemas com o corpo (body) da requisição, configure a ação **"Requisição HTTP"** usando a URL completa com parâmetros:
 
-- **Gatilho:** Notificação Recebida.
-  - **Apps:** Bancos (Nubank, Inter, etc) e Google Wallet.
-  - **Filtro de Texto:** `PIX|Compra|recebido|transferência` (Regex).
-- **Ação:** Requisição HTTP (POST).
-  - **URL:** `https://igeracao.com.br/carteira/api/notificacao/` (Obrigatório a barra no final).
-  - **Tipo de Conteúdo:** `application/x-www-form-urlencoded`.
-  - **Parâmetros:**
-    - `texto` : `{not_title} - {not_ticker}` (ou `[not_title]` dependendo da versão).
-    - `app` : `{not_app_name}` (ou `[not_app_name]`).
-    - `user_token` : `SEU_TOKEN_COPIADO_DO_SITE` (Texto puro).
+- **Ação:** Requisição HTTP.
+- **Método:** POST ou GET (o sistema agora aceita ambos).
+- **URL:** `https://igeracao.com.br/carteira/api/notificacao/?texto=[not_title] - [not_ticker]&app=[not_app_name]&user_token=SEU_TOKEN_AQUI`
+- **Nota:** Substitua `SEU_TOKEN_AQUI` pelo seu token pessoal gerado no site.
+
+**Por que usar assim?** 
+Algumas versões do MacroDroid no Android/Xiaomi têm dificuldade em enviar o "Body" da requisição corretamente. Enviando os parâmetros direto na URL (Query String), a integração se torna 100% confiável.
 
 ## 3. Checklist de Manutenção (Xiaomi/HyperOS)
 Se o sistema parar de receber notificações, verifique:

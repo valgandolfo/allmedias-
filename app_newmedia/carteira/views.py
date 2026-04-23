@@ -16,97 +16,70 @@ from .models import NotificacaoCompra
 
 
 @csrf_exempt
-@require_POST
 def api_receber_notificacao(request):
     """
-    API que o MacroDroid envia para gravar a notificação.
-    Recebe JSON com: texto, app_origem, timestamp, e dados do usuário.
+    API ultra-resiliente para o MacroDroid.
     """
     try:
-        print(f"--- NOVA REQUISICAO MACRODROID ---")
-        print(f"Content-Type: {request.content_type}")
+        # 1. Coleta de dados (GET + POST + JSON)
+        data = {}
+        data.update(request.GET.dict())
+        data.update(request.POST.dict())
         
-        # MacroDroid pode enviar via POST form ou JSON
-        if request.content_type == 'application/json':
-            print(f"Body Bruto: {request.body}")
-            data = json.loads(request.body)
-        else:
-            print(f"POST Data: {request.POST}")
-            print(f"GET Data: {request.GET}")
-            # Se enviou na aba 2 (Query Parameters), cai no GET. Se mandou na aba 3 (Body), cai no POST.
-            data = request.POST if request.POST else request.GET
+        if request.content_type == 'application/json' and request.body:
+            try:
+                json_data = json.loads(request.body)
+                if isinstance(json_data, dict):
+                    data.update(json_data)
+            except: pass
 
-        # Captura o texto da notificação (tentando vários nomes de campos possíveis)
-        texto_recebido = data.get('texto') or data.get('notification_text') or data.get('message') or ''
-        app_origem = data.get('app') or data.get('notification_application') or data.get('package') or ''
-        
-        # Se veio vazio mas tem body bruto (em alguns casos de erro de formatação)
-        if not texto_recebido and request.body:
-             try:
-                 # Tenta ler como string se não foi parseado antes
-                 raw_text = request.body.decode('utf-8')
-                 if 'texto=' in raw_text:
-                     from urllib.parse import parse_qs
-                     texto_recebido = parse_qs(raw_text).get('texto', [''])[0]
-             except: pass
+        # 2. Busca de Texto e Token (mesmo se vierem bagunçados)
+        texto = data.get('texto') or data.get('notification_text') or ''
+        token = data.get('user_token') or data.get('token') or ''
 
-        print(f"Texto Recebido: '{texto_recebido}' | App: '{app_origem}'")
+        # Fallback: Procura em todos os campos se estiverem vazios
+        if not texto or not token:
+            for k, v in data.items():
+                val = str(k) if not v else str(v)
+                val_strip = val.strip()
+                # Se parece um token (32 chars)
+                if not token and len(val_strip) == 32: 
+                    token = val_strip
+                # Se parece uma notificação (contém cifrão ou termos financeiros)
+                if not texto and any(x in val.lower() for x in ['r$', 'compra', 'pix', 'pagamento', 'recebido', 'transferencia']):
+                    texto = val
 
-        if not texto_recebido:
-            print("Erro: Texto vazio")
-            return JsonResponse({
-                'sucesso': False,
-                'erro': 'Texto da notificação é obrigatório'
-            }, status=400)
+        if not texto:
+            return JsonResponse({'erro': 'Texto da notificacao nao encontrado na requisicao'}, status=400)
 
-        # Identificar usuário via token/chave
-        user_token = data.get('user_token', '')
-        print(f"Token Recebido: '{user_token}'")
-        
+        # 3. Identificar usuário
         from django.contrib.auth.models import User
         try:
-            usuario = User.objects.get(profile__api_token=user_token)
-            print(f"Usuário identificado: {usuario.username}")
-        except (User.DoesNotExist, Exception) as e:
-            print(f"Erro ao identificar usuário: {e}")
-            # Fallback: tenta por email no header ou token
-            return JsonResponse({
-                'sucesso': False,
-                'erro': 'Usuário não identificado. Verifique o user_token.'
-            }, status=401)
+            usuario = User.objects.get(profile__api_token=token)
+        except:
+            return JsonResponse({'erro': f'Token invalido ou usuario nao encontrado: {token}'}, status=401)
 
-        # Parse do texto_recebido
-        dados_parse = NotificacaoCompra.parse_notificacao(texto_recebido)
-
-        # Salva a notificação
+        # 4. Processar e Salvar
+        dados_parse = NotificacaoCompra.parse_notificacao(texto)
+        
         notificacao = NotificacaoCompra.objects.create(
             usuario=usuario,
-            texto_completo=texto_recebido,
-            app_origem=app_origem or dados_parse.get('instituicao', 'Desconhecido'),
-            valor=dados_parse['valor'],
-            estabelecimento=dados_parse['estabelecimento'],
-            data_compra=dados_parse['data'] or datetime.now().date(),
-            hora_compra=dados_parse['hora'] or datetime.now().time(),
+            texto_completo=texto,
+            app_origem=data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'Banco',
+            valor=dados_parse.get('valor'),
+            estabelecimento=dados_parse.get('estabelecimento', 'Desconhecido'),
+            data_compra=dados_parse.get('data') or datetime.now().date(),
+            hora_compra=dados_parse.get('hora') or datetime.now().time(),
         )
 
         return JsonResponse({
-            'sucesso': True,
+            'sucesso': True, 
             'id': notificacao.pk,
-            'valor': str(notificacao.valor) if notificacao.valor else None,
-            'estabelecimento': notificacao.estabelecimento,
-            'data': notificacao.data_compra.strftime('%d/%m/%Y') if notificacao.data_compra else None,
+            'info': f'Compra de R$ {notificacao.valor} em {notificacao.estabelecimento} salva.'
         })
 
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'sucesso': False,
-            'erro': 'JSON inválido'
-        }, status=400)
     except Exception as e:
-        return JsonResponse({
-            'sucesso': False,
-            'erro': str(e)
-        }, status=500)
+        return JsonResponse({'erro': f'Erro Interno: {str(e)}'}, status=500)
 
 
 @login_required

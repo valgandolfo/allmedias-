@@ -108,7 +108,7 @@ class NotificacaoCompra(models.Model):
             resultado['estabelecimento'] = match_estab.group(1).strip()
         else:
             match_fallback = re.search(
-                r'(?:compra|pix|pagamento|transferência).*?([A-ZÀ][\A-ZÀ\w\s&.\-]{3,40})',
+                r'(?:compra|pix|pagamento|transferência).*?([A-ZÀ][A-ZÀ\w\s&.\-]{3,40})',
                 texto_completo,
                 re.IGNORECASE
             )

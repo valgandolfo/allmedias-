@@ -85,47 +85,41 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="small text-muted mb-3">Para enviar as notificações de compras do seu celular para esta carteira, use a ação "Requisição HTTP" no MacroDroid com as configurações abaixo:</p>
+                <p class="small text-muted mb-3">Para enviar as notificações de compras para esta carteira, use a ação <b>"Requisição HTTP"</b> no MacroDroid.</p>
                 
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">Método HTTP</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control bg-dark text-white border-secondary" value="POST" readonly>
-                    </div>
+                <div class="alert alert-info py-2 mb-3" style="font-size: 0.8rem; background: rgba(13, 202, 240, 0.1); border: 1px solid rgba(13, 202, 240, 0.2);">
+                    <i class="bi bi-info-circle me-1"></i> <b>Dica:</b> A forma mais simples é copiar a URL completa abaixo e colar no campo "URL" do MacroDroid.
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">URL da API</label>
+                    <label class="form-label small fw-bold text-info">URL Completa (Recomendado)</label>
                     <div class="input-group input-group-sm">
-                        <input type="text" class="form-control bg-dark text-white border-secondary" id="api_url" value="https://{{ request.get_host }}/carteira/api/notificacao/" readonly>
-                        <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url')"><i class="bi bi-clipboard"></i></button>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="api_url_full" rows="3" readonly style="font-size: 0.75rem;">https://{{ request.get_host }}/carteira/api/notificacao/?texto=[not_title] - [not_ticker]&app=[not_app_name]&user_token={{ user.profile.api_token }}</textarea>
+                        <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url_full')"><i class="bi bi-clipboard"></i></button>
                     </div>
                 </div>
 
+                <hr class="border-secondary opacity-25">
+
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">Tipo de Conteúdo (Content-Type)</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control bg-dark text-white border-secondary" value="application/x-www-form-urlencoded" readonly>
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">Parâmetros (Form Data)</label>
-                    <ul class="list-group list-group-flush bg-transparent small font-monospace">
+                    <label class="form-label small fw-bold text-info">Configurações Avançadas (Manual)</label>
+                    <ul class="list-group list-group-flush bg-transparent small">
                         <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
-                            <span class="text-warning">texto</span> : <span class="text-light">[not_title] - [not_ticker]</span>
+                            <span class="text-muted">Método:</span> <span class="badge bg-secondary">POST</span> ou <span class="badge bg-secondary">GET</span>
                         </li>
                         <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
-                            <span class="text-warning">app</span> : <span class="text-light">[not_app_name]</span>
-                        </li>
-                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-2 border-bottom-0">
-                            <span class="text-warning">user_token</span> : 
-                            <div class="input-group input-group-sm mt-1">
-                                <input type="text" class="form-control bg-dark text-white border-secondary" id="api_token" value="{{ user.profile.api_token }}" readonly>
-                                <button class="btn btn-outline-secondary" onclick="copiarTexto('api_token')"><i class="bi bi-clipboard"></i> Copiar Token</button>
-                            </div>
+                            <span class="text-muted">URL base:</span> <code class="text-info">https://{{ request.get_host }}/carteira/api/notificacao/</code>
                         </li>
                     </ul>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label small fw-bold text-info">Parâmetros (Query ou Body)</label>
+                    <div class="p-2 bg-dark rounded border border-secondary small font-monospace">
+                        <div class="mb-1"><span class="text-warning">texto</span>: [not_title] - [not_ticker]</div>
+                        <div class="mb-1"><span class="text-warning">app</span>: [not_app_name]</div>
+                        <div><span class="text-warning">user_token</span>: <span class="text-info">{{ user.profile.api_token }}</span></div>
+                    </div>
                 </div>
             </div>
         </div>
