@@ -15,7 +15,7 @@ Para evitar problemas com o corpo (body) da requisição, configure a ação **"
 
 - **Ação:** Requisição HTTP.
 - **Método:** POST ou GET (o sistema agora aceita ambos).
-- **URL:** `https://igeracao.com.br/carteira/api/notificacao/?texto=[not_title] - [not_ticker]&app=[not_app_name]&user_token=SEU_TOKEN_AQUI`
+- **URL:** `https://igeracao.com.br/carteira/api/notificacao/?texto=[not_title] - [notification]&app=[not_app_name]&user_token=SEU_TOKEN_AQUI`
 - **Nota:** Substitua `SEU_TOKEN_AQUI` pelo seu token pessoal gerado no site.
 
 **Por que usar assim?** 

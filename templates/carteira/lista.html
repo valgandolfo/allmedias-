@@ -94,7 +94,7 @@
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-info">URL Completa (Recomendado)</label>
                     <div class="input-group input-group-sm">
-                        <textarea class="form-control bg-dark text-white border-secondary" id="api_url_full" rows="3" readonly style="font-size: 0.75rem;">https://{{ request.get_host }}/carteira/api/notificacao/?texto=[not_title] - [not_ticker]&app=[not_app_name]&user_token={{ user.profile.api_token }}</textarea>
+                        <textarea class="form-control bg-dark text-white border-secondary" id="api_url_full" rows="3" readonly style="font-size: 0.75rem;">https://{{ request.get_host }}/carteira/api/notificacao/?texto=[not_title] - [notification]&app=[not_app_name]&user_token={{ user.profile.api_token }}</textarea>
                         <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url_full')"><i class="bi bi-clipboard"></i></button>
                     </div>
                 </div>
