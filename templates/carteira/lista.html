@@ -1,141 +1,166 @@
-{% extends "base.html" %}
+{% extends 'crud/lista_base.html' %}
 
-{% block title %}Carteira - Compras{% endblock %}
+{% block crud_title %}Vallet{% endblock %}
+{% block crud_icon %}💰{% endblock %}
+{% block crud_title_display %}Vallet{% endblock %}
+{% block crud_subtitle %}Sua carteira inteligente de notificações{% endblock %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h4 class="mb-0">💳 Carteira</h4>
-        <small class="text-muted">Compras capturadas por notificações</small>
+{% block child_css %}
+<style>
+    .notif-content { flex: 1; min-width: 0; }
+    .notif-title { 
+        font-weight: bold; 
+        font-size: 16px; 
+        color: var(--text-main);
+        margin-bottom: 2px;
+    }
+    .notif-meta { font-size: 12px; color: #999; }
+    
+    .bank-icon { 
+        font-size: 20px; 
+        margin-right: 15px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        width: 45px; 
+        height: 45px; 
+        background: rgba(255,255,255,0.05); 
+        border-radius: 12px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .summary-card {
+        background: rgba(255,255,255,0.03); 
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    /* Layout Grid adjustments */
+    .layout-grid .notif-item {
+        text-align: left;
+    }
+    .layout-grid .bank-icon {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block filters %}
+<div class="d-flex justify-content-between align-items-center w-100 mb-2">
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo="" onclick="filtrarTipo('')">Todos</button>
+        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 filter-btn" data-tipo="PIX" onclick="filtrarTipo('PIX')">PIX</button>
+        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="COMPRA" onclick="filtrarTipo('COMPRA')">Compra</button>
     </div>
-    <button class="btn btn-sm btn-outline-info rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalMacrodroid">
-        <i class="bi bi-phone-vibrate"></i> Configurar MacroDroid
+    <button class="btn btn-sm btn-outline-info rounded-pill" data-bs-toggle="modal" data-bs-target="#modalMacrodroid">
+        <i class="bi bi-gear"></i>
     </button>
 </div>
 
-<!-- Resumo -->
-<div class="card card-custom mb-3">
-    <div class="card-body d-flex justify-content-between align-items-center py-3">
-        <div>
-            <div class="text-muted small">Total gasto</div>
-            <div class="h4 mb-0 text-success">R$ {{ total_gasto|floatformat:2 }}</div>
+<!-- Totais Section -->
+<div class="summary-card p-3 text-center">
+    <div class="row align-items-center">
+        <div class="col-4">
+            <div class="text-muted small mb-1">Geral</div>
+            <div class="fw-bold text-success" style="font-size: 0.9rem;">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></div>
         </div>
-        <div class="text-end">
-            <div class="text-muted small">Registros</div>
-            <div class="h5 mb-0">{{ notificacoes.count }}</div>
+        <div class="col-4 border-start border-end border-secondary border-opacity-25">
+            <div class="text-muted small mb-1">PIX</div>
+            <div class="fw-bold text-info" style="font-size: 0.9rem;">R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></div>
+        </div>
+        <div class="col-4">
+            <div class="text-muted small mb-1">Compra</div>
+            <div class="fw-bold text-warning" style="font-size: 0.9rem;">R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Lista -->
-{% for notif in notificacoes %}
-<div class="card card-custom mb-2 border-0 shadow-sm" style="background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent-color) !important;">
-    <div class="card-body py-3 px-3">
-        <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-                <div class="d-flex align-items-center mb-1">
-                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-2">
-                        <i class="bi bi-bank"></i> {{ notif.app_origem|default:"Banco" }}
-                    </span>
-                    {% if notif.tipo_transacao %}
-                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 me-2">
-                        {{ notif.tipo_transacao }}
-                    </span>
-                    {% endif %}
+{% block list_content %}
+    {% for notif in notificacoes %}
+    <div class="crud-item notif-item" 
+         data-tipo="{{ notif.tipo_transacao }}" 
+         data-titulo="{{ notif.estabelecimento|lower }} {{ notif.app_origem|lower }}"
+         data-valor="{{ notif.valor|default:0 }}"
+         data-bs-toggle="collapse" 
+         data-bs-target="#notif-{{ notif.id }}">
+        
+        <div class="bank-icon">
+            {% if notif.tipo_transacao == 'PIX' %}
+            <i class="bi bi-phone-flip text-info"></i>
+            {% else %}
+            <i class="bi bi-credit-card text-warning"></i>
+            {% endif %}
+        </div>
+
+        <div class="notif-content">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="notif-title">{{ notif.estabelecimento|default:"Desconhecido" }}</span>
+                <span class="fw-bold {% if notif.tipo_transacao == 'PIX' %}text-info{% else %}text-success{% endif %}">
+                    R$ {{ notif.valor|floatformat:2 }}
+                </span>
+            </div>
+            <div class="notif-meta d-flex justify-content-between">
+                <span>
+                    <i class="bi bi-bank small"></i> {{ notif.app_origem|default:"Banco" }}
                     {% if notif.cartao_final %}
-                    <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25 me-2">
-                        <i class="bi bi-credit-card"></i> **** {{ notif.cartao_final }}
-                    </span>
+                    • <i class="bi bi-credit-card-2-back small"></i> {{ notif.cartao_final }}
                     {% endif %}
-                    <small class="text-muted">
-                        <i class="bi bi-calendar3"></i> {{ notif.data_compra|date:"d/m/Y"|default:notif.criado_em|date:"d/m/Y" }} 
-                        às {{ notif.hora_compra|time:"H:i"|default:notif.criado_em|date:"H:i" }}
-                    </small>
-                </div>
-                
-                <div class="h5 mb-1 fw-bold text-white">{{ notif.estabelecimento|default:"Compra não identificada" }}</div>
-                
-                {% if notif.valor %}
-                <div class="h4 mb-0 text-success font-monospace fw-bold">R$ {{ notif.valor|floatformat:2 }}</div>
-                {% endif %}
-            </div>
-            <div class="text-end">
-                 <button class="btn btn-link btn-sm text-muted p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#notif-{{ notif.id }}">
-                    <i class="bi bi-info-circle"></i> Detalhes
-                </button>
-            </div>
-        </div>
-
-        <div class="collapse mt-3" id="notif-{{ notif.id }}">
-            <div class="card card-body bg-dark border-secondary p-2 small">
-                <div class="text-info fw-bold mb-1 small">Texto original capturado:</div>
-                <div class="text-muted italic" style="font-size: 0.85rem; line-height: 1.4;">
-                    "{{ notif.texto_completo }}"
-                </div>
+                </span>
+                <span>{{ notif.data_compra|date:"d/m" }} • {{ notif.hora_compra|time:"H:i" }}</span>
             </div>
         </div>
     </div>
-</div>
-{% empty %}
-<div class="card card-custom">
-    <div class="card-body text-center py-5 text-muted">
-        <i class="bi bi-bell-slash display-4 d-block mb-3"></i>
-        <p class="mb-0">Nenhuma compra capturada ainda.</p>
-        <small>Configure o MacroDroid para enviar notificações.</small>
+    
+    <!-- Detalhes Collapse -->
+    <div class="collapse" id="notif-{{ notif.id }}" style="background: transparent;">
+        <div class="p-3 bg-dark bg-opacity-25 border-top border-secondary border-opacity-10 small">
+            <div class="text-info fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">TEXTO CAPTURADO</div>
+            <div class="text-muted italic" style="line-height: 1.4;">"{{ notif.texto_completo }}"</div>
+        </div>
     </div>
-</div>
-{% endfor %}
+    {% empty %}
+    <div class="p-5 text-center text-muted">
+        <i class="bi bi-wallet2 display-4 opacity-25"></i>
+        <p class="mt-2">Nenhuma atividade encontrada.</p>
+    </div>
+    {% endfor %}
+{% endblock %}
 
-<!-- Modal MacroDroid -->
-<div class="modal fade" id="modalMacrodroid" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content card-custom text-white border-0" style="background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);">
-            <div class="modal-header border-bottom border-secondary">
-                <h5 class="modal-title"><i class="bi bi-robot text-info"></i> Integração MacroDroid</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="small text-muted mb-3">Para enviar as notificações de compras para esta carteira, use a ação <b>"Requisição HTTP"</b> no MacroDroid.</p>
-                
-                <div class="alert alert-info py-2 mb-3" style="font-size: 0.8rem; background: rgba(13, 202, 240, 0.1); border: 1px solid rgba(13, 202, 240, 0.2);">
-                    <i class="bi bi-info-circle me-1"></i> <b>Dica:</b> A forma mais simples é copiar a URL completa abaixo e colar no campo "URL" do MacroDroid.
+{% block fab %}{% endblock %} <!-- Somente leitura -->
+
+{% block modal %}
+    <!-- Modal MacroDroid -->
+    <div class="modal fade" id="modalMacrodroid" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-custom text-white border-0" style="background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title"><i class="bi bi-robot text-info"></i> Integração MacroDroid</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">URL Completa (Recomendado)</label>
-                    <div class="input-group input-group-sm">
-                        <textarea class="form-control bg-dark text-white border-secondary" id="api_url_full" rows="3" readonly style="font-size: 0.75rem;">https://{{ request.get_host }}/carteira/api/notificacao/?texto=[not_title] - [notification]&app=[not_app_name]&user_token={{ user.profile.api_token }}</textarea>
-                        <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url_full')"><i class="bi bi-clipboard"></i></button>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">Use a ação <b>"Requisição HTTP"</b> no MacroDroid para enviar as notificações.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-info">URL de Integração</label>
+                        <div class="input-group input-group-sm">
+                            <textarea class="form-control bg-dark text-white border-secondary" id="api_url_full" rows="3" readonly style="font-size: 0.75rem;">https://{{ request.get_host }}/carteira/api/notificacao/?texto=[not_title] - [notification]&app=[not_app_name]&user_token={{ user.profile.api_token }}</textarea>
+                            <button class="btn btn-outline-secondary" onclick="copiarTexto('api_url_full')"><i class="bi bi-clipboard"></i></button>
+                        </div>
                     </div>
-                </div>
 
-                <hr class="border-secondary opacity-25">
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-info">Configurações Avançadas (Manual)</label>
-                    <ul class="list-group list-group-flush bg-transparent small">
-                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
-                            <span class="text-muted">Método:</span> <span class="badge bg-secondary">POST</span> ou <span class="badge bg-secondary">GET</span>
-                        </li>
-                        <li class="list-group-item bg-transparent text-white border-secondary px-0 py-1">
-                            <span class="text-muted">URL base:</span> <code class="text-info">https://{{ request.get_host }}/carteira/api/notificacao/</code>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="mb-0">
-                    <label class="form-label small fw-bold text-info">Parâmetros (Query ou Body)</label>
                     <div class="p-2 bg-dark rounded border border-secondary small font-monospace">
-                        <div class="mb-1"><span class="text-warning">texto</span>: [not_title] - [not_ticker]</div>
-                        <div class="mb-1"><span class="text-warning">app</span>: [not_app_name]</div>
-                        <div><span class="text-warning">user_token</span>: <span class="text-info">{{ user.profile.api_token }}</span></div>
+                        <div class="mb-1"><span class="text-warning">user_token</span>: <span class="text-info">{{ user.profile.api_token }}</span></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
+{% block child_js %}
 <script>
 function copiarTexto(elementId) {
     var copyText = document.getElementById(elementId);
@@ -145,6 +170,51 @@ function copiarTexto(elementId) {
         alert("Copiado para a área de transferência!");
     });
 }
-</script>
 
+function filtrarItens() {
+    const termo = document.getElementById('searchInput').value.toLowerCase();
+    const btnAtivo = document.querySelector('.filter-btn.active');
+    const tipo = btnAtivo ? btnAtivo.getAttribute('data-tipo') : '';
+    
+    let totalGeral = 0;
+    let totalPix = 0;
+    let totalCompra = 0;
+
+    document.querySelectorAll('.crud-item').forEach(item => {
+        const titulo = item.getAttribute('data-titulo');
+        const itemTipo = item.getAttribute('data-tipo');
+        const valor = parseFloat(item.getAttribute('data-valor')) || 0;
+        
+        const matchBusca = titulo.includes(termo);
+        const matchTipo = (tipo === '' || itemTipo === tipo);
+        
+        if (matchBusca && matchTipo) {
+            item.style.display = 'flex';
+            totalGeral += valor;
+            if (itemTipo === 'PIX') totalPix += valor;
+            if (itemTipo === 'COMPRA') totalCompra += valor;
+        } else {
+            item.style.display = 'none';
+            // Fechar collapse se estiver aberto e escondido
+            const targetId = item.getAttribute('data-bs-target');
+            const collapseEl = document.querySelector(targetId);
+            if (collapseEl && collapseEl.classList.contains('show')) {
+                bootstrap.Collapse.getInstance(collapseEl).hide();
+            }
+        }
+    });
+
+    // Atualizar totalizadores na tela
+    document.getElementById('total-geral').innerText = totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('total-pix').innerText = totalPix.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('total-compra').innerText = totalCompra.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function filtrarTipo(tipo) {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tipo') === tipo);
+    });
+    filtrarItens();
+}
+</script>
 {% endblock %}

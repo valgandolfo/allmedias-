@@ -112,13 +112,34 @@ def carteira_lista(request):
         usuario=request.user
     ).order_by('-criado_em')
 
-    total_gasto = notificacoes.aggregate(
-        total=models.Sum('valor')
-    )['total'] or 0
+    # Filtros e Busca
+    search_query = request.GET.get('q', '')
+    tipo_filtro = request.GET.get('tipo', '')
+
+    if search_query:
+        notificacoes = notificacoes.filter(
+            models.Q(estabelecimento__icontains=search_query) |
+            models.Q(texto_completo__icontains=search_query)
+        )
+
+    if tipo_filtro:
+        notificacoes = notificacoes.filter(tipo_transacao=tipo_filtro)
+
+    # Totais
+    total_geral = notificacoes.aggregate(total=models.Sum('valor'))['total'] or 0
+    
+    # Subtotais (baseados na lista filtrada ou geral?)
+    # O usuário pediu "total geral: pix compras". Geralmente isso se refere à base atual filtrada.
+    total_pix = notificacoes.filter(tipo_transacao='PIX').aggregate(total=models.Sum('valor'))['total'] or 0
+    total_compra = notificacoes.filter(tipo_transacao='COMPRA').aggregate(total=models.Sum('valor'))['total'] or 0
 
     return render(request, 'carteira/lista.html', {
         'notificacoes': notificacoes,
-        'total_gasto': total_gasto,
+        'total_geral': total_geral,
+        'total_pix': total_pix,
+        'total_compra': total_compra,
+        'search_query': search_query,
+        'tipo_filtro': tipo_filtro,
     })
 
 
