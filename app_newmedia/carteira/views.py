@@ -2,6 +2,7 @@
 Views do app Carteira - API para MacroDroid e página de listagem
 """
 import json
+import logging
 from datetime import datetime
 from decimal import Decimal
 
@@ -13,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
 from .models import NotificacaoCompra
+
+logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
@@ -31,7 +34,10 @@ def api_receber_notificacao(request):
                 json_data = json.loads(request.body)
                 if isinstance(json_data, dict):
                     data.update(json_data)
-            except: pass
+            except Exception as e:
+                logger.warning(f"Erro ao parsear JSON: {e}")
+
+        logger.info(f"API Notificacao recebida: {data}")
 
         # 2. Busca de Texto e Token (mesmo se vierem bagunçados)
         texto = data.get('texto') or data.get('notification_text') or ''
@@ -50,13 +56,15 @@ def api_receber_notificacao(request):
                     texto = val
 
         if not texto:
+            logger.warning("API Notificacao: Texto nao encontrado")
             return JsonResponse({'erro': 'Texto da notificacao nao encontrado na requisicao'}, status=400)
 
         # 3. Identificar usuário
         from django.contrib.auth.models import User
         try:
             usuario = User.objects.get(profile__api_token=token)
-        except:
+        except Exception as e:
+            logger.error(f"API Notificacao: Token invalido ou usuario nao encontrado. Token: {token}. Erro: {e}")
             return JsonResponse({'erro': f'Token invalido ou usuario nao encontrado: {token}'}, status=401)
 
         # 4. Processar e Salvar
@@ -81,6 +89,7 @@ def api_receber_notificacao(request):
         })
 
     except Exception as e:
+        logger.exception("Erro interno na API de Notificacao")
         return JsonResponse({'erro': f'Erro Interno: {str(e)}'}, status=500)
 
 
