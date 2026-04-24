@@ -115,7 +115,7 @@ class NotificacaoCompra(models.Model):
         # 2. Identificar Tipo de Transação (PIX ou COMPRA)
         if re.search(r'pix', texto_completo, re.IGNORECASE):
             resultado['tipo_transacao'] = 'PIX'
-        elif re.search(r'compra', texto_completo, re.IGNORECASE):
+        else:
             resultado['tipo_transacao'] = 'COMPRA'
 
         # 3. Extrair Final do Cartão
