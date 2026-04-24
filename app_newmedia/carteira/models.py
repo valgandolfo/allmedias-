@@ -68,6 +68,13 @@ class NotificacaoCompra(models.Model):
         verbose_name='Final do Cartão'
     )
 
+    origem = models.CharField(
+        max_length=20,
+        choices=[('NOTIFICACAO', 'Notificação'), ('EMAIL', 'E-mail')],
+        default='NOTIFICACAO',
+        verbose_name='Origem dos dados'
+    )
+
     # Metadados
     criado_em = models.DateTimeField(
         auto_now_add=True,
@@ -185,5 +192,28 @@ class NotificacaoCompra(models.Model):
             try:
                 resultado['hora'] = datetime.strptime(match_hora.group(1), '%H:%M').time()
             except: pass
+        return resultado
 
+    @staticmethod
+    def parse_email(subject, body_text):
+        """
+        Parser especializado para corpos de e-mail (geralmente mais longos que notificações).
+        Tenta extrair os dados usando a lógica de texto, mas com limpeza adicional.
+        """
+        # Combina assunto e corpo para busca
+        texto_para_busca = f"{subject}\n{body_text}"
+        
+        # Limpeza básica de excesso de espaços e quebras de linha
+        texto_para_busca = re.sub(r'\s+', ' ', texto_para_busca)
+        
+        # Chama o parser base (que já melhoramos para ser robusto)
+        resultado = NotificacaoCompra.parse_notificacao(texto_para_busca)
+        
+        # Ajustes específicos para e-mail se necessário
+        # Ex: Se o assunto contiver o nome do banco
+        if not resultado['instituicao']:
+            match_banco = re.search(r'(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Mercado Pago)', subject, re.IGNORECASE)
+            if match_banco:
+                resultado['instituicao'] = match_banco.group(1).upper()
+                
         return resultado

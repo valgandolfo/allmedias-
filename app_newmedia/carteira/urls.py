@@ -8,6 +8,6 @@ urlpatterns = [
     # Página de listagem
     path('', views.carteira_lista, name='carteira_lista'),
 
-    # API para MacroDroid
-    path('api/notificacao/', views.api_receber_notificacao, name='carteira_api_notificacao'),
+    # API para E-mail (SendGrid Inbound)
+    path('api/email/', views.api_receber_email, name='carteira_api_email'),
 ]

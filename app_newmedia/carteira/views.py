@@ -106,6 +106,71 @@ def api_receber_notificacao(request):
         return JsonResponse({'erro': f'Erro Interno: {str(e)}'}, status=500)
 
 
+@csrf_exempt
+def api_receber_email(request):
+    """
+    Endpoint para o SendGrid Inbound Parse.
+    Recebe e-mails de bancos e extrai os dados.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Metodo nao permitido'}, status=405)
+
+    try:
+        # SendGrid envia como multipart/form-data
+        data = request.POST.dict()
+        subject = data.get('subject', '')
+        texto_corpo = data.get('text', '') or data.get('html', '')
+        destinatario = data.get('to', '')
+
+        logger.info(f"Email recebido para: {destinatario} | Assunto: {subject}")
+
+        # 1. Identificar usuário pelo destinatário (ex: token@allmedias.com.br)
+        # Tenta extrair o token do endereço de e-mail
+        token = ''
+        match_token = re.search(r'([a-f0-9]{32})', destinatario.lower())
+        if match_token:
+            token = match_token.group(1)
+        
+        if not token:
+            # Fallback: tentar no campo 'from' ou no assunto se o usuário encaminhou manualmente
+            # Mas o ideal é o Inbound Parse enviar direto para um endereço com token
+            logger.warning(f"API Email: Token nao encontrado no destinatario: {destinatario}")
+            return JsonResponse({'erro': 'Destinatario invalido ou sem token'}, status=400)
+
+        from django.contrib.auth.models import User
+        try:
+            usuario = User.objects.get(profile__api_token=token)
+        except Exception as e:
+            logger.error(f"API Email: Token {token} nao encontrado. Erro: {e}")
+            return JsonResponse({'erro': 'Usuario nao encontrado'}, status=401)
+
+        # 2. Processar E-mail
+        dados_parse = NotificacaoCompra.parse_email(subject, texto_corpo)
+        
+        # 3. Salvar
+        notificacao = NotificacaoCompra.objects.create(
+            usuario=usuario,
+            texto_completo=f"E-MAIL: {subject}\n\n{texto_corpo}"[:5000], # Limita tamanho
+            app_origem=dados_parse.get('instituicao') or 'E-MAIL BANCO',
+            valor=dados_parse.get('valor'),
+            estabelecimento=str(dados_parse.get('estabelecimento', 'DESCONHECIDO')).upper(),
+            data_compra=dados_parse.get('data') or datetime.now().date(),
+            hora_compra=dados_parse.get('hora') or datetime.now().time(),
+            tipo_transacao=str(dados_parse.get('tipo_transacao', 'COMPRA')).upper(),
+            origem='EMAIL'
+        )
+
+        return JsonResponse({
+            'sucesso': True,
+            'id': notificacao.pk,
+            'info': f'E-mail processado: R$ {notificacao.valor} em {notificacao.estabelecimento}'
+        })
+
+    except Exception as e:
+        logger.exception("Erro ao processar e-mail inbound")
+        return JsonResponse({'erro': str(e)}, status=500)
+
+
 @login_required
 def carteira_lista(request):
     """
