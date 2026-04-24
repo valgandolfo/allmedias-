@@ -70,17 +70,21 @@ def api_receber_notificacao(request):
         # 4. Processar e Salvar
         dados_parse = NotificacaoCompra.parse_notificacao(texto)
         
-        notificacao = NotificacaoCompra.objects.create(
-            usuario=usuario,
-            texto_completo=texto,
-            app_origem=data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'Banco',
-            valor=dados_parse.get('valor'),
-            estabelecimento=dados_parse.get('estabelecimento', 'Desconhecido'),
-            data_compra=dados_parse.get('data') or datetime.now().date(),
-            hora_compra=dados_parse.get('hora') or datetime.now().time(),
-            tipo_transacao=dados_parse.get('tipo_transacao', 'COMPRA'),
-            cartao_final=dados_parse.get('cartao_final', ''),
-        )
+        try:
+            notificacao = NotificacaoCompra.objects.create(
+                usuario=usuario,
+                texto_completo=texto,
+                app_origem=data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'Banco',
+                valor=dados_parse.get('valor'),
+                estabelecimento=dados_parse.get('estabelecimento', 'Desconhecido'),
+                data_compra=dados_parse.get('data') or datetime.now().date(),
+                hora_compra=dados_parse.get('hora') or datetime.now().time(),
+                tipo_transacao=dados_parse.get('tipo_transacao', 'COMPRA'),
+                cartao_final=dados_parse.get('cartao_final', ''),
+            )
+        except Exception as e:
+            logger.error(f"API Notificacao: Erro ao salvar no banco. Dados: {dados_parse}. Erro: {e}")
+            raise e
 
         return JsonResponse({
             'sucesso': True, 
