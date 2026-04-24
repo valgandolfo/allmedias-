@@ -1,8 +1,9 @@
 """
-Views do app Carteira - API para MacroDroid e página de listagem
+Views do app Carteira - API para E-mail (SendGrid) e página de listagem
 """
 import json
 import logging
+import re
 from datetime import datetime
 from decimal import Decimal
 
@@ -16,94 +17,6 @@ from django.views.decorators.http import require_POST, require_GET
 from .models import NotificacaoCompra
 
 logger = logging.getLogger(__name__)
-
-
-@csrf_exempt
-def api_receber_notificacao(request):
-    """
-    API ultra-resiliente para o MacroDroid.
-    """
-    try:
-        # 1. Coleta de dados (GET + POST + JSON)
-        data = {}
-        data.update(request.GET.dict())
-        data.update(request.POST.dict())
-        
-        if request.content_type == 'application/json' and request.body:
-            try:
-                json_data = json.loads(request.body)
-                if isinstance(json_data, dict):
-                    data.update(json_data)
-            except Exception as e:
-                logger.warning(f"Erro ao parsear JSON: {e}")
-
-        logger.info(f"API Notificacao recebida: {data}")
-
-        # 2. Busca de Texto e Token (mesmo se vierem bagunçados)
-        texto = data.get('texto') or data.get('notification_text') or ''
-        token = data.get('user_token') or data.get('token') or ''
-
-        # Fallback: Procura em todos os campos se estiverem vazios
-        if not texto or not token:
-            for k, v in data.items():
-                val = str(k) if not v else str(v)
-                val_strip = val.strip()
-                # Se parece um token (32 chars)
-                if not token and len(val_strip) == 32: 
-                    token = val_strip
-                # Se parece uma notificação (contém cifrão ou termos financeiros)
-                if not texto and any(x in val.lower() for x in ['r$', 'compra', 'pix', 'pagamento', 'recebido', 'transferencia']):
-                    texto = val
-
-        if not texto:
-            logger.warning("API Notificacao: Texto nao encontrado")
-            return JsonResponse({'erro': 'Texto da notificacao nao encontrado na requisicao'}, status=400)
-
-        # 2.5 Converter para maiúsculas para comparações e salvamento padronizado
-        texto = texto.upper()
-
-        # 3. Identificar usuário
-        from django.contrib.auth.models import User
-        try:
-            usuario = User.objects.get(profile__api_token=token)
-        except Exception as e:
-            logger.error(f"API Notificacao: Token invalido ou usuario nao encontrado. Token: {token}. Erro: {e}")
-            return JsonResponse({'erro': f'Token invalido ou usuario nao encontrado: {token}'}, status=401)
-
-        # 4. Processar e Salvar
-        dados_parse = NotificacaoCompra.parse_notificacao(texto)
-        
-        try:
-            notificacao = NotificacaoCompra.objects.create(
-                usuario=usuario,
-                texto_completo=texto,
-                app_origem=(data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'BANCO').upper(),
-                valor=dados_parse.get('valor'),
-                estabelecimento=str(dados_parse.get('estabelecimento', 'DESCONHECIDO')).upper(),
-                data_compra=dados_parse.get('data') or datetime.now().date(),
-                hora_compra=dados_parse.get('hora') or datetime.now().time(),
-                tipo_transacao=str(dados_parse.get('tipo_transacao', 'COMPRA')).upper(),
-                cartao_final=dados_parse.get('cartao_final', ''),
-            )
-        except Exception as e:
-            logger.error(f"API Notificacao: Erro ao salvar no banco. Dados: {dados_parse}. Erro: {e}")
-            raise e
-
-        return JsonResponse({
-            'sucesso': True, 
-            'id': notificacao.pk,
-            'info': f'Compra de R$ {notificacao.valor} em {notificacao.estabelecimento} salva.',
-            'texto_extraido': {
-                'valor': str(notificacao.valor),
-                'estabelecimento': notificacao.estabelecimento,
-                'tipo': notificacao.tipo_transacao
-            },
-            'debug_texto_recebido': texto
-        })
-
-    except Exception as e:
-        logger.exception("Erro interno na API de Notificacao")
-        return JsonResponse({'erro': f'Erro Interno: {str(e)}'}, status=500)
 
 
 @csrf_exempt
