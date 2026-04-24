@@ -153,7 +153,7 @@ class NotificacaoCompra(models.Model):
 
         # 5. Extrair Instituição Bancária (se estiver no texto)
         match_banco = re.search(
-            r'(?:no|pelo|via)\s+(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Banco do Brasil)',
+            r'(?:no|pelo|via)\s+(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Banco do Brasil|Mercado Pago)',
             texto_completo,
             re.IGNORECASE
         )
