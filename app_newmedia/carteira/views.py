@@ -70,6 +70,8 @@ def api_receber_notificacao(request):
             estabelecimento=dados_parse.get('estabelecimento', 'Desconhecido'),
             data_compra=dados_parse.get('data') or datetime.now().date(),
             hora_compra=dados_parse.get('hora') or datetime.now().time(),
+            tipo_transacao=dados_parse.get('tipo_transacao', 'COMPRA'),
+            cartao_final=dados_parse.get('cartao_final', ''),
         )
 
         return JsonResponse({

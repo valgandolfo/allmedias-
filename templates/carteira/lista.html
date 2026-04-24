@@ -37,6 +37,16 @@
                     <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-2">
                         <i class="bi bi-bank"></i> {{ notif.app_origem|default:"Banco" }}
                     </span>
+                    {% if notif.tipo_transacao %}
+                    <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 me-2">
+                        {{ notif.tipo_transacao }}
+                    </span>
+                    {% endif %}
+                    {% if notif.cartao_final %}
+                    <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25 me-2">
+                        <i class="bi bi-credit-card"></i> **** {{ notif.cartao_final }}
+                    </span>
+                    {% endif %}
                     <small class="text-muted">
                         <i class="bi bi-calendar3"></i> {{ notif.data_compra|date:"d/m/Y"|default:notif.criado_em|date:"d/m/Y" }} 
                         às {{ notif.hora_compra|time:"H:i"|default:notif.criado_em|date:"H:i" }}
