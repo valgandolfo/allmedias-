@@ -59,6 +59,9 @@ def api_receber_notificacao(request):
             logger.warning("API Notificacao: Texto nao encontrado")
             return JsonResponse({'erro': 'Texto da notificacao nao encontrado na requisicao'}, status=400)
 
+        # 2.5 Converter para maiúsculas para comparações e salvamento padronizado
+        texto = texto.upper()
+
         # 3. Identificar usuário
         from django.contrib.auth.models import User
         try:
@@ -74,12 +77,12 @@ def api_receber_notificacao(request):
             notificacao = NotificacaoCompra.objects.create(
                 usuario=usuario,
                 texto_completo=texto,
-                app_origem=data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'Banco',
+                app_origem=(data.get('app') or data.get('package') or dados_parse.get('instituicao') or 'BANCO').upper(),
                 valor=dados_parse.get('valor'),
-                estabelecimento=dados_parse.get('estabelecimento', 'Desconhecido'),
+                estabelecimento=str(dados_parse.get('estabelecimento', 'DESCONHECIDO')).upper(),
                 data_compra=dados_parse.get('data') or datetime.now().date(),
                 hora_compra=dados_parse.get('hora') or datetime.now().time(),
-                tipo_transacao=dados_parse.get('tipo_transacao', 'COMPRA'),
+                tipo_transacao=str(dados_parse.get('tipo_transacao', 'COMPRA')).upper(),
                 cartao_final=dados_parse.get('cartao_final', ''),
             )
         except Exception as e:
@@ -89,7 +92,13 @@ def api_receber_notificacao(request):
         return JsonResponse({
             'sucesso': True, 
             'id': notificacao.pk,
-            'info': f'Compra de R$ {notificacao.valor} em {notificacao.estabelecimento} salva.'
+            'info': f'Compra de R$ {notificacao.valor} em {notificacao.estabelecimento} salva.',
+            'texto_extraido': {
+                'valor': str(notificacao.valor),
+                'estabelecimento': notificacao.estabelecimento,
+                'tipo': notificacao.tipo_transacao
+            },
+            'debug_texto_recebido': texto
         })
 
     except Exception as e:

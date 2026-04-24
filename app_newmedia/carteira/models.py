@@ -91,74 +91,82 @@ class NotificacaoCompra(models.Model):
         """
         resultado = {
             'valor': None,
-            'estabelecimento': 'Não identificado',
+            'estabelecimento': 'NÃO IDENTIFICADO',
             'instituicao': '',
             'data': None,
             'hora': None,
-            'tipo_transacao': 'COMPRA',
+            'tipo_transacao': 'PIX' if re.search(r'pix', texto_completo, re.IGNORECASE) else 'COMPRA',
             'cartao_final': '',
         }
 
+        if not texto_completo:
+            return resultado
+
         # 1. Extrair valor monetário
+        # Suporta: R$ 1.234,56 | 1.234.56 | 1234,56 | 1234.56 | 1234 | 10,00
+        # Padrão: Digitos com . ou , seguidos de 2 dígitos OU apenas dígitos
         match_valor = re.search(
-            r'(?:R\$|\$|€)?\s*([\d]{1,3}(?:[.\d]{3})*[,.]\d{2})',
+            r'(?:R\$|\$|€)?\s*(\d{1,3}(?:[.\d]{3})*[,.]\d{2}|\d+[,.]\d{2}|\d+)',
             texto_completo,
             re.IGNORECASE
         )
         if match_valor:
-            valor_str = match_valor.group(1).replace('.', '').replace(',', '.')
+            v_str = match_valor.group(1)
+            # Lógica para tratar separadores:
+            # Se tem vírgula e ponto (1.234,56), remove ponto e troca vírgula por ponto
+            if ',' in v_str and '.' in v_str:
+                v_str = v_str.replace('.', '').replace(',', '.')
+            # Se tem apenas vírgula (1234,56), troca por ponto
+            elif ',' in v_str:
+                v_str = v_str.replace(',', '.')
+            # Se tem apenas ponto e parece ser decimal (ex: 123.45 e não 1.234)
+            # Geralmente se tem 3 dígitos após o ponto, é milhar. Se tem 2, é decimal.
+            elif '.' in v_str:
+                partes = v_str.split('.')
+                if len(partes[-1]) != 2: # Provavelmente milhar: 1.234
+                    v_str = v_str.replace('.', '')
+            
             try:
-                resultado['valor'] = float(valor_str)
+                resultado['valor'] = float(v_str)
             except ValueError:
                 pass
 
-        # 2. Identificar Tipo de Transação (PIX ou COMPRA)
-        if re.search(r'pix', texto_completo, re.IGNORECASE):
-            resultado['tipo_transacao'] = 'PIX'
-        else:
-            resultado['tipo_transacao'] = 'COMPRA'
-
-        # 3. Extrair Final do Cartão
+        # 2. Extrair Final do Cartão
         match_cartao = re.search(r'(?:cartão|final)\s+(?:final\s+)?(\d{4})', texto_completo, re.IGNORECASE)
         if match_cartao:
             resultado['cartao_final'] = match_cartao.group(1)
 
-        # 4. Extrair Estabelecimento ou Remetente
-        # Tentamos primeiro o padrão "em [Estabelecimento]" que costuma vir no final
-        # Excluímos padrões que pareçam data ou cartão
-        matches_estab = re.findall(
-            r'(?:em|na|no|de|para|estabelecimento)\s+([A-ZÀ][\w\s&.\-]{2,50})',
-            texto_completo,
-            re.IGNORECASE
-        )
+        # 3. Extrair Estabelecimento ou Remetente
+        # Padrão mais abrangente: após palavras-chave, pega o que vier até encontrar data/cartão ou fim
+        # Removido o requisito de começar com Letra Maiúscula para suportar "99App", "iFood", etc.
+        pattern_estab = r'(?:em|na|no|de|para|estabelecimento|local)\s+([\wÀ-ÿ][\w\s&.\-]{1,50})'
+        matches_estab = re.findall(pattern_estab, texto_completo, re.IGNORECASE)
         
         if matches_estab:
-            # Filtramos candidatos que são claramente cartões ou datas
             candidatos = []
             for m in matches_estab:
                 m_clean = m.strip()
-                # Remove "em/às [Data/Hora]" do final se estiver grudado no nome
-                # Ex: "João Silva em 23/04/26" -> "João Silva"
-                m_clean = re.split(r'\s+(?:em|na|no|de|para|às)\s+\d', m_clean, flags=re.IGNORECASE)[0]
+                # Remove lixo comum no final da captura
+                m_clean = re.split(r'\s+(?:em|na|no|de|para|às|dia|no cartão|final)\s+\d', m_clean, flags=re.IGNORECASE)[0]
+                m_clean = re.split(r'[.,]\s+', m_clean)[0] # Para em pontos ou vírgulas seguidos de espaço
                 
-                if re.search(r'cartão|final|^\d{2}/\d{2}', m_clean, re.IGNORECASE):
+                # Ignora se for apenas números ou palavras reservadas
+                if m_clean.isdigit() or any(x in m_clean.lower() for x in ['cartão', 'final', 'você']):
                     continue
-                candidatos.append(m_clean)
+                if len(m_clean) > 1:
+                    candidatos.append(m_clean)
             
             if candidatos:
-                # Pegamos o último candidato válido, que geralmente é o estabelecimento real
                 resultado['estabelecimento'] = candidatos[-1]
-            else:
-                resultado['estabelecimento'] = matches_estab[-1].strip()
 
-        # 5. Extrair Instituição Bancária (se estiver no texto)
+        # 4. Extrair Instituição Bancária (se estiver no texto)
         match_banco = re.search(
             r'(?:no|pelo|via)\s+(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Banco do Brasil|Mercado Pago)',
             texto_completo,
             re.IGNORECASE
         )
         if match_banco:
-            resultado['instituicao'] = match_banco.group(1).strip()
+            resultado['instituicao'] = match_banco.group(1).strip().upper()
 
         # 6. Extrair Data e Hora (se houver no texto, ex: 21/04 às 14:30)
         match_data = re.search(r'(\d{2}/\d{2}(?:/\d{4})?)', texto_completo)
