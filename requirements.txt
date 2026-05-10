@@ -26,8 +26,6 @@ django-q2>=1.7.0
 # Configurações e ambiente
 python-decouple>=3.8,<4.0
 
-# Email via API do SendGrid
-sendgrid>=6.11.0,<7.0.0
 requests>=2.31.0,<3.0.0
 
 # Assets estáticos em produção

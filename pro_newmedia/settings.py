@@ -310,19 +310,21 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ===================================================================
-# CONFIGURAÇÕES DE EMAIL - SENDGRID
+# CONFIGURAÇÕES DE EMAIL - TITAN SMTP
 # ===================================================================
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
-    default='django.core.mail.backends.console.EmailBackend'
+    default='django.core.mail.backends.smtp.EmailBackend'
 )
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='AllMedias <noreply@allmedias.com>')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.titan.email')
+EMAIL_PORT = config('PORTA_DE_EMAIL', default=465, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
+EMAIL_HOST_USER = config('USUARIO_HOST_EMAIL', default='admin@igeracao.com.br')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_SENHA', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_OFF_EMAIL', default='AllMedias <admin@igeracao.com.br>')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+CONTACT_EMAIL = config('E-MAIL DE CONTATO', default='admin@igeracao.com.br')
 EMAIL_TIMEOUT = 10
 
 # ===================================================================
