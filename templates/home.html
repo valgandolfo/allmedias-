@@ -248,5 +248,18 @@
   }
   setInterval(updateTime, 1000);
   updateTime();
+
+  // Intercepta o botão Voltar do celular na tela Home
+  // Empurra um estado falso no histórico para capturar o primeiro "voltar"
+  history.pushState({ home: true }, '', window.location.href);
+
+  window.addEventListener('popstate', function(event) {
+    // Reutiliza a função confirmarSaida() que já existe no base.html
+    if (typeof confirmarSaida === 'function') {
+      confirmarSaida();
+    }
+    // Reempurra o estado para que o próximo "voltar" seja interceptado novamente
+    history.pushState({ home: true }, '', window.location.href);
+  });
 </script>
 {% endblock %}

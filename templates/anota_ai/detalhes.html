@@ -188,7 +188,9 @@
             <div class="mb-3">
                 <label class="form-label">URL do Link</label>
                 <div class="input-group">
-                    {{ form.texto }}
+                    <input type="url" class="form-control" id="inputLinkUrl" name="texto"
+                        placeholder="https://..."
+                        value="{% if anotacao and anotacao.tipo == 'link' %}{{ anotacao.texto }}{% endif %}">
                     <button type="button" class="btn btn-outline-secondary" id="btnTestarLink" title="Testar link" onclick="testarLink()">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
@@ -429,25 +431,31 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     const labelTexto = document.getElementById('labelTexto');
 
     function textareaPrincipal() { return document.querySelector('#areaTexto textarea'); }
-    function textareaLink() { return document.querySelector('#areaLink textarea'); }
+    function inputLink() { return document.getElementById('inputLinkUrl'); }
 
     function prepararCamposTextoParaEnvio() {
         const tipo = selectTipo.value;
-        document.querySelectorAll('#areaTexto textarea, #areaLink textarea').forEach(ta => {
-            if (!ta) return;
-            const inLink = !!ta.closest('#areaLink');
-            let enviar = false;
-            if (tipo === 'link') enviar = inLink;
-            else if (tipo === 'pix') enviar = false;
-            else enviar = !inLink;
-            if (enviar) ta.setAttribute('name', 'texto');
-            else ta.removeAttribute('name');
-        });
+        const taTexto = textareaPrincipal();
+        const inLink = inputLink();
+
+        if (tipo === 'link') {
+            // Apenas o input de link envia
+            if (taTexto) taTexto.removeAttribute('name');
+            if (inLink) inLink.setAttribute('name', 'texto');
+        } else if (tipo === 'pix') {
+            if (taTexto) taTexto.removeAttribute('name');
+            if (inLink) inLink.removeAttribute('name');
+        } else {
+            // texto, lista, checklist — envia o textarea principal
+            if (taTexto) taTexto.setAttribute('name', 'texto');
+            if (inLink) inLink.removeAttribute('name');
+        }
     }
 
     function initNomeCampos() {
-        const taLink = textareaLink();
-        if (taLink) taLink.removeAttribute('name');
+        // Ao iniciar, o input de link nunca deve ter name (o toggleCampos cuida disso)
+        const inLink = inputLink();
+        if (inLink) inLink.removeAttribute('name');
         const taTexto = textareaPrincipal();
         if (taTexto && !taTexto.getAttribute('name')) taTexto.setAttribute('name', 'texto');
     }
@@ -540,8 +548,8 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     }
 
     function testarLink() {
-        const ta = textareaLink();
-        const url = ta ? ta.value.trim() : '';
+        const inp = inputLink();
+        const url = inp ? inp.value.trim() : '';
         if (url) window.open(url, '_blank');
     }
 

@@ -92,10 +92,28 @@ def conversor_converter(request):
 
 
 def _ler_arquivo_bytes(arquivo_field):
-    arquivo_field.open('rb')
-    conteudo = arquivo_field.read()
-    arquivo_field.close()
-    return conteudo
+    """
+    Lê o conteúdo do arquivo do storage (local, Wasabi S3 ou Google Drive).
+    Funciona com storages remotos que não suportam seek.
+    """
+    try:
+        # Tenta abrir e ler normalmente (funciona com storage local e S3)
+        arquivo_field.open('rb')
+        conteudo = arquivo_field.read()
+        arquivo_field.close()
+        return conteudo
+    except Exception:
+        pass
+
+    # Fallback: tenta usar requests para baixar via URL pública
+    try:
+        import requests as req_lib
+        url = arquivo_field.url
+        resp = req_lib.get(url, timeout=30)
+        resp.raise_for_status()
+        return resp.content
+    except Exception as e:
+        raise IOError(f"Não foi possível ler o arquivo do storage: {e}")
 
 
 def _converter_arquivo_para_pdf(arquivo_field):

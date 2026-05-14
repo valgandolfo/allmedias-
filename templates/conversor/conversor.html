@@ -78,14 +78,18 @@
     <div class="media-list" id="mediaList">
         {% for media in medias %}
         <div class="media-item"
-             onclick="abrirConversao('{{ media.id }}', '{{ media.descricao|escapejs }}', '{{ media.tipo }}', '{% if media.arquivo %}{{ media.arquivo.url }}{% endif %}')"
+             onclick="abrirConversao('{{ media.id }}', '{{ media.descricao|escapejs }}', '{{ media.tipo }}', '{% if media.is_imagem and media.arquivo %}{{ media.arquivo.url }}{% endif %}')"
              data-descricao="{{ media.descricao|lower }}"
              data-tipo="{{ media.tipo }}">
             <div class="media-thumbnail">
-                {% if media.arquivo and media.is_imagem %}
+                {% if media.is_imagem and media.miniatura %}
+                    <img src="{{ media.miniatura.url }}" alt="{{ media.descricao }}">
+                {% elif media.is_imagem and media.arquivo %}
                     <img src="{{ media.arquivo.url }}" alt="{{ media.descricao }}">
                 {% elif media.tipo == 'texto' %}
                     🔡
+                {% elif media.tipo == 'documento' %}
+                    📝
                 {% else %}
                     📄
                 {% endif %}
