@@ -190,7 +190,8 @@
                 <div class="input-group">
                     <input type="url" class="form-control" id="inputLinkUrl" name="texto"
                         placeholder="https://..."
-                        value="{% if anotacao and anotacao.tipo == 'link' %}{{ anotacao.texto }}{% endif %}">
+                        value="{% if anotacao and anotacao.tipo == 'link' %}{{ anotacao.texto }}{% endif %}"
+                        disabled>
                     <button type="button" class="btn btn-outline-secondary" id="btnTestarLink" title="Testar link" onclick="testarLink()">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
@@ -439,25 +440,25 @@ const selectTipo = document.querySelector('select[name="tipo"]');
         const inLink = inputLink();
 
         if (tipo === 'link') {
-            // Apenas o input de link envia
-            if (taTexto) taTexto.removeAttribute('name');
-            if (inLink) inLink.setAttribute('name', 'texto');
+            // Habilita o input de link e desabilita o textarea para não enviarem os dois
+            if (taTexto) taTexto.disabled = true;
+            if (inLink) inLink.disabled = false;
         } else if (tipo === 'pix') {
-            if (taTexto) taTexto.removeAttribute('name');
-            if (inLink) inLink.removeAttribute('name');
+            if (taTexto) taTexto.disabled = true;
+            if (inLink) inLink.disabled = true;
         } else {
-            // texto, lista, checklist — envia o textarea principal
-            if (taTexto) taTexto.setAttribute('name', 'texto');
-            if (inLink) inLink.removeAttribute('name');
+            // texto, lista, checklist — apenas o textarea envia
+            if (taTexto) taTexto.disabled = false;
+            if (inLink) inLink.disabled = true;
         }
     }
 
     function initNomeCampos() {
-        // Ao iniciar, o input de link nunca deve ter name (o toggleCampos cuida disso)
+        // Ao iniciar, desabilita o input de link (o toggleCampos e o submit cuidam disso)
         const inLink = inputLink();
-        if (inLink) inLink.removeAttribute('name');
+        if (inLink) inLink.disabled = true;
         const taTexto = textareaPrincipal();
-        if (taTexto && !taTexto.getAttribute('name')) taTexto.setAttribute('name', 'texto');
+        if (taTexto) taTexto.disabled = false;
     }
 
     function inserirTextoNoCursor(textarea, texto) {

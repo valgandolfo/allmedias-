@@ -93,19 +93,33 @@ def conversor_converter(request):
 
 def _ler_arquivo_bytes(arquivo_field):
     """
-    Lê o conteúdo do arquivo do storage (local, Wasabi S3 ou Google Drive).
-    Funciona com storages remotos que não suportam seek.
+    Lê o conteúdo do arquivo do storage (local, Google Drive ou Wasabi S3).
+    Lida com storages remotos que armazenam arquivos com file_id//path.
     """
+    nome = getattr(arquivo_field, 'name', '') or ''
+
+    # Caminho 1: Google Drive (nome contém '//')
+    if '//' in nome:
+        try:
+            f = arquivo_field.storage._open(nome, 'rb')
+            conteudo = f.read()
+            return conteudo
+        except Exception:
+            pass
+
+    # Caminho 2: Storage padrão (local/S3) via open()
     try:
-        # Tenta abrir e ler normalmente (funciona com storage local e S3)
         arquivo_field.open('rb')
         conteudo = arquivo_field.read()
-        arquivo_field.close()
+        try:
+            arquivo_field.close()
+        except Exception:
+            pass
         return conteudo
     except Exception:
         pass
 
-    # Fallback: tenta usar requests para baixar via URL pública
+    # Caminho 3: Fallback via URL pública (Google Drive viewable link)
     try:
         import requests as req_lib
         url = arquivo_field.url
