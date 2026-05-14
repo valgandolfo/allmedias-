@@ -252,9 +252,10 @@
           <!-- Eventos populados aqui -->
         </div>
 
-        <h6 class="text-muted small fw-bold mt-4 mb-2"><i class="bi bi-plus-lg"></i> NOVO COMPROMISSO</h6>
+        <h6 class="text-muted small fw-bold mt-4 mb-2" id="formTitle"><i class="bi bi-plus-lg"></i> NOVO COMPROMISSO</h6>
         <form id="eventForm">
           {% csrf_token %}
+          <input type="hidden" name="evento_id" id="evento_id">
           <div class="input-group mb-3">
             <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-type-t"></i></span>
             <input type="text" class="form-control bg-transparent text-white border-secondary" name="titulo" placeholder="Título do compromisso" required>
@@ -407,14 +408,29 @@
         const item = document.createElement('div');
         item.className = 'event-list-item';
         item.style.setProperty('--event-color', ev.cor);
-        item.innerHTML = `<div>
-            <div class="fw-bold mb-1" style="font-size: 0.9rem;">${ev.titulo}</div>
-            <div class="text-muted" style="font-size: 0.8rem;">${ev.hora}</div>
+        item.innerHTML = `
+        <div class="w-100 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="fw-bold mb-1" style="font-size: 0.9rem;">${ev.titulo}</div>
+                <div class="text-muted" style="font-size: 0.8rem;">${ev.hora}</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0" onclick="editarCompromisso(${ev.id}, '${ev.titulo.replace(/'/g, "\\'")}', '${ev.hora}', '${ev.cor}', '${(ev.observacoes||'').replace(/'/g, "\\'")}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="excluirCompromisso(${ev.id})" title="Excluir"><i class="bi bi-trash"></i></button>
+            </div>
         </div>`;
         evContainer.appendChild(item);
     });
 
     document.getElementById('eventForm').reset();
+    document.getElementById('evento_id').value = '';
+    document.getElementById('formTitle').innerHTML = '<i class="bi bi-plus-lg"></i> NOVO COMPROMISSO';
+    document.getElementById('btnSalvar').innerText = 'Agendar';
+    
+    document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+    document.querySelector('.color-circle[data-color="#5c81f4"]').classList.add('active');
+    document.getElementById('eventColorInput').value = '#5c81f4';
+
     dayModal.show();
   }
 
@@ -434,11 +450,59 @@
     renderCalendar();
   });
 
+  window.editarCompromisso = function(id, titulo, hora, cor, observacoes) {
+      document.getElementById('evento_id').value = id;
+      document.querySelector('input[name="titulo"]').value = titulo;
+      document.querySelector('input[name="hora"]').value = hora;
+      document.querySelector('textarea[name="observacoes"]').value = observacoes !== 'null' && observacoes !== 'undefined' ? observacoes : '';
+      
+      document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+      const corEl = document.querySelector(`.color-circle[data-color="${cor}"]`);
+      if(corEl) {
+          corEl.classList.add('active');
+          document.getElementById('eventColorInput').value = cor;
+      } else {
+          document.querySelector('.color-circle[data-color="#5c81f4"]').classList.add('active');
+          document.getElementById('eventColorInput').value = '#5c81f4';
+      }
+      
+      document.getElementById('formTitle').innerHTML = '<i class="bi bi-pencil"></i> EDITAR COMPROMISSO';
+      document.getElementById('btnSalvar').innerText = 'Salvar Alterações';
+  };
+
+  window.excluirCompromisso = function(id) {
+      if(confirm('Tem certeza que deseja excluir este compromisso?')) {
+          fetch(`/calendario/api/excluir/${id}/`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': CSRF_TOKEN
+              }
+          })
+          .then(res => res.json())
+          .then(data => {
+              if(data.status === 'success') {
+                  dayModal.hide();
+                  renderCalendar();
+              } else {
+                  alert('Erro ao excluir: ' + data.message);
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              alert('Ocorreu um erro.');
+          });
+      }
+  };
+
   // Salvar compromisso
   document.getElementById('eventForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btnSalvar = document.getElementById('btnSalvar');
     btnSalvar.disabled = true;
+
+    const eventoId = document.getElementById('evento_id').value;
+    const url = eventoId ? `/calendario/api/editar/${eventoId}/` : '/calendario/api/criar/';
 
     // Converte a data para YYYY-MM-DD
     const pad = (n) => n.toString().padStart(2, '0');
@@ -452,7 +516,7 @@
         cor: this.cor.value
     };
 
-    fetch('/calendario/api/criar/', {
+    fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

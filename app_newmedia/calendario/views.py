@@ -75,3 +75,41 @@ def api_criar_compromisso(request):
         return JsonResponse({'status': 'error', 'message': 'JSON inválido'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_editar_compromisso(request, id):
+    """Endpoint para editar um compromisso existente"""
+    try:
+        compromisso = Compromisso.objects.get(id=id, usuario=request.user)
+        dados = json.loads(request.body)
+        
+        titulo = dados.get('titulo')
+        hora_str = dados.get('hora')
+        cor = dados.get('cor')
+        observacoes = dados.get('observacoes')
+        
+        if titulo: compromisso.titulo = titulo
+        if hora_str: compromisso.hora = datetime.strptime(hora_str, '%H:%M').time()
+        if cor: compromisso.cor = cor
+        if observacoes is not None: compromisso.observacoes = observacoes
+        
+        compromisso.save()
+        return JsonResponse({'status': 'success'})
+    except Compromisso.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Compromisso não encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_excluir_compromisso(request, id):
+    """Endpoint para excluir um compromisso"""
+    try:
+        compromisso = Compromisso.objects.get(id=id, usuario=request.user)
+        compromisso.delete()
+        return JsonResponse({'status': 'success'})
+    except Compromisso.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Compromisso não encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
