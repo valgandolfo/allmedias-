@@ -20,6 +20,74 @@ logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
+def api_receber_notificacao_tasker(request):
+    """
+    Endpoint para o Tasker (Android).
+    Recebe o texto bruto da notificacao bancaria via HTTP POST.
+    Autenticacao por api_token no header ou na URL.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Metodo nao permitido'}, status=405)
+
+    # Autenticacao por token (header ou querystring)
+    token = (
+        request.headers.get('X-Api-Token')
+        or request.GET.get('token')
+        or request.POST.get('token')
+    )
+    if not token:
+        return JsonResponse({'erro': 'Token nao fornecido'}, status=401)
+
+    from django.contrib.auth.models import User
+    try:
+        usuario = User.objects.get(profile__api_token=token)
+    except User.DoesNotExist:
+        return JsonResponse({'erro': 'Token invalido'}, status=401)
+
+    try:
+        # Tasker pode enviar JSON ou form-data
+        if request.content_type and 'application/json' in request.content_type:
+            body = json.loads(request.body)
+        else:
+            body = request.POST.dict()
+
+        texto = body.get('texto', '') or body.get('text', '') or body.get('notificacao', '')
+        app_origem = body.get('app', '') or body.get('app_origem', 'TASKER')
+
+        if not texto:
+            return JsonResponse({'erro': 'Campo texto e obrigatorio'}, status=400)
+
+        logger.info(f"[Tasker] Notificacao recebida de {usuario.username} | app={app_origem}")
+
+        # Reutiliza o parser do modelo
+        dados = NotificacaoCompra.parse_notificacao(texto)
+
+        notificacao = NotificacaoCompra.objects.create(
+            usuario=usuario,
+            texto_completo=texto[:5000],
+            app_origem=app_origem.upper() or dados.get('instituicao') or 'BANCO',
+            valor=dados.get('valor'),
+            estabelecimento=str(dados.get('estabelecimento') or 'DESCONHECIDO').upper(),
+            data_compra=dados.get('data') or datetime.now().date(),
+            hora_compra=dados.get('hora') or datetime.now().time(),
+            tipo_transacao=str(dados.get('tipo_transacao') or 'COMPRA').upper(),
+            origem='TASKER',
+        )
+
+        return JsonResponse({
+            'sucesso': True,
+            'id': notificacao.pk,
+            'info': f'Salvo: R$ {notificacao.valor} em {notificacao.estabelecimento}'
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'erro': 'JSON invalido'}, status=400)
+    except Exception as e:
+        logger.exception("[Tasker] Erro ao processar notificacao")
+        return JsonResponse({'erro': str(e)}, status=500)
+
+
+@csrf_exempt
 def api_receber_email(request):
     """
     Endpoint para o SendGrid Inbound Parse.
