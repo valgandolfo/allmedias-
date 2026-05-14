@@ -23,17 +23,17 @@ logger = logging.getLogger(__name__)
 def api_receber_notificacao_tasker(request):
     """
     Endpoint para o Tasker (Android).
-    Recebe o texto bruto da notificacao bancaria via HTTP POST.
-    Autenticacao por api_token no header ou na URL.
+    Aceita GET ou POST — todos os dados podem vir na URL como parâmetros.
     """
-    if request.method != 'POST':
+    if request.method not in ('GET', 'POST'):
         return JsonResponse({'erro': 'Metodo nao permitido'}, status=405)
 
-    # Autenticacao por token (header ou querystring)
+    # Lê parâmetros da URL (GET) ou do body (POST) — ambos funcionam
+    params = request.GET if request.method == 'GET' else (request.POST or request.GET)
+
     token = (
         request.headers.get('X-Api-Token')
-        or request.GET.get('token')
-        or request.POST.get('token')
+        or params.get('token', '')
     )
     if not token:
         return JsonResponse({'erro': 'Token nao fornecido'}, status=401)
@@ -45,14 +45,13 @@ def api_receber_notificacao_tasker(request):
         return JsonResponse({'erro': 'Token invalido'}, status=401)
 
     try:
-        # Tasker pode enviar JSON ou form-data
-        if request.content_type and 'application/json' in request.content_type:
-            body = json.loads(request.body)
-        else:
-            body = request.POST.dict()
-
-        texto = body.get('texto', '') or body.get('text', '') or body.get('notificacao', '')
-        app_origem = body.get('app', '') or body.get('app_origem', 'TASKER')
+        # Aceita parâmetros da URL (?texto=...&app=...) ou do corpo POST
+        texto = (
+            params.get('texto', '')
+            or params.get('text', '')
+            or params.get('notificacao', '')
+        )
+        app_origem = params.get('app', '') or params.get('app_origem', 'TASKER')
 
         if not texto:
             return JsonResponse({'erro': 'Campo texto e obrigatorio'}, status=400)
