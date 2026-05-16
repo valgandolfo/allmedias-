@@ -110,13 +110,26 @@ class NotificacaoCompra(models.Model):
             return resultado
 
         # 1. Extrair valor monetário
-        # Suporta: R$ 1.234,56 | 1.234.56 | 1234,56 | 1234.56 | 1234 | 10,00
-        # Padrão: Digitos com . ou , seguidos de 2 dígitos OU apenas dígitos
+        # Prioridade 1: Símbolo de moeda explícito (ex: R$ 10,00)
         match_valor = re.search(
-            r'(?:R\$|\$|€)?\s*(\d{1,3}(?:[.\d]{3})*[,.]\d{2}|\d+[,.]\d{2}|\d+)',
+            r'(?:R\$|RS|\$|€|BRL)\s*(\d{1,3}(?:[.\d]{3})*[,.]\d{2}|\d+[,.]\d{2}|\d+)',
             texto_completo,
             re.IGNORECASE
         )
+        # Prioridade 2: Palavras chave seguidas de valor decimal (ex: valor 10,00)
+        if not match_valor:
+            match_valor = re.search(
+                r'(?:valor|de)\s+(\d{1,3}(?:[.\d]{3})*[,.]\d{2}|\d+[,.]\d{2})',
+                texto_completo,
+                re.IGNORECASE
+            )
+        # Prioridade 3: Qualquer número com 2 casas decimais que não pareça hora/data (ex: 10,00)
+        if not match_valor:
+            match_valor = re.search(
+                r'(?<!\d:)(\d{1,3}(?:[.\d]{3})*[,.]\d{2}|\d+[,.]\d{2})',
+                texto_completo,
+                re.IGNORECASE
+            )
         if match_valor:
             v_str = match_valor.group(1)
             # Lógica para tratar separadores:
