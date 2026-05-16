@@ -29,12 +29,41 @@ def api_receber_notificacao_tasker(request):
         return JsonResponse({'erro': 'Metodo nao permitido'}, status=405)
 
     # Lê parâmetros da URL (GET) ou do body (POST) — ambos funcionam
-    params = request.GET if request.method == 'GET' else (request.POST or request.GET)
+    params = {}
+    if request.method == 'GET':
+        params = request.GET.dict()
+    else:
+        # Se for POST, verifica JSON primeiro
+        if request.content_type == 'application/json':
+            try:
+                params = json.loads(request.body)
+            except json.JSONDecodeError:
+                pass
+        
+        # Se params ainda estiver vazio, tenta extrair de POST, GET, ou body texto
+        if not params:
+            if request.POST:
+                params = request.POST.dict()
+            elif request.GET:
+                params = request.GET.dict()
+            else:
+                # Se enviou plain text, ex: "token=123&texto=abc"
+                try:
+                    from urllib.parse import parse_qs
+                    body_text = request.body.decode('utf-8')
+                    parsed = parse_qs(body_text)
+                    params = {k: v[0] for k, v in parsed.items()}
+                except Exception:
+                    pass
 
     token = (
         request.headers.get('X-Api-Token')
         or params.get('token', '')
+        or params.get('user_token', '')
     )
+    if isinstance(token, str):
+        token = token.strip()
+        
     if not token:
         return JsonResponse({'erro': 'Token nao fornecido'}, status=401)
 
@@ -42,7 +71,8 @@ def api_receber_notificacao_tasker(request):
     try:
         usuario = User.objects.get(profile__api_token=token)
     except User.DoesNotExist:
-        return JsonResponse({'erro': 'Token invalido'}, status=401)
+        logger.warning(f"Token Invalido Recebido: '{token}'")
+        return JsonResponse({'erro': f'Token invalido: {token}'}, status=401)
 
     try:
         # Aceita parâmetros da URL (?texto=...&app=...) ou do corpo POST
