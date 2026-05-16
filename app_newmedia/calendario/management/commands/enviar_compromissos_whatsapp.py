@@ -1,24 +1,44 @@
 import os
 import requests
-from datetime import date
+from datetime import datetime, timedelta
+from django.utils import timezone
 from django.core.management.base import BaseCommand
 from app_newmedia.calendario.models import Compromisso
 
 class Command(BaseCommand):
-    help = 'Envia compromissos do dia para o WhatsApp dos usuários usando Evolution API'
+    help = 'Envia lembrete de compromissos para o WhatsApp cerca de 2 horas antes usando Evolution API'
 
     def handle(self, *args, **kwargs):
-        hoje = date.today()
-        # Filtra apenas os compromissos do dia atual, ordenados por hora
-        compromissos = Compromisso.objects.filter(data=hoje).order_by('hora')
+        agora = timezone.localtime()
+        limite_superior = agora + timedelta(hours=2, minutes=15) # Dá uma margem de 15 mins para o cron
         
-        if not compromissos.exists():
-            self.stdout.write(self.style.SUCCESS(f'Sem compromissos para hoje ({hoje.strftime("%d/%m/%Y")}).'))
+        # Buscar compromissos de hoje e amanhã (caso seja próximo da meia noite)
+        datas_possiveis = [agora.date(), limite_superior.date()]
+        
+        # Filtra compromissos que ainda não tiveram lembrete enviado
+        compromissos_pendentes = Compromisso.objects.filter(
+            data__in=datas_possiveis,
+            lembrete_enviado=False
+        ).order_by('data', 'hora')
+        
+        compromissos_para_enviar = []
+        for c in compromissos_pendentes:
+            data_hora_comp = timezone.make_aware(datetime.combine(c.data, c.hora))
+            
+            # Se o compromisso já passou há mais de 30 minutos e não enviou, só marca como enviado e ignora
+            if data_hora_comp < (agora - timedelta(minutes=30)):
+                c.lembrete_enviado = True
+                c.save()
+            elif data_hora_comp <= limite_superior:
+                compromissos_para_enviar.append(c)
+
+        if not compromissos_para_enviar:
+            self.stdout.write(self.style.SUCCESS('Sem compromissos próximos (dentro de ~2h) para notificar.'))
             return
             
         # Agrupar compromissos por usuário
         agrupados = {}
-        for c in compromissos:
+        for c in compromissos_para_enviar:
             if c.usuario not in agrupados:
                 agrupados[c.usuario] = []
             agrupados[c.usuario].append(c)
@@ -55,7 +75,11 @@ class Command(BaseCommand):
                 numero_limpo = '55' + numero_limpo
             
             # Formatar a mensagem do WhatsApp
-            linhas = [f"Olá, *{usuario.first_name or usuario.username}*! ☀️", "", "Aqui estão os seus compromissos para o dia de hoje:"]
+            if len(lista_comp) == 1:
+                linhas = [f"Olá, *{usuario.first_name or usuario.username}*! ☀️", "", "Lembrete: Você tem um compromisso em breve:"]
+            else:
+                linhas = [f"Olá, *{usuario.first_name or usuario.username}*! ☀️", "", "Lembrete: Você tem compromissos em breve:"]
+
             for c in lista_comp:
                 obs = f" - _{c.observacoes}_" if c.observacoes else ""
                 linhas.append(f"⏰ *{c.hora.strftime('%H:%M')}* - {c.titulo}{obs}")
@@ -79,6 +103,9 @@ class Command(BaseCommand):
                 resp = requests.post(endpoint, json=payload, headers=headers)
                 if resp.status_code in [200, 201]:
                     self.stdout.write(self.style.SUCCESS(f'Mensagem enviada com sucesso para {usuario.username} ({numero_limpo}).'))
+                    for c in lista_comp:
+                        c.lembrete_enviado = True
+                        c.save()
                 else:
                     self.stdout.write(self.style.ERROR(f'Falha ao enviar para {usuario.username} ({numero_limpo}). Código: {resp.status_code}. Resposta: {resp.text}'))
             except Exception as e:

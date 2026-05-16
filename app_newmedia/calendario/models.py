@@ -8,6 +8,7 @@ class Compromisso(models.Model):
     titulo = models.CharField(max_length=50, db_column='CAL_COMPROMISSO', verbose_name='Compromisso')
     cor = models.CharField(max_length=15, db_column='CAL_COR', verbose_name='Cor', default='#7C8EE0')
     observacoes = models.TextField(blank=True, null=True, verbose_name='Observações')
+    lembrete_enviado = models.BooleanField(default=False, verbose_name='Lembrete Enviado')
 
     class Meta:
         db_table = 'TBCALENDARIO'
