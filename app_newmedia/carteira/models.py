@@ -143,37 +143,10 @@ class NotificacaoCompra(models.Model):
         if match_cartao:
             resultado['cartao_final'] = match_cartao.group(1)
 
-        # 3. Extrair Estabelecimento ou Remetente
-        # Padrão mais abrangente: após palavras-chave, pega o que vier até encontrar data/cartão ou fim
-        # Removido o requisito de começar com Letra Maiúscula para suportar "99App", "iFood", etc.
-        pattern_estab = r'(?:em|na|no|de|para|estabelecimento|local)\s+([\wÀ-ÿ][\w\s&.\-]{1,50})'
-        matches_estab = re.findall(pattern_estab, texto_completo, re.IGNORECASE)
-        
-        if matches_estab:
-            candidatos = []
-            for m in matches_estab:
-                m_clean = m.strip()
-                # Remove lixo comum no final da captura
-                m_clean = re.split(r'\s+(?:em|na|no|de|para|às|dia|no cartão|final)\s+\d', m_clean, flags=re.IGNORECASE)[0]
-                m_clean = re.split(r'[.,]\s+', m_clean)[0] # Para em pontos ou vírgulas seguidos de espaço
-                
-                # Ignora se for apenas números ou palavras reservadas
-                if m_clean.isdigit() or any(x in m_clean.lower() for x in ['cartão', 'final', 'você']):
-                    continue
-                if len(m_clean) > 1:
-                    candidatos.append(m_clean)
-            
-            if candidatos:
-                resultado['estabelecimento'] = candidatos[-1]
-
-        # 4. Extrair Instituição Bancária (se estiver no texto)
-        match_banco = re.search(
-            r'(?:no|pelo|via)\s+(Nubank|Itaú|Bradesco|Santander|Inter|C6|Caixa|BB|Banco do Brasil|Mercado Pago)',
-            texto_completo,
-            re.IGNORECASE
-        )
-        if match_banco:
-            resultado['instituicao'] = match_banco.group(1).strip().upper()
+        # 3. Estabelecimento/Instituição Simplificado
+        # Como o usuário pediu para simplificar, usaremos o app_origem no view
+        # e aqui não precisamos tentar adivinhar nomes malucos.
+        resultado['estabelecimento'] = ''
 
         # 6. Extrair Data e Hora (se houver no texto, ex: 21/04 às 14:30)
         match_data = re.search(r'(\d{2}/\d{2}(?:/\d{4})?)', texto_completo)

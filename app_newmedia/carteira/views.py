@@ -82,21 +82,22 @@ def api_receber_notificacao_tasker(request):
             or params.get('notificacao', '')
         )
         app_origem = params.get('app', '') or params.get('app_origem', 'TASKER')
+        app_nome_limpo = app_origem.upper()
 
         if not texto:
             return JsonResponse({'erro': 'Campo texto e obrigatorio'}, status=400)
 
-        logger.info(f"[Tasker] Notificacao recebida de {usuario.username} | app={app_origem}")
+        logger.info(f"[Tasker] Notificacao recebida de {usuario.username} | app={app_nome_limpo}")
 
-        # Reutiliza o parser do modelo
+        # Reutiliza o parser do modelo para pegar valor e tipo
         dados = NotificacaoCompra.parse_notificacao(texto)
 
         notificacao = NotificacaoCompra.objects.create(
             usuario=usuario,
             texto_completo=texto[:5000],
-            app_origem=app_origem.upper() or dados.get('instituicao') or 'BANCO',
+            app_origem=app_nome_limpo or 'BANCO',
             valor=dados.get('valor'),
-            estabelecimento=str(dados.get('estabelecimento') or 'DESCONHECIDO').upper(),
+            estabelecimento=app_nome_limpo or 'DESCONHECIDO',
             data_compra=dados.get('data') or datetime.now().date(),
             hora_compra=dados.get('hora') or datetime.now().time(),
             tipo_transacao=str(dados.get('tipo_transacao') or 'COMPRA').upper(),
