@@ -6,18 +6,17 @@ from django.core.management.base import BaseCommand
 from app_newmedia.calendario.models import Compromisso
 
 class Command(BaseCommand):
-    help = 'Envia lembrete de compromissos para o WhatsApp cerca de 2 horas antes usando Evolution API'
+    help = 'Envia lembrete de compromissos para o WhatsApp na antecedência configurada usando Evolution API'
 
     def handle(self, *args, **kwargs):
         agora = timezone.localtime()
-        limite_superior = agora + timedelta(hours=2, minutes=15) # Dá uma margem de 15 mins para o cron
         
-        # Buscar compromissos de hoje e amanhã (caso seja próximo da meia noite)
-        datas_possiveis = [agora.date(), limite_superior.date()]
+        # Como a antecedência máxima é de 1 dia (1440 min), vamos buscar compromissos até 2 dias para frente
+        limite_busca_dias = agora.date() + timedelta(days=2)
         
         # Filtra compromissos que ainda não tiveram lembrete enviado
         compromissos_pendentes = Compromisso.objects.filter(
-            data__in=datas_possiveis,
+            data__lte=limite_busca_dias,
             lembrete_enviado=False
         ).order_by('data', 'hora')
         
@@ -25,15 +24,17 @@ class Command(BaseCommand):
         for c in compromissos_pendentes:
             data_hora_comp = timezone.make_aware(datetime.combine(c.data, c.hora))
             
+            hora_do_lembrete = data_hora_comp - timedelta(minutes=c.antecedencia_minutos)
+            
             # Se o compromisso já passou há mais de 30 minutos e não enviou, só marca como enviado e ignora
             if data_hora_comp < (agora - timedelta(minutes=30)):
                 c.lembrete_enviado = True
                 c.save()
-            elif data_hora_comp <= limite_superior:
+            elif hora_do_lembrete <= (agora + timedelta(minutes=15)):
                 compromissos_para_enviar.append(c)
 
         if not compromissos_para_enviar:
-            self.stdout.write(self.style.SUCCESS('Sem compromissos próximos (dentro de ~2h) para notificar.'))
+            self.stdout.write(self.style.SUCCESS('Sem compromissos no momento para notificar.'))
             return
             
         # Agrupar compromissos por usuário
