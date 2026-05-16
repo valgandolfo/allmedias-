@@ -95,9 +95,7 @@ class Command(BaseCommand):
                     "delay": 1200,
                     "presence": "composing"
                 },
-                "textMessage": {
-                    "text": mensagem
-                }
+                "text": mensagem
             }
             
             try:
