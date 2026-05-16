@@ -37,7 +37,8 @@ def api_compromissos_mes(request):
             'hora': c.hora.strftime('%H:%M'),
             'titulo': c.titulo,
             'cor': c.cor,
-            'observacoes': c.observacoes
+            'observacoes': c.observacoes,
+            'antecedencia_minutos': c.antecedencia_minutos
         })
 
     return JsonResponse({'status': 'success', 'dados': dados})
@@ -53,6 +54,7 @@ def api_criar_compromisso(request):
         titulo = dados.get('titulo')
         cor = dados.get('cor', '#7C8EE0')
         observacoes = dados.get('observacoes', '')
+        antecedencia_minutos = int(dados.get('antecedencia_minutos', 120))
 
         if not data_str or not hora_str or not titulo:
             return JsonResponse({'status': 'error', 'message': 'Data, hora ou título não fornecidos'}, status=400)
@@ -67,7 +69,8 @@ def api_criar_compromisso(request):
             hora=hora_obj,
             titulo=titulo,
             cor=cor,
-            observacoes=observacoes
+            observacoes=observacoes,
+            antecedencia_minutos=antecedencia_minutos
         )
         return JsonResponse({'status': 'success'})
 
@@ -88,11 +91,13 @@ def api_editar_compromisso(request, id):
         hora_str = dados.get('hora')
         cor = dados.get('cor')
         observacoes = dados.get('observacoes')
+        antecedencia_minutos = dados.get('antecedencia_minutos')
         
         if titulo: compromisso.titulo = titulo
         if hora_str: compromisso.hora = datetime.strptime(hora_str, '%H:%M').time()
         if cor: compromisso.cor = cor
         if observacoes is not None: compromisso.observacoes = observacoes
+        if antecedencia_minutos is not None: compromisso.antecedencia_minutos = int(antecedencia_minutos)
         
         compromisso.save()
         return JsonResponse({'status': 'success'})

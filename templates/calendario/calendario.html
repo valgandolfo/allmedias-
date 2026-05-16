@@ -267,6 +267,18 @@
           </div>
 
           <div class="input-group mb-3">
+            <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-bell"></i></span>
+            <select class="form-select bg-dark text-white border-secondary" name="antecedencia_minutos">
+              <option value="120" selected>Lembrar 2 horas antes</option>
+              <option value="0">Na hora do compromisso</option>
+              <option value="15">15 minutos antes</option>
+              <option value="30">30 minutos antes</option>
+              <option value="60">1 hora antes</option>
+              <option value="1440">1 dia antes</option>
+            </select>
+          </div>
+
+          <div class="input-group mb-3">
             <span class="input-group-text bg-transparent text-white border-secondary"><i class="bi bi-file-text"></i></span>
             <textarea class="form-control bg-transparent text-white border-secondary" name="observacoes" placeholder="Observações (opcional)" rows="2"></textarea>
           </div>
@@ -415,7 +427,7 @@
                 <div class="text-muted" style="font-size: 0.8rem;">${ev.hora}</div>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary border-0" onclick="editarCompromisso(${ev.id}, '${ev.titulo.replace(/'/g, "\\'")}', '${ev.hora}', '${ev.cor}', '${(ev.observacoes||'').replace(/'/g, "\\'")}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary border-0" onclick="editarCompromisso(${ev.id}, '${ev.titulo.replace(/'/g, "\\'")}', '${ev.hora}', '${ev.cor}', '${(ev.observacoes||'').replace(/'/g, "\\'")}', ${ev.antecedencia_minutos})" title="Editar"><i class="bi bi-pencil"></i></button>
                 <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="excluirCompromisso(${ev.id})" title="Excluir"><i class="bi bi-trash"></i></button>
             </div>
         </div>`;
@@ -450,11 +462,16 @@
     renderCalendar();
   });
 
-  window.editarCompromisso = function(id, titulo, hora, cor, observacoes) {
+  window.editarCompromisso = function(id, titulo, hora, cor, observacoes, antecedencia) {
       document.getElementById('evento_id').value = id;
       document.querySelector('input[name="titulo"]').value = titulo;
       document.querySelector('input[name="hora"]').value = hora;
       document.querySelector('textarea[name="observacoes"]').value = observacoes !== 'null' && observacoes !== 'undefined' ? observacoes : '';
+      if (antecedencia !== undefined && antecedencia !== null) {
+          document.querySelector('select[name="antecedencia_minutos"]').value = antecedencia;
+      } else {
+          document.querySelector('select[name="antecedencia_minutos"]').value = "120";
+      }
       
       document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
       const corEl = document.querySelector(`.color-circle[data-color="${cor}"]`);
@@ -513,7 +530,8 @@
         hora: this.hora.value,
         titulo: this.titulo.value,
         observacoes: this.observacoes.value,
-        cor: this.cor.value
+        cor: this.cor.value,
+        antecedencia_minutos: this.antecedencia_minutos.value
     };
 
     fetch(url, {
