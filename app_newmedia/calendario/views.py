@@ -99,6 +99,7 @@ def api_editar_compromisso(request, id):
         if observacoes is not None: compromisso.observacoes = observacoes
         if antecedencia_minutos is not None: compromisso.antecedencia_minutos = int(antecedencia_minutos)
         
+        compromisso.lembrete_enviado = False
         compromisso.save()
         return JsonResponse({'status': 'success'})
     except Compromisso.DoesNotExist:
