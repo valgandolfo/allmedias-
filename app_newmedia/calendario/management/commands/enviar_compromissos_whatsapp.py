@@ -91,10 +91,6 @@ class Command(BaseCommand):
             endpoint = f"{evolution_url}/message/sendText/{instance_name}"
             payload = {
                 "number": numero_limpo,
-                "options": {
-                    "delay": 1200,
-                    "presence": "composing"
-                },
                 "text": mensagem
             }
             
