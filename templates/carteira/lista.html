@@ -42,9 +42,31 @@
         text-align: left;
     }
     .layout-grid .bank-icon {
-        margin-bottom: 10px;
+        margin: 0 auto 10px auto;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
     }
 </style>
+{% endblock %}
+
+{% block search_bar %}
+<div class="search-bar">
+    <div class="row g-2 mb-2">
+        <div class="col-12">
+            <div class="input-group card-custom">
+                <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
+            </div>
+        </div>
+        <div class="col-6">
+            <input type="date" id="filterDataInicial" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem;" onchange="filtrarItens()">
+        </div>
+        <div class="col-6">
+            <input type="date" id="filterDataFinal" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem;" onchange="filtrarItens()">
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block filters %}
@@ -54,7 +76,7 @@
         <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 filter-btn" data-tipo="PIX" onclick="filtrarTipo('PIX')">PIX</button>
         <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="COMPRA" onclick="filtrarTipo('COMPRA')">Compra</button>
     </div>
-    <button class="btn btn-sm btn-outline-info rounded-pill" data-bs-toggle="modal" data-bs-target="#modalMacrodroid">
+    <button class="btn btn-sm btn-outline-info rounded-pill d-none" data-bs-toggle="modal" data-bs-target="#modalMacrodroid">
         <i class="bi bi-gear"></i>
     </button>
 </div>
@@ -63,16 +85,16 @@
 <div class="summary-card p-3 text-center">
     <div class="row align-items-center">
         <div class="col-4">
-            <div class="text-muted small mb-1">Geral</div>
-            <div class="fw-bold text-success" style="font-size: 0.9rem;">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></div>
-        </div>
-        <div class="col-4 border-start border-end border-secondary border-opacity-25">
-            <div class="text-muted small mb-1">PIX</div>
+            <div class="text-muted small mb-1">Total Pix</div>
             <div class="fw-bold text-info" style="font-size: 0.9rem;">R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></div>
         </div>
-        <div class="col-4">
-            <div class="text-muted small mb-1">Compra</div>
+        <div class="col-4 border-start border-end border-secondary border-opacity-25">
+            <div class="text-muted small mb-1">Total Compra</div>
             <div class="fw-bold text-warning" style="font-size: 0.9rem;">R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></div>
+        </div>
+        <div class="col-4">
+            <div class="text-muted small mb-1">Total Geral</div>
+            <div class="fw-bold text-success" style="font-size: 0.9rem;">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></div>
         </div>
     </div>
 </div>
@@ -84,10 +106,9 @@
          data-tipo="{{ notif.tipo_transacao }}" 
          data-titulo="{{ notif.estabelecimento|lower }} {{ notif.app_origem|lower }}"
          data-valor="{{ notif.valor|default:0 }}"
-         data-bs-toggle="collapse" 
-         data-bs-target="#notif-{{ notif.id }}">
+         data-data="{{ notif.data_compra|date:'Y-m-d' }}">
         
-        <div class="bank-icon">
+        <div class="bank-icon" onclick="window.location.href='{% url 'carteira_detalhes' notif.pk %}'">
             {% if notif.tipo_transacao == 'PIX' %}
             <i class="bi bi-phone-flip text-info"></i>
             {% else %}
@@ -95,7 +116,7 @@
             {% endif %}
         </div>
 
-        <div class="notif-content">
+        <div class="notif-content" onclick="window.location.href='{% url 'carteira_detalhes' notif.pk %}'">
             <div class="d-flex justify-content-between align-items-start">
                 <span class="notif-title">{{ notif.estabelecimento|default:"Desconhecido" }}</span>
                 <span class="fw-bold {% if notif.tipo_transacao == 'PIX' %}text-info{% else %}text-success{% endif %}">
@@ -112,26 +133,42 @@
                 <span>{{ notif.data_compra|date:"d/m" }} • {{ notif.hora_compra|time:"H:i" }}</span>
             </div>
         </div>
-    </div>
-    
-    <!-- Detalhes Collapse -->
-    <div class="collapse" id="notif-{{ notif.id }}" style="background: transparent;">
-        <div class="p-3 bg-dark bg-opacity-25 border-top border-secondary border-opacity-10 small">
-            <div class="text-info fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">TEXTO CAPTURADO</div>
-            <div class="text-muted italic" style="line-height: 1.4;">"{{ notif.texto_completo }}"</div>
+        
+        <div class="text-secondary px-2" onclick="abrirMenu({{ notif.pk }}, '{{ notif.estabelecimento|escapejs }}')">
+            <i class="bi bi-three-dots-vertical fs-5"></i>
         </div>
     </div>
     {% empty %}
-    <div class="p-5 text-center text-muted">
+    <div class="p-5 text-center text-muted" style="grid-column: 1 / -1;">
         <i class="bi bi-wallet2 display-4 opacity-25"></i>
         <p class="mt-2">Nenhuma atividade encontrada.</p>
     </div>
     {% endfor %}
 {% endblock %}
 
-{% block fab %}{% endblock %} <!-- Somente leitura -->
+{% block fab_url %}{% url 'carteira_criar' %}{% endblock %}
 
 {% block modal %}
+    <!-- Modal Options -->
+    <div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-bottom">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 mt-2">
+                    <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
+                        <i class="bi bi-trash"></i> Excluir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal MacroDroid -->
     <div class="modal fade" id="modalMacrodroid" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -162,6 +199,15 @@
 
 {% block child_js %}
 <script>
+const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+
+function abrirMenu(id, titulo) {
+    document.getElementById('modalTitle').innerText = titulo || 'Registro';
+    document.getElementById('linkEditar').href = `/carteira/${id}/form/`;
+    document.getElementById('linkDeletar').href = `/carteira/${id}/?acao=deletar`;
+    optionsModal.show();
+}
+
 function copiarTexto(elementId) {
     var copyText = document.getElementById(elementId);
     copyText.select();
@@ -173,6 +219,8 @@ function copiarTexto(elementId) {
 
 function filtrarItens() {
     const termo = document.getElementById('searchInput').value.toLowerCase();
+    const dtInicial = document.getElementById('filterDataInicial').value;
+    const dtFinal = document.getElementById('filterDataFinal').value;
     const btnAtivo = document.querySelector('.filter-btn.active');
     const tipo = btnAtivo ? btnAtivo.getAttribute('data-tipo') : '';
     
@@ -184,23 +232,22 @@ function filtrarItens() {
         const titulo = item.getAttribute('data-titulo');
         const itemTipo = item.getAttribute('data-tipo');
         const valor = parseFloat(item.getAttribute('data-valor')) || 0;
+        const dataItem = item.getAttribute('data-data'); // YYYY-MM-DD
         
         const matchBusca = titulo.includes(termo);
         const matchTipo = (tipo === '' || itemTipo === tipo);
         
-        if (matchBusca && matchTipo) {
+        let matchData = true;
+        if (dtInicial && dataItem < dtInicial) matchData = false;
+        if (dtFinal && dataItem > dtFinal) matchData = false;
+        
+        if (matchBusca && matchTipo && matchData) {
             item.style.display = 'flex';
             totalGeral += valor;
             if (itemTipo === 'PIX') totalPix += valor;
             if (itemTipo === 'COMPRA') totalCompra += valor;
         } else {
             item.style.display = 'none';
-            // Fechar collapse se estiver aberto e escondido
-            const targetId = item.getAttribute('data-bs-target');
-            const collapseEl = document.querySelector(targetId);
-            if (collapseEl && collapseEl.classList.contains('show')) {
-                bootstrap.Collapse.getInstance(collapseEl).hide();
-            }
         }
     });
 

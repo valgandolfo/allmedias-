@@ -1,0 +1,94 @@
+{% extends 'crud/detalhes_base.html' %}
+
+{% block crud_title %}Vallet{% endblock %}
+{% block list_url %}{% url 'carteira_lista' %}{% endblock %}
+
+{% block form_view %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="card-custom p-4 mb-4" style="background: var(--glass-bg); backdrop-filter: blur(12px);">
+        <h5 class="mb-4 text-info"><i class="bi bi-wallet2"></i> {% if acao == 'criar' %}Novo Registro{% else %}Editar Registro{% endif %}</h5>
+        
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label">Estabelecimento/Local</label>
+                {{ form.estabelecimento }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Valor (R$)</label>
+                {{ form.valor }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Data</label>
+                {{ form.data_compra }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Hora</label>
+                {{ form.hora_compra }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Tipo de Transação</label>
+                {{ form.tipo_transacao }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Final do Cartão</label>
+                {{ form.cartao_final }}
+            </div>
+            <div class="col-12">
+                <label class="form-label">Texto Completo da Notificação</label>
+                {{ form.texto_completo }}
+            </div>
+        </div>
+        
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary px-4">Salvar</button>
+        </div>
+    </div>
+</form>
+<script>
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        if(!el.classList.contains('form-control') && !el.classList.contains('form-select')) {
+            el.classList.add('form-control', 'bg-dark', 'text-white', 'border-secondary');
+        }
+    });
+</script>
+{% endblock %}
+
+{% block delete_info %}
+    <div class="text-center mb-3">
+        <strong>{{ notificacao.estabelecimento }}</strong><br>
+        R$ {{ notificacao.valor }} - {{ notificacao.data_compra|date:"d/m/Y" }}
+    </div>
+{% endblock %}
+{% block delete_cancel_url %}{% url 'carteira_lista' %}{% endblock %}
+
+{% block detail_view %}
+<div class="card-custom p-4 text-center">
+    <div class="display-1 text-info mb-3">
+        {% if notificacao.tipo_transacao == 'PIX' %}
+            <i class="bi bi-phone-flip"></i>
+        {% else %}
+            <i class="bi bi-credit-card"></i>
+        {% endif %}
+    </div>
+    <h4>{{ notificacao.estabelecimento|default:"Desconhecido" }}</h4>
+    <h2 class="text-success mb-3">R$ {{ notificacao.valor|floatformat:2 }}</h2>
+    <div class="text-muted mb-2">
+        <i class="bi bi-calendar"></i> {{ notificacao.data_compra|date:"d/m/Y" }} 
+        <i class="bi bi-clock ms-2"></i> {{ notificacao.hora_compra|time:"H:i" }}
+    </div>
+    {% if notificacao.cartao_final %}
+    <div class="badge bg-secondary mb-3">Cartão Final: {{ notificacao.cartao_final }}</div>
+    {% endif %}
+    
+    <div class="mt-4 p-3 bg-dark bg-opacity-25 rounded text-start small">
+        <div class="text-info mb-1 fw-bold">Texto Original:</div>
+        {{ notificacao.texto_completo|linebreaksbr }}
+    </div>
+    
+    <div class="mt-4 d-flex justify-content-center gap-2">
+        <a href="{% url 'carteira_form' notificacao.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'carteira_detalhes' notificacao.pk %}?acao=deletar" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Excluir</a>
+    </div>
+</div>
+{% endblock %}

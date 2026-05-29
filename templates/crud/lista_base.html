@@ -85,12 +85,14 @@
     </div>
 
     <!-- Barra de busca -->
+    {% block search_bar %}
     <div class="search-bar">
         <div class="input-group card-custom">
             <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
             <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
         </div>
     </div>
+    {% endblock %}
 
     <!-- Filtros rápidos -->
     <div class="d-flex gap-2 overflow-x-auto pb-3" style="scrollbar-width: none;">

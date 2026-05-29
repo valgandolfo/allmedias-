@@ -7,6 +7,9 @@ from . import views
 urlpatterns = [
     # Página de listagem
     path('', views.carteira_lista, name='carteira_lista'),
+    path('criar/', views.carteira_form, name='carteira_criar'),
+    path('<int:pk>/', views.carteira_detalhes, name='carteira_detalhes'),
+    path('<int:pk>/form/', views.carteira_form, name='carteira_form'),
 
     # API para E-mail (SendGrid Inbound)
     path('api/email/', views.api_receber_email, name='carteira_api_email'),

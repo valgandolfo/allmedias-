@@ -9,8 +9,9 @@ from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db import models
+from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
@@ -228,4 +229,52 @@ def carteira_lista(request):
     })
 
 
-# Import necessário para o aggregate - já no topo do arquivo
+@login_required
+def carteira_form(request, pk=None):
+    from .forms import NotificacaoCompraForm
+    if pk:
+        notificacao = get_object_or_404(NotificacaoCompra, pk=pk, usuario=request.user)
+        acao = 'editar'
+    else:
+        notificacao = None
+        acao = 'criar'
+
+    if request.method == 'POST':
+        form = NotificacaoCompraForm(request.POST, instance=notificacao)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.usuario = request.user
+            if not obj.origem:
+                obj.origem = 'NOTIFICACAO'
+            obj.save()
+            
+            if acao == 'criar':
+                messages.success(request, 'Registro criado com sucesso!')
+            else:
+                messages.success(request, 'Registro atualizado com sucesso!')
+            return redirect('carteira_lista')
+        else:
+            messages.error(request, 'Por favor, corrija os erros abaixo.')
+    else:
+        form = NotificacaoCompraForm(instance=notificacao)
+
+    return render(request, 'carteira/detalhes.html', {
+        'form': form,
+        'notificacao': notificacao,
+        'acao': acao
+    })
+
+@login_required
+def carteira_detalhes(request, pk):
+    notificacao = get_object_or_404(NotificacaoCompra, pk=pk, usuario=request.user)
+    acao = request.GET.get('acao', 'ver')
+
+    if acao == 'deletar' and request.method == 'POST':
+        notificacao.delete()
+        messages.success(request, 'Registro excluído com sucesso!')
+        return redirect('carteira_lista')
+
+    return render(request, 'carteira/detalhes.html', {
+        'notificacao': notificacao,
+        'acao': acao
+    })
