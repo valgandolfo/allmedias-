@@ -82,14 +82,19 @@
         <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
         <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
     </div>
-    <div class="row g-2">
-        <div class="col-6">
+    <div class="row g-2 align-items-end">
+        <div class="col-5">
             <label class="form-label small text-muted mb-0 ms-1 fw-bold">Dt. Inicial</label>
-            <input type="date" id="filterDataInicial" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem; padding: 8px 10px;" onchange="filtrarItens()">
+            <input type="date" id="filterDataInicial" class="form-control card-custom border-0 text-muted px-2" style="font-size: 0.8rem;">
         </div>
-        <div class="col-6">
+        <div class="col-5">
             <label class="form-label small text-muted mb-0 ms-1 fw-bold">Dt. Final</label>
-            <input type="date" id="filterDataFinal" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem; padding: 8px 10px;" onchange="filtrarItens()">
+            <input type="date" id="filterDataFinal" class="form-control card-custom border-0 text-muted px-2" style="font-size: 0.8rem;">
+        </div>
+        <div class="col-2">
+            <button class="btn btn-primary w-100 text-center px-1" style="border-radius: 12px; height: 38px;" onclick="filtrarItens()">
+                <i class="bi bi-check2"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -108,19 +113,10 @@
 </div>
 
 <!-- Totais Section -->
-<div class="summary-card p-3 mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
-        <span class="text-info small fw-bold"><i class="bi bi-phone-flip"></i> Total Pix</span>
-        <span class="fw-bold text-info">R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
-        <span class="text-warning small fw-bold"><i class="bi bi-credit-card"></i> Total Compra</span>
-        <span class="fw-bold text-warning">R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mt-1">
-        <span class="text-success fw-bold"><i class="bi bi-wallet2"></i> Total Geral</span>
-        <span class="fw-bold text-success fs-5">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3 px-1 fw-bold" style="font-size: 0.85rem;">
+    <span class="text-success">Todos: R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
+    <span class="text-info">Pix: R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
+    <span class="text-warning">Compra: R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
 </div>
 {% endblock %}
 
