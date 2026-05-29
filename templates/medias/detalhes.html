@@ -256,31 +256,26 @@
 
         if (navigator.share) {
             try {
-                // Tenta baixar o arquivo para compartilhar fisicamente (útil para PDFs e Imagens)
-                // Adicionamos um cache-buster para evitar problemas de CORS com imagens cacheadas
-                const fetchUrl = finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'cb=' + new Date().getTime();
-                const response = await fetch(fetchUrl);
+                const response = await fetch(finalUrl, { cache: 'no-cache' });
+                if (!response.ok) throw new Error('Falha HTTP');
                 const blob = await response.blob();
                 
                 let filename = titulo;
                 {% if midia.tipo == 'pdf' %} if(!filename.toLowerCase().endsWith('.pdf')) filename += '.pdf'; {% endif %}
                 {% if midia.tipo == 'foto' %} if(!filename.toLowerCase().match(/\.(jpg|jpeg|png|webp)$/)) filename += '.jpg'; {% endif %}
 
-                const file = new File([blob], filename, { type: blob.type });
+                const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        title: titulo,
-                        files: [file]
-                    });
-                    return; // Compartilhamento do arquivo físico foi um sucesso
+                    await navigator.share({ title: titulo, files: [file] });
+                    return; 
                 }
+                throw new Error("canShare falso");
             } catch (err) {
-                console.warn('Falha ao compartilhar o arquivo físico (CORS ou suporte), usando fallback do link...', err);
+                if (err.name === 'AbortError') return;
+                console.warn('Falha arquivo, fallback link...', err);
+                navigator.share({ title: titulo, url: finalUrl }).catch(e => console.warn('Falha link:', e));
             }
-
-            // Fallback: compartilha o link
-            navigator.share({ title: titulo, url: finalUrl }).catch(err => console.warn('Compartilhar link cancelado:', err));
         } else {
             navigator.clipboard.writeText(finalUrl).then(() => alert('Link copiado!')).catch(() => alert('Use o link: ' + finalUrl));
         }

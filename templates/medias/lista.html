@@ -200,10 +200,7 @@
         }
 
         try {
-            // Tenta baixar o arquivo para compartilhar fisicamente
-            // Adicionamos um cache-buster para evitar problemas de CORS com imagens cacheadas
-            const fetchUrl = finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'cb=' + new Date().getTime();
-            const resposta = await fetch(fetchUrl);
+            const resposta = await fetch(finalUrl, { cache: 'no-cache' });
             if (!resposta.ok) throw new Error('Falha HTTP');
 
             const blob = await resposta.blob();
@@ -211,21 +208,15 @@
             const arquivo = new File([blob], nomeArquivo, { type: blob.type || 'application/octet-stream' });
 
             if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
-                await navigator.share({
-                    title: titulo,
-                    files: [arquivo]
-                });
-                return; // Sucesso ao compartilhar o arquivo
+                await navigator.share({ title: titulo, files: [arquivo] });
+                return;
             }
+            throw new Error('canShare falso');
         } catch (erro) {
-            console.warn('Falha ao baixar arquivo para compartilhar (CORS ou erro de rede). Compartilhando link como fallback...', erro);
+            if (erro.name === 'AbortError') return;
+            console.warn('Falha arquivo, fallback link...', erro);
+            navigator.share({ title: titulo, url: finalUrl }).catch(e => console.warn('Falha link:', e));
         }
-        
-        // Fallback: compartilha o link
-        navigator.share({
-            title: titulo,
-            url: finalUrl
-        }).catch(err => console.warn('Compartilhar link cancelado:', err));
     }
 
     function filtrarItens() {
