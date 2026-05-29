@@ -123,8 +123,8 @@
 <div class="d-flex flex-column w-100 gap-2">
     <div class="d-flex justify-content-between align-items-center w-100">
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo=""
-                onclick="filtrarTipo('')">Todos</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active"
+                data-tipo="" onclick="filtrarTipo('')">Todos</button>
             <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 filter-btn" data-tipo="PIX"
                 onclick="filtrarTipo('PIX')">PIX</button>
             <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="COMPRA"
@@ -140,7 +140,8 @@
     </div>
 
     <!-- Totalizadores -->
-    <div class="px-2 py-2 fw-bold rounded" style="font-size: 0.85rem; text-align: left; background-color: rgba(128, 128, 128, 0.15);">
+    <div class="px-2 py-2 fw-bold rounded"
+        style="font-size: 0.85rem; text-align: left; background-color: rgba(128, 128, 128, 0.473);">
         <span class="text-success me-3">Todos-$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
         <span class="text-info me-3">Pix-$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
         <span class="text-warning">Compras-$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
