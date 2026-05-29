@@ -10,9 +10,17 @@
     .notif-content { flex: 1; min-width: 0; }
     .notif-title { 
         font-weight: bold; 
-        font-size: 16px; 
+        font-size: 15px; 
         color: var(--text-main);
         margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .notif-price {
+        white-space: nowrap;
+        flex-shrink: 0;
+        margin-left: 10px;
     }
     .notif-meta { font-size: 12px; color: #999; }
     
@@ -39,7 +47,7 @@
 
     /* Layout Grid adjustments */
     .layout-grid .notif-item {
-        text-align: left;
+        text-align: center;
     }
     .layout-grid .bank-icon {
         margin: 0 auto 10px auto;
@@ -47,23 +55,41 @@
         height: 50px;
         font-size: 24px;
     }
+    .layout-grid .notif-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    .layout-grid .notif-price {
+        margin-left: 0;
+        font-size: 18px;
+    }
+    .layout-grid .notif-meta {
+        display: none !important;
+    }
+    .layout-lista .notif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
 </style>
 {% endblock %}
 
 {% block search_bar %}
 <div class="search-bar">
-    <div class="row g-2 mb-2">
-        <div class="col-12">
-            <div class="input-group card-custom">
-                <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-                <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
-            </div>
+    <div class="input-group card-custom mb-2">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+        <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Buscar..." onkeyup="filtrarItens()">
+    </div>
+    <div class="row g-2">
+        <div class="col-6">
+            <label class="form-label small text-muted mb-0 ms-1 fw-bold">Dt. Inicial</label>
+            <input type="date" id="filterDataInicial" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem; padding: 8px 10px;" onchange="filtrarItens()">
         </div>
         <div class="col-6">
-            <input type="date" id="filterDataInicial" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem;" onchange="filtrarItens()">
-        </div>
-        <div class="col-6">
-            <input type="date" id="filterDataFinal" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem;" onchange="filtrarItens()">
+            <label class="form-label small text-muted mb-0 ms-1 fw-bold">Dt. Final</label>
+            <input type="date" id="filterDataFinal" class="form-control card-custom border-0 text-muted" style="font-size: 0.85rem; padding: 8px 10px;" onchange="filtrarItens()">
         </div>
     </div>
 </div>
@@ -82,20 +108,18 @@
 </div>
 
 <!-- Totais Section -->
-<div class="summary-card p-3 text-center">
-    <div class="row align-items-center">
-        <div class="col-4">
-            <div class="text-muted small mb-1">Total Pix</div>
-            <div class="fw-bold text-info" style="font-size: 0.9rem;">R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></div>
-        </div>
-        <div class="col-4 border-start border-end border-secondary border-opacity-25">
-            <div class="text-muted small mb-1">Total Compra</div>
-            <div class="fw-bold text-warning" style="font-size: 0.9rem;">R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></div>
-        </div>
-        <div class="col-4">
-            <div class="text-muted small mb-1">Total Geral</div>
-            <div class="fw-bold text-success" style="font-size: 0.9rem;">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></div>
-        </div>
+<div class="summary-card p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+        <span class="text-info small fw-bold"><i class="bi bi-phone-flip"></i> Total Pix</span>
+        <span class="fw-bold text-info">R$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+        <span class="text-warning small fw-bold"><i class="bi bi-credit-card"></i> Total Compra</span>
+        <span class="fw-bold text-warning">R$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-1">
+        <span class="text-success fw-bold"><i class="bi bi-wallet2"></i> Total Geral</span>
+        <span class="fw-bold text-success fs-5">R$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
     </div>
 </div>
 {% endblock %}
@@ -117,13 +141,13 @@
         </div>
 
         <div class="notif-content" onclick="window.location.href='{% url 'carteira_detalhes' notif.pk %}'">
-            <div class="d-flex justify-content-between align-items-start">
-                <span class="notif-title">{{ notif.estabelecimento|default:"Desconhecido" }}</span>
-                <span class="fw-bold {% if notif.tipo_transacao == 'PIX' %}text-info{% else %}text-success{% endif %}">
+            <div class="notif-header">
+                <div class="notif-title">{{ notif.estabelecimento|default:"Desconhecido" }}</div>
+                <div class="notif-price fw-bold {% if notif.tipo_transacao == 'PIX' %}text-info{% elif notif.tipo_transacao == 'COMPRA' %}text-warning{% else %}text-success{% endif %}">
                     R$ {{ notif.valor|floatformat:2 }}
-                </span>
+                </div>
             </div>
-            <div class="notif-meta d-flex justify-content-between">
+            <div class="notif-meta d-flex justify-content-between mt-1">
                 <span>
                     <i class="bi bi-bank small"></i> {{ notif.app_origem|default:"Banco" }}
                     {% if notif.cartao_final %}
