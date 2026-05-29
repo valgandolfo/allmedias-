@@ -120,31 +120,32 @@
 {% endblock %}
 
 {% block filters %}
-<div class="d-flex justify-content-between align-items-center w-100 mb-2">
-    <div class="d-flex gap-2">
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo=""
-            onclick="filtrarTipo('')">Todos</button>
-        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 filter-btn" data-tipo="PIX"
-            onclick="filtrarTipo('PIX')">PIX</button>
-        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="COMPRA"
-            onclick="filtrarTipo('COMPRA')">Compra</button>
+<div class="d-flex flex-column w-100 gap-2">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-tipo=""
+                onclick="filtrarTipo('')">Todos</button>
+            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 filter-btn" data-tipo="PIX"
+                onclick="filtrarTipo('PIX')">PIX</button>
+            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 filter-btn" data-tipo="COMPRA"
+                onclick="filtrarTipo('COMPRA')">Compra</button>
+        </div>
+
+
+        <button class="btn btn-sm btn-outline-info rounded-pill d-none" data-bs-toggle="modal"
+            data-bs-target="#modalMacrodroid">
+            <i class="bi bi-gear"></i>
+        </button>
+
     </div>
 
-    
-    <button class="btn btn-sm btn-outline-info rounded-pill d-none" data-bs-toggle="modal"
-        data-bs-target="#modalMacrodroid">
-        <i class="bi bi-gear"></i>
-    </button>
+    <!-- Totalizadores -->
+    <div class="px-1 fw-bold" style="font-size: 0.85rem; text-align: left;">
+        <span class="text-success me-3">Todos-$ <span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
+        <span class="text-info me-3">Pix-$ <span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
+        <span class="text-warning">Compras-$ <span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
+    </div>
 </div>
-
-<!-- Totalizadores -->
-<div class="mb-3 px-1 fw-bold" style="font-size: 0.85rem; text-align: left;">
-    <span class="text-success me-3">Todos-$<span id="total-geral">{{ total_geral|floatformat:2 }}</span></span>
-    <span class="text-info me-3">Pix-$<span id="total-pix">{{ total_pix|floatformat:2 }}</span></span>
-    <span class="text-warning">Compras-$<span id="total-compra">{{ total_compra|floatformat:2 }}</span></span>
-</div>
-
-
 {% endblock %}
 
 {% block list_content %}
