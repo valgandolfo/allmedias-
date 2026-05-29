@@ -21,6 +21,8 @@ class Anotacao(models.Model):
     )
     titulo = models.CharField(max_length=100, verbose_name='Título')
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, verbose_name='Tipo')
+    # IMPORTANTE: Quando o tipo for 'link', a URL será salva neste campo 'texto'. 
+    # Não existe um campo específico de URL no banco de dados para simplificar o schema.
     texto = models.TextField(blank=True, null=True, verbose_name='Texto')
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Data de Cadastro')
     favorito = models.BooleanField(default=False, verbose_name='Favorito')

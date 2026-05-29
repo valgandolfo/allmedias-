@@ -190,8 +190,7 @@
                 <div class="input-group">
                     <input type="url" class="form-control" id="inputLinkUrl" name="texto"
                         placeholder="https://..."
-                        value="{% if anotacao and anotacao.tipo == 'link' %}{{ anotacao.texto }}{% endif %}"
-                        disabled>
+                        value="{% if anotacao and anotacao.tipo == 'link' %}{{ anotacao.texto }}{% endif %}">
                     <button type="button" class="btn btn-outline-secondary" id="btnTestarLink" title="Testar link" onclick="testarLink()">
                         <i class="bi bi-box-arrow-up-right"></i>
                     </button>
@@ -434,32 +433,7 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     function textareaPrincipal() { return document.querySelector('#areaTexto textarea'); }
     function inputLink() { return document.getElementById('inputLinkUrl'); }
 
-    function prepararCamposTextoParaEnvio() {
-        const tipo = selectTipo.value;
-        const taTexto = textareaPrincipal();
-        const inLink = inputLink();
-
-        if (tipo === 'link') {
-            // Habilita o input de link e desabilita o textarea para não enviarem os dois
-            if (taTexto) taTexto.disabled = true;
-            if (inLink) inLink.disabled = false;
-        } else if (tipo === 'pix') {
-            if (taTexto) taTexto.disabled = true;
-            if (inLink) inLink.disabled = true;
-        } else {
-            // texto, lista, checklist — apenas o textarea envia
-            if (taTexto) taTexto.disabled = false;
-            if (inLink) inLink.disabled = true;
-        }
-    }
-
-    function initNomeCampos() {
-        // Ao iniciar, desabilita o input de link (o toggleCampos e o submit cuidam disso)
-        const inLink = inputLink();
-        if (inLink) inLink.disabled = true;
-        const taTexto = textareaPrincipal();
-        if (taTexto) taTexto.disabled = false;
-    }
+    // A ativação e desativação dos campos agora é centralizada na função toggleCampos
 
     function inserirTextoNoCursor(textarea, texto) {
         const inicio = textarea.selectionStart;
@@ -526,19 +500,27 @@ const selectTipo = document.querySelector('select[name="tipo"]');
     function toggleCampos() {
         const tipo = selectTipo.value;
         const areaLink = document.getElementById('areaLink');
+        const taTexto = textareaPrincipal();
+        const inLink = inputLink();
 
         if (tipo === 'pix') {
             areaTexto.classList.add('d-none');
             areaPix.classList.remove('d-none');
             areaLink.classList.add('d-none');
+            if (taTexto) taTexto.disabled = true;
+            if (inLink) inLink.disabled = true;
         } else if (tipo === 'link') {
             areaTexto.classList.add('d-none');
             areaPix.classList.add('d-none');
             areaLink.classList.remove('d-none');
+            if (taTexto) taTexto.disabled = true;
+            if (inLink) inLink.disabled = false;
         } else {
             areaTexto.classList.remove('d-none');
             areaPix.classList.add('d-none');
             areaLink.classList.add('d-none');
+            if (taTexto) taTexto.disabled = false;
+            if (inLink) inLink.disabled = true;
 
             if (tipo === 'checklist') labelTexto.innerText = 'Itens do Checklist (um por linha)';
             else if (tipo === 'lista_numerada') labelTexto.innerText = 'Itens da Lista (um por linha)';
@@ -560,8 +542,7 @@ const selectTipo = document.querySelector('select[name="tipo"]');
         taPrincipal.addEventListener('keydown', tratarEnterListaChecklist);
         taPrincipal.addEventListener('input', function() { atualizarZebraEScroll(this); });
     }
-    document.querySelector('form[method="post"]').addEventListener('submit', prepararCamposTextoParaEnvio);
-    initNomeCampos();
+    document.querySelector('form[method="post"]').addEventListener('submit', toggleCampos);
     toggleCampos();
 
     function atualizarZebraEScroll(textarea) {

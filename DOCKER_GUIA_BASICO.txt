@@ -1,0 +1,77 @@
+=============================================================
+ GUIA DE SOBREVIVÊNCIA E CONCEITOS BÁSICOS DO DOCKER
+=============================================================
+
+Assim como o Git revolucionou como você guarda e compartilha seu código,
+o Docker vai revolucionar como você RODA o seu código.
+
+-------------------------------------------------------------
+ 1. OS TRÊS CONCEITOS FUNDAMENTAIS
+-------------------------------------------------------------
+1. IMAGEM (Image) -> "A Receita" ou "A Fita Cassete"
+   A imagem é um arquivo estático e imutável. Ela contém o seu código, 
+   o sistema operacional (Linux), o Python, e as bibliotecas.
+   Ela é a "planta de uma casa". Você não consegue morar nela, ela é 
+   apenas o projeto pronto para ser construído.
+
+2. CONTÊINER (Container) -> "A Casa Construída" ou "A Música Tocando"
+   Quando você pega uma Imagem e diz pro Docker "Rodar" ela, ele cria um
+   Contêiner. O Contêiner é a sua aplicação viva e rodando na memória.
+   Você pode criar 10 Contêineres iguais usando apenas 1 Imagem.
+
+3. VOLUME (Volume) -> "O Pendrive" ou "O Cofre"
+   Um contêiner é volátil (se você desligar ou der erro, tudo que foi
+   salvo dentro dele é deletado). Para não perder os dados do seu Banco 
+   de Dados (MySQL), nós plugamos um "Volume" (um HD externo) nele. 
+   O contêiner pode ser destruído, mas os dados no Volume ficam salvos!
+
+
+-------------------------------------------------------------
+ 2. COMPARANDO COMANDOS: GIT vs DOCKER
+-------------------------------------------------------------
+Você já sabe Git. Vamos usar a sua memória muscular a nosso favor!
+
+No Git, você faz: `git clone <link>` (para baixar um código da internet)
+No Docker:        `docker pull <nome>` (baixa uma Imagem pronta, ex: mysql)
+
+No Git, você faz: `git status` (para ver o que está acontecendo)
+No Docker:        `docker ps` (lista os Contêineres que estão rodando)
+
+No Git, você faz: `git log` (vê o histórico de alterações)
+No Docker:        `docker logs <nome>` (vê os prints e erros da sua aplicação)
+
+No Git, você faz: `git rm` (deleta arquivos)
+No Docker:        `docker rm <nome>` (deleta um Contêiner)
+                  `docker rmi <nome>` (deleta uma Imagem)
+
+
+-------------------------------------------------------------
+ 3. OS COMANDOS DO DIA A DIA (Docker e Docker Compose)
+-------------------------------------------------------------
+O "Docker Compose" é um maestro. Em vez de você rodar comando por comando,
+ele lê um arquivo (docker-compose.yml) e levanta o Banco e o Django juntos.
+
+► docker-compose up
+  O principal de todos! Lê a receita e sobe toda a sua infraestrutura.
+  Se você adicionar a flag "-d" (docker-compose up -d), ele roda no fundo
+  (background) para não travar o seu terminal.
+
+► docker-compose down
+  Desliga tudo e destrói os contêineres (mas não destrói os Volumes, 
+  então os seus dados do MySQL continuam salvos para a próxima vez).
+
+► docker exec -it <nome_do_conteiner> bash
+  Isso é como se você fizesse um "SSH" (um acesso remoto) para dentro
+  da Caixa. Ele abre o terminal lá de dentro para você fuçar nas pastas.
+
+
+-------------------------------------------------------------
+ 4. COMO O FLUXO VAI FUNCIONAR NA PRÁTICA?
+-------------------------------------------------------------
+1. Você programa o código no seu PC, como faz hoje.
+2. Na hora de testar, em vez de ativar o ".venv" e dar "runserver", 
+   você vai digitar: `docker-compose up`
+3. O Docker vai empacotar seu código na hora, levantar o Banco de Dados,
+   ligar os dois e dizer: "Pronto, acesse localhost:8000".
+4. Terminando o trabalho, você dá `docker-compose down`. Sua máquina 
+   volta a ficar limpa e sem nenhum processo rodando escondido.

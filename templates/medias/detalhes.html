@@ -257,7 +257,9 @@
         if (navigator.share) {
             try {
                 // Tenta baixar o arquivo para compartilhar fisicamente (útil para PDFs e Imagens)
-                const response = await fetch(finalUrl);
+                // Adicionamos um cache-buster para evitar problemas de CORS com imagens cacheadas
+                const fetchUrl = finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'cb=' + new Date().getTime();
+                const response = await fetch(fetchUrl);
                 const blob = await response.blob();
                 
                 let filename = titulo;

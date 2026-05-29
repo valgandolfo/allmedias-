@@ -68,7 +68,7 @@
 
 {% block list_content %}
     {% for midia in medias %}
-    <div class="crud-item media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.nome_exibicao|lower }}">
+    <div class="crud-item media-item" data-tipo="{{ midia.tipo }}" data-titulo="{{ midia.nome_exibicao|lower }}" data-tags="{{ midia.tags|default:''|lower }}">
 
         <!-- Thumbnail -->
         <div class="media-thumb" onclick="window.location.href='{% url 'media_detalhes' midia.pk %}'">
@@ -201,7 +201,9 @@
 
         try {
             // Tenta baixar o arquivo para compartilhar fisicamente
-            const resposta = await fetch(finalUrl);
+            // Adicionamos um cache-buster para evitar problemas de CORS com imagens cacheadas
+            const fetchUrl = finalUrl + (finalUrl.includes('?') ? '&' : '?') + 'cb=' + new Date().getTime();
+            const resposta = await fetch(fetchUrl);
             if (!resposta.ok) throw new Error('Falha HTTP');
 
             const blob = await resposta.blob();
@@ -229,8 +231,9 @@
     function filtrarItens() {
         const termo = document.getElementById('searchInput').value.toLowerCase();
         document.querySelectorAll('.media-item').forEach(item => {
-            const titulo = item.getAttribute('data-titulo');
-            item.style.display = titulo.includes(termo) ? 'flex' : 'none';
+            const titulo = item.getAttribute('data-titulo') || '';
+            const tags = item.getAttribute('data-tags') || '';
+            item.style.display = (titulo.includes(termo) || tags.includes(termo)) ? 'flex' : 'none';
         });
     }
 
