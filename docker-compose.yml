@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    # Comando que vai rodar assim que o container ligar: faz as migrações e sobe o servidor
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      # O "Volume" liga a pasta atual (do PC) na pasta /app (do contêiner)
+      - .:/app
+    ports:
+      # Mapeia a porta 8000 do seu notebook para a porta 8000 do contêiner
+      - "8000:8000"
+    env_file:
+      # Lê automaticamente o seu arquivo .env com as variáveis de ambiente!
+      - .env
