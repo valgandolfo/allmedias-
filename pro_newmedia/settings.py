@@ -357,3 +357,6 @@ Q_CLUSTER = {
     'orm': 'default'  # usa o banco de dados principal (MySQL/SQLite)
 }
 
+# Ocultar warning inofensivo do MySQL no Railway
+SILENCED_SYSTEM_CHECKS = ['models.W037']
+
