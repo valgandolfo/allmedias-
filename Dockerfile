@@ -21,6 +21,9 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copia todo o código do projeto para a pasta de trabalho
 COPY . /app/
 
+# Coleta os arquivos estáticos durante o build para o WhiteNoise não dar erro 500
+RUN python manage.py collectstatic --noinput
+
 # O botão de ligar! Comando que a Railway vai executar no final:
 # Ele liga o Gunicorn (servidor de produção)
 CMD ["bash", "-c", "gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4"]

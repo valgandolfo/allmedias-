@@ -52,7 +52,7 @@ LOGGING = {
     },
 }
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", default=None) or config("SECRET_KEY")
+SECRET_KEY = config("DJANGO_SECRET_KEY", default=None) or config("SECRET_KEY", default="dummy-secret-key-for-build")
 
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 
