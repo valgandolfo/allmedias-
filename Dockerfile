@@ -21,8 +21,8 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copia todo o código do projeto para a pasta de trabalho
 COPY . /app/
 
-# Coleta os arquivos estáticos durante o build para o WhiteNoise não dar erro 500
-RUN python manage.py collectstatic --noinput
+# Coleta os arquivos estáticos durante o build forçando modo produção para gerar o manifesto
+RUN DJANGO_DEBUG=False DATABASE_URL="mysql://dummy:dummy@localhost/dummy" python manage.py collectstatic --noinput
 
 # O botão de ligar! Comando que a Railway vai executar no final:
 # Ele liga o Gunicorn (servidor de produção)
