@@ -2,7 +2,7 @@
 # ALLMÉDIAS PWA - DEPENDÊNCIAS
 # ===================================================================
 # Framework principal
-Django>=6.0.0,<7.0.0
+Django>=5.0.0,<6.0.0
 
 # Storage e Cloud (Google Drive & Wasabi S3)
 django-storages[s3]>=1.14.0,<2.0.0
