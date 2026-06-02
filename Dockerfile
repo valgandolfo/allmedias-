@@ -23,4 +23,4 @@ COPY . /app/
 
 # O botão de ligar! Comando que a Railway vai executar no final:
 # Ele liga o Gunicorn (servidor de produção)
-CMD ["sh", "-c", "gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4"]
+CMD ["sh", "-c", "gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4"]
