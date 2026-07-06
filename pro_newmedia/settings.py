@@ -294,6 +294,7 @@ if USE_S3_STORAGE:
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     AWS_S3_CUSTOM_DOMAIN     = None         # Sem custom domain — usa endpoint direto com token
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=3600"}
+    AWS_S3_ADDRESSING_STYLE   = "path"          # Obrigatório para Cloudflare R2
 
     STORAGES = {
         "default":     {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
