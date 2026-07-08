@@ -68,6 +68,52 @@
     </div>
 </div>
 
+<!-- Botão de instalar PWA — SEMPRE visível na tela de login para teste -->
+<div class="text-center mt-3">
+  <button id="btn-instalar-login" onclick="instalarPWALogin()"
+    style="background: rgba(14,165,233,0.15); border: 2px solid #0ea5e9; color: #0ea5e9;
+           border-radius: 30px; padding: 12px 32px; font-size: 1rem; font-weight: 700;
+           box-shadow: 0 0 20px rgba(14,165,233,0.3); width: 100%; max-width: 360px;
+           cursor: pointer;">
+    <i class="bi bi-download me-2"></i> Instalar App no Celular
+  </button>
+  <p id="pwa-status-msg" class="text-muted mt-2" style="font-size:0.8rem;"></p>
+</div>
+
+<script>
+function instalarPWALogin() {
+  var msg = document.getElementById('pwa-status-msg');
+  if (window._pwaInstallEvent) {
+    window._pwaInstallEvent.prompt();
+    window._pwaInstallEvent.userChoice.then(function(result) {
+      if (result.outcome === 'accepted') {
+        if (msg) msg.textContent = '✅ App instalado com sucesso!';
+      } else {
+        if (msg) msg.textContent = '❌ Instalação cancelada.';
+      }
+      window._pwaInstallEvent = null;
+    });
+  } else {
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      if (msg) msg.innerHTML = '📱 No Safari: toque em <strong>⬆ Compartilhar</strong> → <strong>Adicionar à tela de início</strong>';
+    } else {
+      if (msg) msg.innerHTML = '⏳ Aguardando... ou abra o menu do Chrome (⋮) e toque em <strong>"Instalar app"</strong>';
+    }
+  }
+}
+window.addEventListener('beforeinstallprompt', function() {
+  var msg = document.getElementById('pwa-status-msg');
+  if (msg) msg.textContent = '✅ Pronto! Toque no botão para instalar.';
+});
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('btn-instalar-login');
+  var msg = document.getElementById('pwa-status-msg');
+  if (btn) btn.textContent = '✅ App já instalado!';
+  if (msg) msg.textContent = '';
+});
+</script>
+
 <script>
 // Mostrar/ocultar senha
 const togglePassword = document.getElementById('togglePassword');
