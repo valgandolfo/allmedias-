@@ -3,6 +3,18 @@
 <html lang="pt-BR">
 
 <head>
+  <!-- PWA: captura beforeinstallprompt o mais cedo possível (Chrome mobile dispara antes do body) -->
+  <script>
+    window._pwaInstallEvent = null;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      window._pwaInstallEvent = e;
+      // Tenta exibir o botão se já estiver no DOM
+      var btn = document.getElementById('btn-instalar-pwa');
+      if (btn) btn.style.display = 'flex';
+      console.log('[PWA] beforeinstallprompt capturado cedo.');
+    });
+  </script>
   <meta charset="utf-8" />
   <title>{% block title %}AllMedias{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -385,42 +397,40 @@
     // ============================================================
     // PWA Install Logic
     // ============================================================
-    let _pwaInstallEvent = null;
 
-    // Captura o evento antes que o browser descarte
-    window.addEventListener('beforeinstallprompt', function(e) {
-      e.preventDefault();
-      _pwaInstallEvent = e;
-      const btn = document.getElementById('btn-instalar-pwa');
-      if (btn) btn.style.display = 'flex';
-      console.log('[PWA] beforeinstallprompt capturado — botão de instalação exibido.');
-    });
+    // Exibe o botão se o evento já foi capturado antes do body carregar
+    (function() {
+      if (window._pwaInstallEvent) {
+        var btn = document.getElementById('btn-instalar-pwa');
+        if (btn) btn.style.display = 'flex';
+      }
+    })();
 
     function instalarPWA() {
-      if (!_pwaInstallEvent) return;
-      _pwaInstallEvent.prompt();
-      _pwaInstallEvent.userChoice.then(function(result) {
+      if (!window._pwaInstallEvent) return;
+      window._pwaInstallEvent.prompt();
+      window._pwaInstallEvent.userChoice.then(function(result) {
         console.log('[PWA] Resultado da instalação:', result.outcome);
-        _pwaInstallEvent = null;
-        const btn = document.getElementById('btn-instalar-pwa');
+        window._pwaInstallEvent = null;
+        var btn = document.getElementById('btn-instalar-pwa');
         if (btn) btn.style.display = 'none';
       });
     }
 
     // Esconde o botão quando o app já está instalado
     window.addEventListener('appinstalled', function() {
-      const btn = document.getElementById('btn-instalar-pwa');
+      var btn = document.getElementById('btn-instalar-pwa');
       if (btn) btn.style.display = 'none';
       console.log('[PWA] App instalado com sucesso!');
     });
 
     // iOS: Safari não dispara beforeinstallprompt — exibe banner manual
     (function() {
-      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      const isStandalone = window.navigator.standalone === true;
-      const dismissed = localStorage.getItem('ios-banner-dismissed');
+      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      var isStandalone = window.navigator.standalone === true;
+      var dismissed = localStorage.getItem('ios-banner-dismissed');
       if (isIOS && !isStandalone && !dismissed) {
-        const banner = document.getElementById('ios-install-banner');
+        var banner = document.getElementById('ios-install-banner');
         if (banner) banner.style.display = 'block';
       }
     })();
