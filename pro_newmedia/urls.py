@@ -6,10 +6,48 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
+from django.http import FileResponse, HttpResponse
+import os
 
 from app_newmedia.views import home
 
+
+def service_worker_view(request):
+    """Serve o service worker da raiz para garantir escopo completo (/)."""
+    sw_path = os.path.join(settings.BASE_DIR, 'static', 'service-worker.js')
+    try:
+        with open(sw_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/javascript')
+    except FileNotFoundError:
+        # Em produção, tenta no STATIC_ROOT (após collectstatic)
+        sw_path = os.path.join(settings.STATIC_ROOT, 'service-worker.js')
+        with open(sw_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/javascript')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+
+def manifest_view(request):
+    """Serve o manifest.webmanifest da raiz."""
+    manifest_path = os.path.join(settings.BASE_DIR, 'static', 'manifest.webmanifest')
+    try:
+        with open(manifest_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/manifest+json')
+    except FileNotFoundError:
+        manifest_path = os.path.join(settings.STATIC_ROOT, 'manifest.webmanifest')
+        with open(manifest_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/manifest+json')
+    response['Cache-Control'] = 'no-cache'
+    return response
+
 urlpatterns = [
+    # ===================================================================
+    # PWA — Service Worker e Manifest servidos da raiz (escopo total)
+    # ===================================================================
+    path('sw.js', service_worker_view, name='service_worker'),
+    path('manifest.webmanifest', manifest_view, name='manifest'),
+
     # ===================================================================
     # FAVICON (redireciona /favicon.ico para o static)
     # ===================================================================

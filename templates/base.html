@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   {# PWA e ícones #}
-  <link rel="manifest" href="{% static 'manifest.webmanifest' %}" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-32x32.png' %}" />
   <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/icon-16x16.png' %}" />
@@ -358,7 +358,10 @@
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
         navigator.serviceWorker
-          .register("{% static 'service-worker.js' %}")
+          .register("/sw.js", { scope: "/" })
+          .then(function(reg) {
+            console.log("Service Worker registrado com sucesso. Escopo:", reg.scope);
+          })
           .catch(function (err) {
             console.warn("Falha ao registrar service worker:", err);
           });

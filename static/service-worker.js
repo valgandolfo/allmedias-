@@ -1,4 +1,4 @@
-const CACHE_NAME = 'allmedias-pwa-v1';
+const CACHE_NAME = 'allmedias-pwa-v2';
 
 // Install event
 self.addEventListener('install', (event) => {
