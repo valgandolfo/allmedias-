@@ -11,6 +11,13 @@
             <i class="bi bi-arrow-left fs-4"></i>
         </a>
         <h1 class="h4 mb-0 flex-grow-1">Meu Perfil</h1>
+        <!-- Botão Instalar PWA -->
+        <button id="pwa-install-btn"
+                class="btn btn-outline-success btn-sm rounded-pill px-3 me-2"
+                style="display:none;"
+                title="Instalar App">
+            <i class="bi bi-download me-1"></i> Instalar App
+        </button>
         <a href="{% url 'profile_edit' %}" class="btn btn-primary btn-sm rounded-pill px-3">
             <i class="bi bi-pencil me-1"></i> Editar
         </a>
@@ -152,5 +159,50 @@
     </div>
 
 </div>
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    const btn = document.getElementById('pwa-install-btn');
+    let deferredPrompt = null;
+
+    // Se já está rodando como app instalado (standalone), não mostra o botão
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        return;
+    }
+
+    // Captura o evento de instalação assim que disparar
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        btn.style.display = 'inline-flex';
+        btn.style.alignItems = 'center';
+    });
+
+    // Clique no botão aciona o prompt nativo
+    btn.addEventListener('click', async function () {
+        if (!deferredPrompt) {
+            // Fallback: instrução manual para o usuário
+            alert('Para instalar: abra o menu do navegador ⋮ e escolha "Adicionar à tela inicial" ou "Instalar aplicativo".');
+            return;
+        }
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            btn.style.display = 'none';
+        }
+        deferredPrompt = null;
+    });
+
+    // Quando o app for instalado, esconde o botão
+    window.addEventListener('appinstalled', function () {
+        btn.style.display = 'none';
+        deferredPrompt = null;
+    });
+})();
+</script>
+{% endblock %}
 
 {% endblock %}
