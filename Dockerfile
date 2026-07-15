@@ -24,6 +24,8 @@ COPY . /app/
 # Coleta os arquivos estáticos durante o build forçando modo produção para gerar o manifesto
 RUN DJANGO_DEBUG=False DATABASE_URL="mysql://dummy:dummy@localhost/dummy" python manage.py collectstatic --noinput
 
-# O botão de ligar! Comando que a Railway vai executar no final:
-# Ele liga o Gunicorn (servidor de produção)
-CMD ["bash", "-c", "gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4"]
+# Entrypoint unificado: decide se roda gunicorn (web) ou o cron
+# baseado na variável de ambiente SERVICE_TYPE
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+CMD ["/entrypoint.sh"]
