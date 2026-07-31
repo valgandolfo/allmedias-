@@ -5,8 +5,8 @@
 
 PORT="${PORT:-8000}"
 if [ "$SERVICE_TYPE" = "cron" ]; then
-    echo "[entrypoint] Modo CRON — executando worker do Django-Q"
-    exec python manage.py qcluster
+    echo "[entrypoint] Modo CRON — executando enviar_compromissos_whatsapp"
+    exec python manage.py enviar_compromissos_whatsapp
 else
     echo "[entrypoint] Modo WEB — iniciando Gunicorn na porta $PORT"
     exec gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4
