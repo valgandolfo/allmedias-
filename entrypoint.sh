@@ -4,8 +4,8 @@
 # - Serviço cron: SERVICE_TYPE=cron                     → management command
 
 if [ "$SERVICE_TYPE" = "cron" ]; then
-    echo "[entrypoint] Modo CRON — executando enviar_compromissos_whatsapp"
-    exec python manage.py enviar_compromissos_whatsapp
+    echo "[entrypoint] Modo CRON — executando worker do Django-Q"
+    exec python manage.py qcluster
 else
     echo "[entrypoint] Modo WEB — iniciando Gunicorn"
     exec gunicorn pro_newmedia.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4

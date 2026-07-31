@@ -1,132 +1,146 @@
-<<<<<<< HEAD
-# allmedias-
-=======
-# 📱 AllMedias PWA
+# 📱 SÍNTESE DO PROJETO ALLMÉDIAS PWA
 
-Sistema de gestão de mídias pessoais com funcionalidades de anotações e compartilhamento entre usuários.
+## 🎯 **VISÃO GERAL**
 
-## 🚀 Início Rápido
+Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades de **anotações inteligentes**, **agendamento de compromissos** e **compartilhamento entre usuários**.
 
-### **Executar o projeto**
-```bash
-./iniciar_projeto.sh
-```
-
-Este script irá:
-- ✅ Verificar Python 3.8+
-- ✅ Criar/ativar ambiente virtual
-- ✅ Instalar dependências
-- ✅ Configurar banco de dados
-- ✅ Criar superusuário (opcional)
-- ✅ Iniciar servidor Django
-
-### **Acessos**
-- 🌐 **Aplicação**: http://127.0.0.1:8000
-- 🔧 **Admin Django**: http://127.0.0.1:8000/admin
-
-## ⚙️ Configuração
-
-### **1. Ambiente (.env)**
-```bash
-cp .env.example .env
-# Edite o .env com suas configurações
-```
-
-### **2. Principais variáveis**
-- `DJANGO_SECRET_KEY`: Chave secreta única ([gerar aqui](https://djecrety.ir/))
-- `DATABASE_URL`: SQLite (dev) ou PostgreSQL (prod)
-- `AWS_*`: Credenciais Wasabi S3 (opcional em dev)
-- `EMAIL_*`: SMTP para recuperação de senha
-
-## 🏗️ Stack Tecnológica
-
-- **Backend**: Django 6.x
-- **Frontend**: HTML + Bootstrap 5 + JavaScript
-- **PWA**: Service Worker + Manifest
-- **Storage**: Wasabi S3 / Local
-- **Banco**: SQLite (dev) / PostgreSQL (prod)
-
-## 📱 Funcionalidades
-
-### **📚 Minhas Mídias**
-- Upload de fotos, documentos, vídeos
-- Organização por tags
-- Sistema de favoritos
-- Otimização automática de imagens
-
-### **🔄 Conversor de Mídias** 
-- Imagem → PDF
-- Documento → PDF
-- Processamento em fila
-
-### **📝 Anota Ai+**
-- Texto livre
-- Lista numerada  
-- Checklist interativo
-- PIX estruturado
-
-### **↔️ Compartilhamento**
-- Envio entre usuários
-- Histórico de transferências
-- Controle de acesso
-
-## 🛠️ Comandos Úteis
-
-```bash
-# Ativar ambiente virtual
-source venv/bin/activate
-
-# Aplicar migrações
-python manage.py migrate
-
-# Criar superusuário
-python manage.py createsuperuser
-
-# Rodar servidor manualmente
-python manage.py runserver 127.0.0.1:8000
-
-# Coletar arquivos estáticos
-python manage.py collectstatic
-
-# Shell Django
-python manage.py shell
-```
-
-## 📁 Estrutura do Projeto
-
-```
-allmédias/
-├── pro_newmedia/          # Configurações Django
-├── app_newmedia/          # App principal  
-├── templates/             # Templates HTML
-├── static/                # CSS, JS, imagens
-├── media/                 # Uploads locais
-├── venv/                  # Ambiente virtual
-├── .env                   # Configurações (criar)
-├── .env.example           # Template de configurações
-├── requirements.txt       # Dependências Python
-├── iniciar_projeto.sh     # Script de inicialização
-└── README.md             # Esta documentação
-```
-
-## 📋 Documentação Completa
-
-Consulte `SINTESE_PROJETO_ALLMÉDIAS.md` para documentação técnica detalhada.
-
-## 🚀 Deploy (Railway)
-
-1. Configure variáveis de ambiente no Railway
-2. Conecte repositório Git
-3. Railway detecta Django automaticamente
-4. Configure `DATABASE_URL` e `AWS_*` para produção
+**Arquitetura Base:** Django Puro + PWA (Substituindo fluxo legado em Flutter).
 
 ---
 
-**Versão**: 1.0  
-**Migração**: Flutter → Django PWA  
-**Autor**: AllMedias Team# allmedias-
-<<<<<<< HEAD
->>>>>>> 6ae5f7b (first commit)
-=======
-# allmedias-
->>>>>>> e3afadc (first commit)
+## 🏗️ **ARQUITETURA**
+
+### **Stack Tecnológica**
+- **Backend**: Django 6.x
+- **Frontend**: Templates HTML + Bootstrap 5 + JavaScript (Fetch API / CSS Grid)
+- **PWA**: Manifest + Service Worker
+- **Tarefas em Background / Fila**: django-q2 (utilizando Redis como broker)
+- **Banco Dev**: MySQL (Local / Docker)
+- **Banco Prod**: MySQL (Railway via DATABASE_URL)
+- **Storage**: Cloudflare (prod) / Local (dev)
+- **Infraestrutura**: Docker
+- **Autenticação**: Django Sessions
+
+### **Filosofia de Desenvolvimento e UI**
+- ✅ **Menos camadas**: Navegador → Django → Banco/S3
+- ✅ **PWA nativo**: Site instalável como app na home screen
+- ✅ **Assincronicidade e Performace**: Operações custosas são jogadas para fila de processamento sem prender a tela do usuário.
+- ✅ **Mobile-first**: Design responsivo (CSS Grid nativo), botões FAB (Floating Action Button), prioridade na usabilidade em telas pequenas.
+- ✅ **Arquitetura CRUD-Pai/Filho**: O sistema adota a filosofia DRY (*Don't Repeat Yourself*). Todos os módulos utilizam uma herança central de templates (`templates/crud/lista_base.html` e `detalhes_base.html`). Isso restringe cada módulo a ter **apenas 2 arquivos** HTML de interface (`lista.html` e `detalhes.html`), delegando a renderização interna a variáveis de estado (ex: `acao = criar|editar|deletar`).
+- ✅ **View Toggle Dinâmico**: As telas de lista oferecem alternância instantânea entre visualização em Lista e Grid/Cards via troca de classe CSS disparada por JavaScript. A preferência de visualização do usuário é salva no `localStorage` do dispositivo, dispensando consultas ao banco de dados e garantindo persistência imediata e offline por módulo.
+
+---
+
+## 📱 **FUNCIONALIDADES PRINCIPAIS**
+
+### **1. 📚 Minhas Mídias (Central de Arquivos)**
+**Descrição:** Biblioteca pessoal de arquivos organizados na nuvem.
+
+**Recursos:**
+- Upload de arquivos (fotos, docs, pdfs, audio e video).
+- Armazenamento na Storage Cloudflare.
+- Otimização automática de imagens.
+- Layout de exibição customizado em mosaico responsivo.
+
+### **2. 🔄 Conversor de Mídias**
+**Descrição:** Transformação de arquivos automatizada.
+
+**Recursos:**
+- Conversão de Imagens e Documentos genéricos → PDF.
+- Acompanhamento reativo do processamento.
+- Feedback por Notificações Toast no front-end.
+
+### **3. 📝 Anota Ai+ (Caderno Inteligente)**
+**Descrição:** Engine de anotações com parser de contexto.
+
+**Modalidades:**
+- **Livre**: Texto comum para lembretes.
+- **Lista Numerada**: Reconhecimento dinâmico de `1 - item`.
+- **Checklist**: Inputs como `[ ]` e `[x]` mapeados como botões clicáveis interativos. Tela própria para riscar itens à mão.
+- **PIX**: Armazenamento semi-estruturado (Favorecido, Banco, Chave, Cidade) para compartilhamento ágil.
+
+### **4. ↔️ Transferir Mídias**
+**Descrição:** Motor para compartilhamento de dados intra-usuários.
+
+**Recursos:**
+- Envio direto de uma mídia ou Anotação via email de destinatário já cadastrado.
+- Histórico visual contendo tudo que o usuário já enviou e já recebeu do sistema, detalhando data e tipo.
+
+### **5. 📅 Calendário & Notificações**
+**Descrição:** Agenda pessoal interativa via CSS Grid com sistema de automação.
+
+**Recursos:**
+- Grade de visualização de fácil navegação (mês e ano livre).
+- Modal inferencial rápido: Ao clicar no dia, o modal desliza e permite consultar a lista e adicionar compromissos ali mesmo sem refresh de janela.
+- Labels de Evento por cor (ex: azul, verde, vermelho, amarelo) para organização visual.
+- Isolamento autoral (cada `User` vê exclusivamente o próprio sub-universo temporal).
+- **Integração com WhatsApp:** Disparo de mensagens através de um Cron gerenciado via Redis, baseado nos compromissos agendados.
+
+---
+
+## 🗄️ **ESTRUTURA DE DADOS OTIMIZADA**
+
+A infraestrutura foi compactada. Tabelas legadas redundantes (como "Perfil separado" e "Mapeamento de Favoritos") foram enxugadas.
+
+### **Modelos (Tabelas Principais)**
+
+#### **`app_newmedia.medias.models.Midia` (TBMIDEAS)**
+Armazena a raiz dos arquivos, metadados e tamanhos.
+
+#### **`app_newmedia.anota_ai.models.Anotacao` (TBANOTAAI)**
+Abraça de forma dinâmica texto, pix e checklist usando campos nulos estendidos e enumeração de Tipo, juntamente aos fragmentos filhos `ItemAnotacao` para as checklists.
+
+#### **`app_newmedia.transferir.models.Transferencia` (TBTRANSFERENCIA)**
+Faz a ponte dupla de foreign keys `usuario_origem` e `usuario_destino`.
+
+#### **`app_newmedia.calendario.models.Compromisso` (TBCALENDARIO)**
+Entidade recém gerada contendo os metadados fixos:
+- `usuario` (FK)
+- `data` e `hora`
+- `titulo` (Max 50)
+- `cor` (Hex de identificação)
+- `observacoes` (Texto livre)
+
+---
+
+## 🚀 **ROTINAS ASSÍNCRONAS & DEPLOY**
+
+### **Infraestrutura e Hospedagem (Railway VPS)**
+O projeto está hospedado em uma VPS na Railway, orquestrado através de **Dockerfile** e operando sob o domínio público **igeracao.com.br**. A infraestrutura em produção conta com 3 serviços, incluindo:
+1. Serviço do repositório principal.
+2. Serviço secundário de um repositório que interliga o principal ao Redis.
+
+O sistema de correio utiliza o e-mail **Titan integrado com o Gmail via POP**.
+
+### **Background Tasks e Cron (Redis + Django Q2)**
+- Diferente de setups antigos, agora o projeto já está configurado com **Redis** e suas devidas credenciais.
+- Este repositório Redis gerencia um **Cron** responsável pelo envio de mensagens de notificação via **WhatsApp**.
+
+### **Comportamento PWA**
+Os arquivos essenciais que ditam a instalação no ecossistema Android e iOS da Apple via Safari estão atrelados ao projeto em:
+- `static/manifest.webmanifest`
+- `static/service-worker.js`
+- `templates/base.html` (com a tag de meta-theme-color e injeção do Worker).
+
+---
+
+## 📂 **MAPA DO REPOSITÓRIO (DIRECTORY STRUCTURE)**
+
+Esta estrutura ajuda desenvolvedores e agentes de IA a navegarem rapidamente pela base de código.
+
+```text
+/home/joaonote/newmedia/
+├── app_newmedia/      # Todos os apps/módulos do Django (medias, anota_ai, calendario, transferir)
+├── pro_newmedia/      # Configurações core do projeto (settings.py, urls.py, wsgi, asgi)
+├── templates/         # Arquivos HTML (Usa filosofia DRY em templates/crud/lista_base.html)
+├── static/            # Assets estáticos (CSS, JS customizados, manifest.webmanifest, service-worker.js)
+├── scripts/           # Scripts Python e bash auxiliares
+├── Dockerfile         # Instruções de build da imagem
+├── docker-compose.yml # Orquestração local dos containers (App + Banco + Redis)
+├── entrypoint.sh      # Script de inicialização (Roda migrações e sobe o gunicorn/server)
+├── manage.py          # Entrypoint padrão do Django
+└── .env               # Variáveis de ambiente sensíveis (DB, Redis, Email)
+```
+
+---
+*Este documento é a base viva oficial e consolidada das descrições operacionais e arquitetônicas do repositório PWA AllMédias, unificando os drafts antigos de idealização.*

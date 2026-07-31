@@ -363,7 +363,7 @@ Q_CLUSTER = {
     'queue_limit': 500,
     'cpu_affinity': 1,
     'label': 'Django Q',
-    'orm': 'default'  # usa o banco de dados principal (MySQL/SQLite)
+    'redis': config('REDIS_URL', default='redis://localhost:6379')
 }
 
 # Ocultar warning inofensivo do MySQL no Railway
