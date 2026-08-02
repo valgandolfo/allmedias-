@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.management.base import BaseCommand
-from app_newmedia.calendario.models import Compromisso
+from app_newmedia.calendario.models import Compromisso, LogCron
 
 
 class Command(BaseCommand):
@@ -11,7 +11,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         agora = timezone.localtime()
-        self.stdout.write(f'[CRON] Executando às {agora.strftime("%Y-%m-%d %H:%M:%S %Z")}')
+        log_linhas = []  # acumula linhas para gravar no LogCron
+
+        def log(msg):
+            self.stdout.write(msg)
+            log_linhas.append(msg)
+
+        log(f'[CRON] Executando às {agora.strftime("%Y-%m-%d %H:%M:%S %Z")}')
 
         # Buscar compromissos até 2 dias à frente (antecedência máxima = 1440 min = 1 dia)
         limite_busca_dias = agora.date() + timedelta(days=2)
@@ -22,7 +28,7 @@ class Command(BaseCommand):
         ).order_by('data', 'hora')
 
         total_pendentes = compromissos_pendentes.count()
-        self.stdout.write(f'[CRON] {total_pendentes} compromisso(s) pendente(s) encontrado(s).')
+        log(f'[CRON] {total_pendentes} compromisso(s) pendente(s) encontrado(s).')
 
         # ---------------------------------------------------------------
         # JANELA DE ENVIO (ajustada para cron de */5 * * * * — a cada 5 minutos):
@@ -69,10 +75,16 @@ class Command(BaseCommand):
                 self.stdout.write(f'     → Fora da janela (lembrete em {int(diff.total_seconds() / 60)}min)')
 
         if not compromissos_para_enviar:
-            self.stdout.write(self.style.SUCCESS('[CRON] Sem compromissos na janela atual para notificar.'))
+            msg = '[CRON] Sem compromissos na janela atual para notificar.'
+            log(self.style.SUCCESS(msg))
+            LogCron.objects.create(
+                status='sem_compromissos',
+                mensagens_enviadas=0,
+                detalhes='\n'.join(log_linhas),
+            )
             return
 
-        self.stdout.write(f'[CRON] {len(compromissos_para_enviar)} compromisso(s) para enviar agora.')
+        log(f'[CRON] {len(compromissos_para_enviar)} compromisso(s) para enviar agora.')
 
         # Verificar variáveis de ambiente da Evolution API
         evolution_url = os.environ.get('EVOLUTION_API_URL', '').rstrip('/')
@@ -81,15 +93,20 @@ class Command(BaseCommand):
 
         if not evolution_url:
             self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_URL não configurada.'))
+            LogCron.objects.create(status='erro', detalhes='EVOLUTION_API_URL não configurada.')
             return
         if not evolution_token:
             self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_TOKEN não configurado.'))
+            LogCron.objects.create(status='erro', detalhes='EVOLUTION_API_TOKEN não configurado.')
             return
         if not instance_name:
             self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_INSTANCE_NAME não configurado.'))
+            LogCron.objects.create(status='erro', detalhes='EVOLUTION_INSTANCE_NAME não configurado.')
             return
 
-        self.stdout.write(f'[CRON] Evolution API: {evolution_url} | Instância: {instance_name}')
+        log(f'[CRON] Evolution API: {evolution_url} | Instância: {instance_name}')
+
+        mensagens_ok = 0  # contador de mensagens enviadas com sucesso
 
         headers = {
             'apikey': evolution_token,
@@ -113,7 +130,7 @@ class Command(BaseCommand):
                 telefone = None
 
             if not telefone:
-                self.stdout.write(self.style.WARNING(
+                log(self.style.WARNING(
                     f'[CRON] Usuário {usuario.username} ignorado: sem telefone no perfil.'
                 ))
                 continue
@@ -123,7 +140,7 @@ class Command(BaseCommand):
             if len(numero_limpo) in [10, 11] and not numero_limpo.startswith('55'):
                 numero_limpo = '55' + numero_limpo
 
-            self.stdout.write(f'[CRON] Preparando envio para {usuario.username} → {numero_limpo}')
+            log(f'[CRON] Preparando envio para {usuario.username} → {numero_limpo}')
 
             # Montar mensagem
             saudacao = f"Olá, *{usuario.first_name or usuario.username}*! ☀️"
@@ -146,19 +163,20 @@ class Command(BaseCommand):
             try:
                 resp = requests.post(endpoint, json=payload, headers=headers, timeout=15)
                 if resp.status_code in [200, 201]:
-                    self.stdout.write(self.style.SUCCESS(
+                    log(self.style.SUCCESS(
                         f'[CRON] ✅ Mensagem enviada para {usuario.username} ({numero_limpo}).'
                     ))
+                    mensagens_ok += 1
                     for c in lista_comp:
                         c.lembrete_enviado = True
                         c.save()
                 else:
-                    self.stdout.write(self.style.ERROR(
+                    log(self.style.ERROR(
                         f'[CRON] ❌ Falha ao enviar para {usuario.username} ({numero_limpo}). '
                         f'HTTP {resp.status_code}: {resp.text[:300]}'
                     ))
             except requests.Timeout:
-                self.stdout.write(self.style.ERROR(
+                log(self.style.ERROR(
                     f'[CRON] ❌ Timeout ao conectar na Evolution API para {usuario.username}.'
                 ))
             except Exception as e:
@@ -167,3 +185,12 @@ class Command(BaseCommand):
                 ))
 
         self.stdout.write('[CRON] Execução concluída.')
+        log_linhas.append('[CRON] Execução concluída.')
+
+        # Salva log no banco
+        status_final = 'ok' if mensagens_ok > 0 else 'erro'
+        LogCron.objects.create(
+            status=status_final,
+            mensagens_enviadas=mensagens_ok,
+            detalhes='\n'.join(log_linhas),
+        )

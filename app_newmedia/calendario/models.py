@@ -31,3 +31,27 @@ class Compromisso(models.Model):
 
     def __str__(self):
         return f"{self.data.strftime('%d/%m/%Y')} {self.hora.strftime('%H:%M')} - {self.titulo}"
+
+
+class LogCron(models.Model):
+    """Registro de cada execução do cron de WhatsApp para auditoria no Admin."""
+
+    STATUS_CHOICES = [
+        ('ok', '✅ Enviado'),
+        ('sem_compromissos', '💭 Sem compromissos na janela'),
+        ('erro', '❌ Erro'),
+    ]
+
+    executado_em = models.DateTimeField(auto_now_add=True, verbose_name='Executado em')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Status')
+    mensagens_enviadas = models.IntegerField(default=0, verbose_name='Mensagens enviadas')
+    detalhes = models.TextField(blank=True, verbose_name='Detalhes / Log')
+
+    class Meta:
+        db_table = 'TBLOGCRON'
+        verbose_name = 'Log do Cron'
+        verbose_name_plural = 'Logs do Cron (WhatsApp)'
+        ordering = ['-executado_em']
+
+    def __str__(self):
+        return f"{self.executado_em.strftime('%d/%m/%Y %H:%M')} — {self.get_status_display()} ({self.mensagens_enviadas} msg)"
