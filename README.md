@@ -76,6 +76,16 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 - Isolamento autoral (cada `User` vê exclusivamente o próprio sub-universo temporal).
 - **Integração com WhatsApp:** Disparo de mensagens através de um Cron gerenciado via Redis, baseado nos compromissos agendados.
 
+### **6. 💬 Mensagens WhatsApp**
+**Descrição:** Módulo para agendamento e envio avulso de mensagens diretas pelo WhatsApp via Evolution API.
+
+**Recursos:**
+- Envio imediato de mensagem via interface (selecionando a ocorrência "Agora").
+- Agendamento flexível de rotinas ("Todo dia", "Semanal", "Mensal") delegadas ao serviço de Cron.
+- Reenvio instantâneo diretamente pelo menu de contexto da lista.
+- Integração visual com status claro de andamento (✅ Enviada / ⏳ Pendente).
+- Utiliza a herança padrão de UI (lista_base e detalhes_base).
+
 ---
 
 ## 🗄️ **ESTRUTURA DE DADOS OTIMIZADA**
@@ -100,6 +110,14 @@ Entidade recém gerada contendo os metadados fixos:
 - `titulo` (Max 50)
 - `cor` (Hex de identificação)
 - `observacoes` (Texto livre)
+
+#### **`app_newmedia.mensagem.models.Mensagem` (TBMENSAGEM)**
+Entidade estruturada para controle de disparos da Evolution API:
+- `men_telefone` e `men_nome` (Identificação)
+- `men_dat` e `men_hora` (Cronograma de agendamento)
+- `men_ocorrencia` (Escolha entre Agora, Todo dia, Semanal, Mensal)
+- `men_mensagem` (Conteúdo a ser enviado - Máximo 150 caracteres)
+- `men_status` (Flag booleana de controle do Cron e Dashboard)
 
 ---
 
