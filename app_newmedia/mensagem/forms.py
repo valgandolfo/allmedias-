@@ -16,11 +16,11 @@ class MensagemForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Nome do contato',
             }),
-            'men_dat':       forms.DateInput(attrs={
+            'men_dat':       forms.DateInput(format='%Y-%m-%d', attrs={
                 'class': 'form-control',
                 'type': 'date',
             }),
-            'men_hora':      forms.TimeInput(attrs={
+            'men_hora':      forms.TimeInput(format='%H:%M', attrs={
                 'class': 'form-control',
                 'type': 'time',
             }),
