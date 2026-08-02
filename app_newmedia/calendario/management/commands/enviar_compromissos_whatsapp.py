@@ -1,4 +1,5 @@
 import os
+from decouple import config
 import requests
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -87,9 +88,9 @@ class Command(BaseCommand):
         log(f'[CRON] {len(compromissos_para_enviar)} compromisso(s) para enviar agora.')
 
         # Verificar variáveis de ambiente da Evolution API
-        evolution_url = os.environ.get('EVOLUTION_API_URL', '').rstrip('/')
-        evolution_token = os.environ.get('EVOLUTION_API_TOKEN', '')
-        instance_name = os.environ.get('EVOLUTION_INSTANCE_NAME', '')
+        evolution_url = config('EVOLUTION_API_URL', default='').rstrip('/')
+        evolution_token = config('EVOLUTION_API_TOKEN', default='')
+        instance_name = config('EVOLUTION_INSTANCE_NAME', default='')
 
         if not evolution_url:
             self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_URL não configurada.'))

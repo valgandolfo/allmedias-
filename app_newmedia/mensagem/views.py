@@ -1,4 +1,5 @@
 import os
+from decouple import config
 import requests as http_requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -20,9 +21,9 @@ def _normalizar_telefone(telefone: str) -> str:
 
 def _enviar_whatsapp(telefone: str, mensagem: str) -> dict:
     """Envia mensagem via Evolution API. Retorna {'sucesso': bool, 'erro': str}."""
-    evolution_url   = os.environ.get('EVOLUTION_API_URL', '').rstrip('/')
-    evolution_token = os.environ.get('EVOLUTION_API_TOKEN', '')
-    instance_name   = os.environ.get('EVOLUTION_INSTANCE_NAME', '')
+    evolution_url   = config('EVOLUTION_API_URL', default='').rstrip('/')
+    evolution_token = config('EVOLUTION_API_TOKEN', default='')
+    instance_name   = config('EVOLUTION_INSTANCE_NAME', default='')
 
     if not evolution_url or not evolution_token or not instance_name:
         return {'sucesso': False, 'erro': 'Variáveis da Evolution API não configuradas.'}
