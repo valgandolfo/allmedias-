@@ -1,0 +1,156 @@
+{% extends 'crud/lista_base.html' %}
+
+{% block crud_title %}Mensagens WhatsApp{% endblock %}
+{% block crud_icon %}💬{% endblock %}
+{% block crud_subtitle %}Envios diretos e agendados{% endblock %}
+
+{% block child_css %}
+<style>
+    .msg-status-ok   { color: #10b981; }
+    .msg-status-pend { color: #f59e0b; }
+
+    .msg-content { flex: 1; min-width: 0; }
+    .msg-title {
+        font-weight: bold;
+        font-size: 15px;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .msg-meta { font-size: 12px; color: #999; margin-top: 2px; }
+
+    .msg-icon {
+        font-size: 22px;
+        width: 44px; height: 44px;
+        background: rgba(16,185,129,0.12);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Grid overrides */
+    .layout-grid .msg-icon { margin: 0 auto 8px auto; width: 50px; height: 50px; }
+</style>
+{% endblock %}
+
+{% block filters %}
+<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active" data-status="" onclick="filtrarStatus('')">Todas</button>
+<button type="button" class="btn btn-sm btn-outline-success  rounded-pill px-3 filter-btn" data-status="enviado"  onclick="filtrarStatus('enviado')">✅ Enviadas</button>
+<button type="button" class="btn btn-sm btn-outline-warning  rounded-pill px-3 filter-btn" data-status="pendente" onclick="filtrarStatus('pendente')">⏳ Pendentes</button>
+{% endblock %}
+
+{% block list_content %}
+    {% for m in mensagens %}
+    <div class="crud-item msg-item"
+         data-nome="{{ m.men_nome|lower }}"
+         data-status="{% if m.men_status %}enviado{% else %}pendente{% endif %}">
+
+        <div class="msg-icon" onclick="window.location.href='{% url 'mensagem_detalhes' m.pk %}'">
+            {% if m.men_status %}✅{% else %}⏳{% endif %}
+        </div>
+
+        <div class="msg-content" onclick="window.location.href='{% url 'mensagem_detalhes' m.pk %}'">
+            <div class="msg-title">{{ m.men_nome }}</div>
+            <div class="msg-meta">
+                {{ m.men_telefone }}
+                &nbsp;•&nbsp;
+                {{ m.men_dat|date:"d/m/Y" }} {{ m.men_hora|time:"H:i" }}
+                &nbsp;•&nbsp;
+                {{ m.get_men_ocorrencia_display }}
+            </div>
+            <div class="msg-meta text-truncate" style="max-width:260px;">{{ m.men_mensagem }}</div>
+        </div>
+
+        <div class="text-secondary px-2" onclick="abrirMenu({{ m.pk }}, '{{ m.men_nome|escapejs }}', {{ m.men_status|lower }})">
+            <i class="bi bi-three-dots-vertical fs-5"></i>
+        </div>
+    </div>
+    {% empty %}
+    <div class="p-5 text-center text-muted" style="grid-column: 1 / -1;">
+        <i class="bi bi-chat-dots display-4"></i>
+        <p class="mt-2">Nenhuma mensagem cadastrada.</p>
+        <a href="{% url 'mensagem_criar' %}" class="btn btn-primary btn-sm mt-2">
+            Criar primeira mensagem
+        </a>
+    </div>
+    {% endfor %}
+{% endblock %}
+
+{% block fab_url %}{% url 'mensagem_criar' %}{% endblock %}
+
+{% block modal %}
+<div class="modal fade" id="optionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-bottom">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title text-muted" id="modalTitle">Opções</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 mt-2">
+                <a href="#" id="linkReenviar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                    <i class="bi bi-send"></i> Reenviar agora
+                </a>
+                <a href="#" id="linkEditar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-dark border-bottom">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                <a href="#" id="linkDeletar" class="option-item d-flex align-items-center gap-2 px-4 py-3 text-decoration-none text-danger">
+                    <i class="bi bi-trash"></i> Excluir
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block child_js %}
+<script>
+const optionsModal = new bootstrap.Modal(document.getElementById('optionsModal'));
+let currentPk = null;
+
+function abrirMenu(pk, nome, enviado) {
+    currentPk = pk;
+    document.getElementById('modalTitle').innerText = nome;
+    document.getElementById('linkEditar').href  = `/mensagens/${pk}/form/`;
+    document.getElementById('linkDeletar').href = `/mensagens/${pk}/?acao=deletar`;
+    optionsModal.show();
+}
+
+document.getElementById('linkReenviar').addEventListener('click', async function(e) {
+    e.preventDefault();
+    optionsModal.hide();
+    if (!currentPk) return;
+    try {
+        const resp = await fetch(`/mensagens/${currentPk}/reenviar/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        const data = await resp.json();
+        if (data.sucesso) {
+            alert('✅ Mensagem reenviada com sucesso!');
+            location.reload();
+        } else {
+            alert('❌ Erro: ' + (data.erro || 'Falha desconhecida'));
+        }
+    } catch(err) {
+        alert('❌ Erro de conexão ao reenviar.');
+    }
+});
+
+function filtrarItens() {
+    const termo = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.crud-item').forEach(item => {
+        item.style.display = item.getAttribute('data-nome').includes(termo) ? 'flex' : 'none';
+    });
+}
+
+function filtrarStatus(status) {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-status') === status);
+    });
+    document.querySelectorAll('.crud-item').forEach(item => {
+        item.style.display = (status === '' || item.getAttribute('data-status') === status) ? 'flex' : 'none';
+    });
+}
+</script>
+{% endblock %}

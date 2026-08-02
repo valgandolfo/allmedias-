@@ -1,0 +1,191 @@
+{% extends 'crud/detalhes_base.html' %}
+
+{% block crud_title %}Mensagem WhatsApp{% endblock %}
+{% block list_url %}{% url 'mensagem_lista' %}{% endblock %}
+
+{% block child_css %}
+<style>
+    .char-counter { font-size: 11px; color: #999; text-align: right; margin-top: 2px; }
+    .char-counter.over { color: #ef4444; }
+    .ocorrencia-info { font-size: 12px; color: #6b7280; margin-top: 4px; }
+</style>
+{% endblock %}
+
+{% block form_view %}
+<div class="card-custom p-4">
+    <h5 class="mb-4">
+        {% if acao == 'criar' %}💬 Nova Mensagem{% else %}✏️ Editar Mensagem{% endif %}
+    </h5>
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" id="formMensagem">
+        {% csrf_token %}
+
+        <!-- Telefone -->
+        <div class="mb-3">
+            <label for="id_men_telefone" class="form-label fw-semibold">
+                <i class="bi bi-telephone"></i> Telefone do Contato
+            </label>
+            {{ form.men_telefone }}
+            {% if form.men_telefone.errors %}
+                <div class="text-danger small mt-1">{{ form.men_telefone.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Nome -->
+        <div class="mb-3">
+            <label for="{{ form.men_nome.id_for_label }}" class="form-label fw-semibold">
+                <i class="bi bi-person"></i> Nome do Contato
+            </label>
+            {{ form.men_nome }}
+            {% if form.men_nome.errors %}
+                <div class="text-danger small mt-1">{{ form.men_nome.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Data e Hora lado a lado -->
+        <div class="row g-2 mb-3">
+            <div class="col-7">
+                <label for="{{ form.men_dat.id_for_label }}" class="form-label fw-semibold">
+                    <i class="bi bi-calendar"></i> Data Agendada
+                </label>
+                {{ form.men_dat }}
+            </div>
+            <div class="col-5">
+                <label for="{{ form.men_hora.id_for_label }}" class="form-label fw-semibold">
+                    <i class="bi bi-clock"></i> Hora
+                </label>
+                {{ form.men_hora }}
+            </div>
+        </div>
+
+        <!-- Ocorrência -->
+        <div class="mb-3">
+            <label for="id_men_ocorrencia" class="form-label fw-semibold">
+                <i class="bi bi-repeat"></i> Ocorrência
+            </label>
+            {{ form.men_ocorrencia }}
+            <div class="ocorrencia-info" id="ocorrenciaInfo"></div>
+        </div>
+
+        <!-- Mensagem + contador -->
+        <div class="mb-4">
+            <label for="id_men_mensagem" class="form-label fw-semibold">
+                <i class="bi bi-chat-text"></i> Mensagem
+            </label>
+            {{ form.men_mensagem }}
+            <div class="char-counter" id="charCounter">0 / 150</div>
+            {% if form.men_mensagem.errors %}
+                <div class="text-danger small mt-1">{{ form.men_mensagem.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Botões -->
+        <div class="d-flex gap-2">
+            <a href="{% url 'mensagem_lista' %}" class="btn btn-outline-secondary flex-fill">
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-success flex-fill" id="btnEnviar">
+                <i class="bi bi-send"></i> <span id="btnEnviarText">Enviar</span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block detail_view %}
+<div class="card-custom p-4">
+    <h5 class="mb-3">💬 {{ mensagem.men_nome }}</h5>
+
+    <table class="table table-borderless table-sm">
+        <tr><th class="text-muted" style="width:40%">Telefone</th><td>{{ mensagem.men_telefone }}</td></tr>
+        <tr><th class="text-muted">Data</th><td>{{ mensagem.men_dat|date:"d/m/Y" }} às {{ mensagem.men_hora|time:"H:i" }}</td></tr>
+        <tr><th class="text-muted">Ocorrência</th><td>{{ mensagem.get_men_ocorrencia_display }}</td></tr>
+        <tr><th class="text-muted">Status</th><td>{% if mensagem.men_status %}✅ Enviada{% else %}⏳ Pendente{% endif %}</td></tr>
+        <tr><th class="text-muted">Mensagem</th><td>{{ mensagem.men_mensagem }}</td></tr>
+    </table>
+
+    <div class="d-flex gap-2 mt-3">
+        <a href="{% url 'mensagem_form' mensagem.pk %}" class="btn btn-outline-primary flex-fill">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a href="{% url 'mensagem_detalhes' mensagem.pk %}?acao=deletar" class="btn btn-outline-danger flex-fill">
+            <i class="bi bi-trash"></i> Excluir
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block delete_info %}
+<p class="text-center"><strong>{{ mensagem.men_nome }}</strong><br>
+<small class="text-muted">{{ mensagem.men_telefone }} — {{ mensagem.men_dat|date:"d/m/Y" }}</small></p>
+{% endblock %}
+{% block delete_cancel_url %}{% url 'mensagem_lista' %}{% endblock %}
+
+{% block child_js %}
+<script>
+// Contador de caracteres
+const msgField = document.getElementById('id_men_mensagem');
+const counter  = document.getElementById('charCounter');
+if (msgField && counter) {
+    function atualizarContador() {
+        const len = msgField.value.length;
+        counter.textContent = len + ' / 150';
+        counter.classList.toggle('over', len > 150);
+    }
+    msgField.addEventListener('input', atualizarContador);
+    atualizarContador();
+}
+
+// Máscara de telefone
+const telField = document.getElementById('id_men_telefone');
+if (telField) {
+    telField.addEventListener('input', function() {
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length > 10) {
+            v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+        } else if (v.length > 6) {
+            v = v.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+        } else if (v.length > 2) {
+            v = v.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+        } else {
+            v = v.replace(/^(\d{0,2})$/, '($1');
+        }
+        this.value = v;
+    });
+}
+
+// Info dinâmica de ocorrência
+const ocorrSelect = document.getElementById('id_men_ocorrencia');
+const ocorrInfo   = document.getElementById('ocorrenciaInfo');
+const btnText     = document.getElementById('btnEnviarText');
+
+const ocorrMap = {
+    'agora':    { info: '⚡ A mensagem será enviada imediatamente ao clicar em Enviar.', btn: 'Enviar agora' },
+    'todo_dia': { info: '📅 Será disparada todos os dias no horário agendado.',          btn: 'Agendar' },
+    'semanal':  { info: '📅 Será disparada uma vez por semana no horário agendado.',     btn: 'Agendar' },
+    'mensal':   { info: '📅 Será disparada uma vez por mês no horário agendado.',        btn: 'Agendar' },
+};
+
+function atualizarOcorrencia() {
+    const val = ocorrSelect ? ocorrSelect.value : '';
+    if (ocorrMap[val]) {
+        if (ocorrInfo) ocorrInfo.textContent = ocorrMap[val].info;
+        if (btnText)   btnText.textContent   = ocorrMap[val].btn;
+    }
+}
+
+if (ocorrSelect) {
+    ocorrSelect.addEventListener('change', atualizarOcorrencia);
+    atualizarOcorrencia();
+}
+</script>
+{% endblock %}
