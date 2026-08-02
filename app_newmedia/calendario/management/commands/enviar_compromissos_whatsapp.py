@@ -32,8 +32,8 @@ class Command(BaseCommand):
         # Isso garante que cada lembrete seja enviado exatamente uma vez,
         # mesmo que o cron atrase ou rode levemente adiantado.
         # ---------------------------------------------------------------
-        JANELA_FUTURO_MIN = 5        # minuto(s) à frente (1 ciclo do cron)
-        JANELA_PASSADO_MIN = 5       # minuto(s) atrás (tolerância a atrasos)
+        JANELA_FUTURO_MIN = 8        # minuto(s) à frente  → metade do ciclo de 15min
+        JANELA_PASSADO_MIN = 8       # minuto(s) atrás     → tolerância para atrasos do cron
         DESCARTA_APOS_MIN = 30       # marca como enviado se passou mais de 30min sem envio
 
         compromissos_para_enviar = []
