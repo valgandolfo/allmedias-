@@ -32,16 +32,17 @@ class Command(BaseCommand):
         log(f'[CRON] {total_pendentes} compromisso(s) pendente(s) encontrado(s).')
 
         # ---------------------------------------------------------------
-        # JANELA DE ENVIO (ajustada para cron de */5 * * * * — a cada 5 minutos):
-        #   - Limite SUPERIOR: olha até 5 minutos à frente para não perder o próximo tick
-        #   - Limite INFERIOR: tolera até 5 minutos de atraso na execução do cron
-        #
-        # Isso garante que cada lembrete seja enviado exatamente uma vez,
-        # mesmo que o cron atrase ou rode levemente adiantado.
+        # JANELA DE ENVIO (ajustada para cron de 15 minutos):
+        # Aumentamos para 16 minutos tanto no futuro quanto no passado.
+        # - FUTURO: Garante que o lembrete seja enviado no ciclo ANTERIOR 
+        #   à hora exata, para não chegar atrasado.
+        # - PASSADO: Se o cron atrasar, ou se o usuário agendar em cima
+        #   da hora, o lembrete ainda será capturado na próxima rodada.
+        # Como marcamos 'lembrete_enviado=True', não há risco de duplicidade.
         # ---------------------------------------------------------------
-        JANELA_FUTURO_MIN = 8        # minuto(s) à frente  → metade do ciclo de 15min
-        JANELA_PASSADO_MIN = 8       # minuto(s) atrás     → tolerância para atrasos do cron
-        DESCARTA_APOS_MIN = 30       # marca como enviado se passou mais de 30min sem envio
+        JANELA_FUTURO_MIN = 16       # minuto(s) à frente
+        JANELA_PASSADO_MIN = 16      # minuto(s) atrás (tolerância alta para atrasos)
+        DESCARTA_APOS_MIN = 60       # marca como enviado se passou mais de 1h sem envio
 
         compromissos_para_enviar = []
 
