@@ -4,7 +4,9 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404
 from .models import Compromisso
+from app_newmedia.mensagem.views import _enviar_whatsapp
 
 @login_required
 def calendario_view(request):
@@ -119,3 +121,40 @@ def api_excluir_compromisso(request, id):
         return JsonResponse({'status': 'error', 'message': 'Compromisso não encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_enviar_agora_compromisso(request, id):
+    """Envia o lembrete instantaneamente via Evolution API (Test Now)"""
+    try:
+        compromisso = get_object_or_404(Compromisso, id=id, usuario=request.user)
+        usuario = request.user
+        
+        try:
+            perfil = getattr(usuario, 'profile', None)
+            telefone = perfil.telefone if perfil else None
+        except Exception:
+            telefone = None
+            
+        if not telefone:
+            return JsonResponse({'status': 'error', 'message': 'Seu perfil não tem um telefone cadastrado.'}, status=400)
+
+        # Montar mensagem idêntica ao cron
+        saudacao = f"Olá, *{usuario.first_name or usuario.username}*! ☀️"
+        intro = "Lembrete de Teste: Você tem um compromisso:"
+        linhas = [saudacao, "", intro]
+        obs = f" - _{compromisso.observacoes}_" if compromisso.observacoes else ""
+        linhas.append(f"⏰ *{compromisso.hora.strftime('%H:%M')}* - {compromisso.titulo}{obs}")
+        mensagem = "\n".join(linhas)
+
+        resultado = _enviar_whatsapp(telefone, mensagem)
+        if resultado['sucesso']:
+            compromisso.lembrete_enviado = True
+            compromisso.save(update_fields=['lembrete_enviado'])
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': resultado['erro']}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+

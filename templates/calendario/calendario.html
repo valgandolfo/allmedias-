@@ -427,6 +427,7 @@
                 <div class="text-muted" style="font-size: 0.8rem;">${ev.hora}</div>
             </div>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-success border-0" onclick="enviarAgoraCompromisso(${ev.id})" title="Testar Envio WhatsApp (Agora)"><i class="bi bi-whatsapp"></i></button>
                 <button type="button" class="btn btn-sm btn-outline-secondary border-0" onclick="editarCompromisso(${ev.id}, '${ev.titulo.replace(/'/g, "\\'")}', '${ev.hora}', '${ev.cor}', '${(ev.observacoes||'').replace(/'/g, "\\'")}', ${ev.antecedencia_minutos})" title="Editar"><i class="bi bi-pencil"></i></button>
                 <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="excluirCompromisso(${ev.id})" title="Excluir"><i class="bi bi-trash"></i></button>
             </div>
@@ -508,6 +509,30 @@
           .catch(err => {
               console.error(err);
               alert('Ocorreu um erro.');
+          });
+      }
+  };
+
+  window.enviarAgoraCompromisso = function(id) {
+      if(confirm('Isso forçará o envio IMEDIATO da notificação deste compromisso para o seu WhatsApp. Deseja testar agora?')) {
+          fetch(`/calendario/api/enviar-agora/${id}/`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': CSRF_TOKEN
+              }
+          })
+          .then(res => res.json())
+          .then(data => {
+              if(data.status === 'success') {
+                  alert('Mensagem enviada com sucesso para o seu WhatsApp!');
+              } else {
+                  alert('Falha ao enviar: ' + data.message);
+              }
+          })
+          .catch(err => {
+              console.error(err);
+              alert('Ocorreu um erro de rede ao tentar enviar.');
           });
       }
   };

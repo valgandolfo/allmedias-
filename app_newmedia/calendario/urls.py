@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/criar/', views.api_criar_compromisso, name='api_criar_compromisso'),
     path('api/editar/<int:id>/', views.api_editar_compromisso, name='api_editar_compromisso'),
     path('api/excluir/<int:id>/', views.api_excluir_compromisso, name='api_excluir_compromisso'),
+    path('api/enviar-agora/<int:id>/', views.api_enviar_agora_compromisso, name='api_enviar_agora_compromisso'),
 ]
