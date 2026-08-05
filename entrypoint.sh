@@ -9,6 +9,8 @@ if [ "$SERVICE_TYPE" = "cron" ]; then
     while true; do
         echo "[cron-loop] Disparando enviar_compromissos_whatsapp às $(date '+%Y-%m-%d %H:%M:%S')"
         python manage.py enviar_compromissos_whatsapp
+        echo "[cron-loop] Disparando enviar_mensagens_agendadas às $(date '+%Y-%m-%d %H:%M:%S')"
+        python manage.py enviar_mensagens_agendadas
         echo "[cron-loop] Aguardando 900 segundos (15 minutos)..."
         sleep 900
     done

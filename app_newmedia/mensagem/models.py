@@ -7,6 +7,7 @@ class Mensagem(models.Model):
 
     OCORRENCIA_CHOICES = [
         ('agora',   'Agora'),
+        ('unico',   'Enviar no dia/hora acima'),
         ('todo_dia', 'Todo dia'),
         ('semanal',  'Uma vez na semana'),
         ('mensal',   'Uma vez no mês'),
