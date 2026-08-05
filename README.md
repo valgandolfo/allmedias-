@@ -124,15 +124,16 @@ Entidade estruturada para controle de disparos da Evolution API:
 ## 🚀 **ROTINAS ASSÍNCRONAS & DEPLOY**
 
 ### **Infraestrutura e Hospedagem (Railway VPS)**
-O projeto está hospedado em uma VPS na Railway, orquestrado através de **Dockerfile** e operando sob o domínio público **igeracao.com.br**. A infraestrutura em produção conta com 3 serviços, incluindo:
-1. Serviço do repositório principal.
-2. Serviço secundário de um repositório que interliga o principal ao Redis.
+O projeto está hospedado em uma VPS na Railway, orquestrado através de **Dockerfile** e operando sob o domínio público **igeracao.com.br**. A infraestrutura em produção conta com serviços espelhados do mesmo repositório:
+1. **Serviço Principal (Web):** Executa a aplicação Django via Gunicorn.
+2. **Serviço Secundário (Cron):** Container idêntico ao principal, mas configurado com a variável de ambiente `SERVICE_TYPE=cron`. Isso o instrui a rodar scripts em background no lugar do servidor web.
 
 O sistema de correio utiliza o e-mail **Titan integrado com o Gmail via POP**.
 
-### **Background Tasks e Cron (Redis + Django Q2)**
-- Diferente de setups antigos, agora o projeto já está configurado com **Redis** e suas devidas credenciais.
-- Este repositório Redis gerencia um **Cron** responsável pelo envio de mensagens de notificação via **WhatsApp**.
+### **Background Tasks e Cron (Orquestração Nativa via Bash)**
+- Diferente de setups antigos (que dependiam de Redis/Django-Q2), o agendamento de tarefas agora é feito de forma **100% nativa e independente** usando um loop no `entrypoint.sh`.
+- O Serviço Secundário (Cron) desperta a cada 15 minutos e executa sequencialmente os scripts de automação (`enviar_compromissos_whatsapp.py` e `enviar_mensagens_agendadas.py`), garantindo disparos na API da Evolution sem sobrecarregar a memória do container Web principal.
+- Todos os logs de processamento, cálculo de tempo e status de disparo do Cron ficam salvos diretamente no banco de dados, auditáveis via Django Admin (Tabela `LogCron`).
 
 ### **Comportamento PWA**
 Os arquivos essenciais que ditam a instalação no ecossistema Android e iOS da Apple via Safari estão atrelados ao projeto em:
