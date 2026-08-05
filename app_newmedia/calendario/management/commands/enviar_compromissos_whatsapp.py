@@ -50,7 +50,7 @@ class Command(BaseCommand):
             data_hora_comp = timezone.make_aware(datetime.combine(c.data, c.hora))
             hora_do_lembrete = data_hora_comp - timedelta(minutes=c.antecedencia_minutos)
 
-            self.stdout.write(
+            log(
                 f'  → [{c.titulo}] em {data_hora_comp.strftime("%d/%m %H:%M")} | '
                 f'lembrete às {hora_do_lembrete.strftime("%d/%m %H:%M")} | '
                 f'antecedência: {c.antecedencia_minutos}min'
@@ -58,7 +58,7 @@ class Command(BaseCommand):
 
             # Compromisso já passou há mais de DESCARTA_APOS_MIN — descartar
             if data_hora_comp < (agora - timedelta(minutes=DESCARTA_APOS_MIN)):
-                self.stdout.write(f'     → DESCARTADO (compromisso já expirou há mais de {DESCARTA_APOS_MIN}min)')
+                log(f'     → DESCARTADO (compromisso já expirou há mais de {DESCARTA_APOS_MIN}min)')
                 c.lembrete_enviado = True
                 c.save()
                 continue
@@ -70,11 +70,11 @@ class Command(BaseCommand):
             )
 
             if dentro_da_janela:
-                self.stdout.write(f'     → DENTRO DA JANELA — adicionado para envio')
+                log(f'     → DENTRO DA JANELA — adicionado para envio')
                 compromissos_para_enviar.append(c)
             else:
                 diff = hora_do_lembrete - agora
-                self.stdout.write(f'     → Fora da janela (lembrete em {int(diff.total_seconds() / 60)}min)')
+                log(f'     → Fora da janela (lembrete em {int(diff.total_seconds() / 60)}min)')
 
         if not compromissos_para_enviar:
             msg = '[CRON] Sem compromissos na janela atual para notificar.'
@@ -94,15 +94,15 @@ class Command(BaseCommand):
         instance_name = config('EVOLUTION_INSTANCE_NAME', default='')
 
         if not evolution_url:
-            self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_URL não configurada.'))
+            log(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_URL não configurada.'))
             LogCron.objects.create(status='erro', detalhes='EVOLUTION_API_URL não configurada.')
             return
         if not evolution_token:
-            self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_TOKEN não configurado.'))
+            log(self.style.ERROR('[CRON] ERRO: EVOLUTION_API_TOKEN não configurado.'))
             LogCron.objects.create(status='erro', detalhes='EVOLUTION_API_TOKEN não configurado.')
             return
         if not instance_name:
-            self.stdout.write(self.style.ERROR('[CRON] ERRO: EVOLUTION_INSTANCE_NAME não configurado.'))
+            log(self.style.ERROR('[CRON] ERRO: EVOLUTION_INSTANCE_NAME não configurado.'))
             LogCron.objects.create(status='erro', detalhes='EVOLUTION_INSTANCE_NAME não configurado.')
             return
 
@@ -128,7 +128,7 @@ class Command(BaseCommand):
                 perfil = getattr(usuario, 'profile', None)
                 telefone = perfil.telefone if perfil else None
             except Exception as e:
-                self.stdout.write(self.style.WARNING(f'[CRON] Erro ao acessar perfil de {usuario.username}: {e}'))
+                log(self.style.WARNING(f'[CRON] Erro ao acessar perfil de {usuario.username}: {e}'))
                 telefone = None
 
             if not telefone:
@@ -182,12 +182,11 @@ class Command(BaseCommand):
                     f'[CRON] ❌ Timeout ao conectar na Evolution API para {usuario.username}.'
                 ))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(
+                log(self.style.ERROR(
                     f'[CRON] ❌ Erro de conexão ao enviar para {usuario.username}: {str(e)}'
                 ))
 
-        self.stdout.write('[CRON] Execução concluída.')
-        log_linhas.append('[CRON] Execução concluída.')
+        log('[CRON] Execução concluída.')
 
         # Salva log no banco
         status_final = 'ok' if mensagens_ok > 0 else 'erro'
