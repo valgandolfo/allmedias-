@@ -63,13 +63,8 @@ class Command(BaseCommand):
                 c.save()
                 continue
 
-            # Verifica se está dentro da janela de envio (passado próximo + futuro imediato)
-            dentro_da_janela = (
-                hora_do_lembrete <= (agora + timedelta(minutes=JANELA_FUTURO_MIN)) and
-                hora_do_lembrete >= (agora - timedelta(minutes=JANELA_PASSADO_MIN))
-            )
-
-            if dentro_da_janela:
+            # Verifica se já chegou a hora do lembrete (ou se já passou e ainda não foi enviado)
+            if hora_do_lembrete <= (agora + timedelta(minutes=JANELA_FUTURO_MIN)):
                 log(f'     → DENTRO DA JANELA — adicionado para envio')
                 compromissos_para_enviar.append(c)
             else:
