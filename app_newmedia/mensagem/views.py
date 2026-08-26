@@ -76,6 +76,8 @@ def mensagem_form(request, pk=None):
                     messages.error(request, f'❌ Falha ao enviar: {resultado["erro"]}')
             else:
                 obj.men_status = False
+                if any(campo in form.changed_data for campo in ['men_dat', 'men_hora', 'men_ocorrencia']):
+                    obj.ultimo_disparo = None
                 obj.save()
                 messages.success(request, f'📅 Mensagem agendada para {obj.men_nome}.')
 
