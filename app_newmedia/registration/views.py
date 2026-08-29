@@ -450,6 +450,30 @@ def check_email_availability(request):
         'message': 'E-mail disponível' if not exists else 'E-mail já cadastrado'
     })
 
+@csrf_exempt
+@login_required
+def update_timezone(request):
+    """
+    API para atualizar silenciosamente o fuso horário do usuário
+    """
+    if request.method == 'POST':
+        import json
+        try:
+            data = json.loads(request.body)
+            timezone_str = data.get('timezone')
+            
+            if timezone_str:
+                profile = request.user.profile
+                if profile.fuso_horario != timezone_str:
+                    profile.fuso_horario = timezone_str
+                    profile.save(update_fields=['fuso_horario'])
+                    return JsonResponse({'success': True, 'updated': True, 'timezone': timezone_str})
+                return JsonResponse({'success': True, 'updated': False})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+            
+    return JsonResponse({'success': False, 'error': 'Método não permitido'})
+
 
 @method_decorator(never_cache, name='dispatch')
 class AllMediasLoginRequiredMixin:

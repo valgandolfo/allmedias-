@@ -81,7 +81,8 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 
 **Recursos:**
 - Envio imediato de mensagem via interface (selecionando a ocorrência "Agora").
-- Agendamento flexível de rotinas ("Todo dia", "Semanal", "Mensal") delegadas ao serviço de Cron.
+- Agendamento flexível de rotinas ("Todo dia", "Semanal", "Mensal", "Enviar só em dias Úteis") delegadas ao serviço de Cron.
+  - *Regra de Dias Úteis*: Ignora sábados, domingos, feriados nacionais (ex: 1º de Janeiro, Natal) e dias santos universais (Sexta-feira Santa e Corpus Christi). Feriados estaduais/municipais não bloqueiam o envio.
 - Reenvio instantâneo diretamente pelo menu de contexto da lista.
 - Integração visual com status claro de andamento (✅ Enviada / ⏳ Pendente).
 - Utiliza a herança padrão de UI (lista_base e detalhes_base).
@@ -115,7 +116,7 @@ Entidade recém gerada contendo os metadados fixos:
 Entidade estruturada para controle de disparos da Evolution API:
 - `men_telefone` e `men_nome` (Identificação)
 - `men_dat` e `men_hora` (Cronograma de agendamento)
-- `men_ocorrencia` (Escolha entre Agora, Todo dia, Semanal, Mensal)
+- `men_ocorrencia` (Escolha entre Agora, Todo dia, Semanal, Mensal, Enviar só em dias Úteis)
 - `men_mensagem` (Conteúdo a ser enviado - Máximo 150 caracteres)
 - `men_status` (Flag booleana de controle do Cron e Dashboard)
 

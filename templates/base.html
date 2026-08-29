@@ -521,6 +521,39 @@
       logoutModal.hide();
       document.getElementById('logout-form-footer').submit();
     });
+
+    // ============================================================
+    // Timezone Sync Logic
+    // ============================================================
+    {% if user.is_authenticated %}
+    (function() {
+      try {
+        const currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const lastSyncedTz = localStorage.getItem('allmedias_user_tz');
+        
+        // Só avisa o servidor se mudou (ex: atravessou a ponte) ou se é a primeira vez
+        if (currentTz && currentTz !== lastSyncedTz) {
+          fetch('/api/update-timezone/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ timezone: currentTz })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              console.log('[Timezone] Sincronizado com o servidor:', currentTz);
+              localStorage.setItem('allmedias_user_tz', currentTz);
+            }
+          })
+          .catch(err => console.warn('[Timezone] Falha ao sincronizar:', err));
+        }
+      } catch (e) {
+        console.warn('[Timezone] Não foi possível verificar o fuso.', e);
+      }
+    })();
+    {% endif %}
   </script>
 
   {% block extra_js %}{% endblock %}

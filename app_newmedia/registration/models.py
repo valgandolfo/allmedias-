@@ -61,6 +61,13 @@ class UserProfile(models.Model):
         help_text='Recomendado: 300x300px, máximo 2MB'
     )
     
+    fuso_horario = models.CharField(
+        max_length=50,
+        default='America/Sao_Paulo',
+        verbose_name='Fuso Horário',
+        help_text='Fuso horário atual do usuário para disparos precisos.'
+    )
+    
     # ===================================================================
     # CONTROLE DE ACESSO E PLANO
     # ===================================================================

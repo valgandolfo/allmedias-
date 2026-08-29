@@ -77,6 +77,12 @@ urlpatterns = [
     path('api/check-email/', 
          views.check_email_availability, 
          name='api_check_email'),
+         
+    # Atualizar fuso horário silenciosamente
+    path('api/update-timezone/', 
+         views.update_timezone, 
+         name='api_update_timezone'),
+    
     
     # ===================================================================
     # DEBUG (apenas em desenvolvimento)

@@ -11,6 +11,7 @@ class Mensagem(models.Model):
         ('todo_dia', 'Todo dia'),
         ('semanal',  'Uma vez na semana'),
         ('mensal',   'Uma vez no mês'),
+        ('dias_uteis', 'Enviar só em dias Uteis'),
     ]
 
     usuario       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mensagens', verbose_name='Usuário')
