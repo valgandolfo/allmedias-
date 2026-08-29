@@ -83,6 +83,7 @@ Sistema de **armazenamento e gestão de mídias pessoais** com funcionalidades d
 - Envio imediato de mensagem via interface (selecionando a ocorrência "Agora").
 - Agendamento flexível de rotinas ("Todo dia", "Semanal", "Mensal", "Enviar só em dias Úteis") delegadas ao serviço de Cron.
   - *Regra de Dias Úteis*: Ignora sábados, domingos, feriados nacionais (ex: 1º de Janeiro, Natal) e dias santos universais (Sexta-feira Santa e Corpus Christi). Feriados estaduais/municipais não bloqueiam o envio.
+- **Inteligência de Fuso Horário Dinâmico:** O PWA detecta o fuso horário atual do aparelho via JavaScript e envia para o backend. O Cron calcula matematicamente o disparo usando a biblioteca `zoneinfo`, garantindo precisão absoluta independente de onde o usuário (e o servidor) estejam.
 - Reenvio instantâneo diretamente pelo menu de contexto da lista.
 - Integração visual com status claro de andamento (✅ Enviada / ⏳ Pendente).
 - Utiliza a herança padrão de UI (lista_base e detalhes_base).
@@ -140,7 +141,7 @@ O sistema de correio utiliza o e-mail **Titan integrado com o Gmail via POP**.
 Os arquivos essenciais que ditam a instalação no ecossistema Android e iOS da Apple via Safari estão atrelados ao projeto em:
 - `static/manifest.webmanifest`
 - `static/service-worker.js`
-- `templates/base.html` (com a tag de meta-theme-color e injeção do Worker).
+- `templates/base.html` (com a tag de meta-theme-color, injeção do Worker e rotina silenciosa em JavaScript para sincronização dinâmica de fuso horário).
 
 ---
 
