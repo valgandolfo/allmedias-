@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/', views.media_detalhes, name='media_detalhes'),
     path('<int:pk>/form/', views.media_form, name='media_form'),
     path('<int:pk>/favoritar/', views.media_favoritar, name='media_favoritar'),
+    path('<int:pk>/download/', views.media_download, name='media_download'),
 ]

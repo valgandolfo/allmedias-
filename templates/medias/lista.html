@@ -107,9 +107,9 @@
                     </span>
                 {% endif %}
             </div>
-            {% if midia.status == 'pendente' %}
-                <span class="badge-size bg-warning text-dark mt-1 position-absolute" style="top: 10px; left: 10px; z-index: 10;">
-                    <i class="bi bi-cloud-arrow-up"></i> Enviando...
+            {% if midia.status == 'erro' %}
+                <span class="badge-size bg-danger text-white mt-1 position-absolute" style="top: 10px; left: 10px; z-index: 10;">
+                    <i class="bi bi-exclamation-triangle"></i> Erro
                 </span>
             {% endif %}
         </div>
@@ -189,10 +189,10 @@
         }
 
         optionsModal.hide();
-        const { titulo, arquivoUrl, tipo } = midiaSelecionada;
+        const { id, titulo, tipo } = midiaSelecionada;
         
-        let finalUrl = arquivoUrl;
-        if (arquivoUrl && !arquivoUrl.startsWith('http')) finalUrl = window.location.origin + (arquivoUrl.startsWith('/') ? '' : '/') + arquivoUrl;
+        // Usa o proxy local para baixar o arquivo
+        const finalUrl = `/medias/${id}/download/`;
 
         if (!navigator.share) {
             window.open(finalUrl, '_blank');

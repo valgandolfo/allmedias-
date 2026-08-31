@@ -189,7 +189,7 @@
 <!-- Preview do arquivo -->
 <div class="card-custom mb-3">
     {% if midia.is_imagem and midia.arquivo %}
-        <img src="{{ midia.arquivo.url }}" class="img-fluid w-100" style="border-radius: 12px; object-fit: cover; max-height: 360px;" alt="{{ midia.nome_exibicao }}">
+        <img src="{{ midia.arquivo.url }}" class="img-fluid w-100" style="border-radius: 12px; object-fit: contain; max-height: 400px;" alt="{{ midia.nome_exibicao }}">
     {% elif midia.is_pdf %}
         <div class="p-5 text-center">
             <i class="bi bi-file-earmark-pdf-fill display-1 text-danger"></i>
@@ -249,10 +249,9 @@
 {% if acao == 'ver' %}
 <script>
     async function compartilhar() {
-        const rawUrl = "{% if midia.arquivo %}{{ midia.arquivo.url|escapejs }}{% endif %}";
+        // Usa o proxy local para baixar a imagem e contornar o CORS do R2
+        const finalUrl = "{% url 'media_download' midia.pk %}";
         const titulo = "{{ midia.nome_exibicao|escapejs }}";
-        let finalUrl = rawUrl;
-        if (rawUrl && !rawUrl.startsWith('http')) finalUrl = window.location.origin + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
 
         if (navigator.share) {
             try {
