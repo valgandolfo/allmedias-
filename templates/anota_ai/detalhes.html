@@ -288,10 +288,18 @@
                 <a href="{% url 'anotacao_form' anotacao.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
                     <i class="bi bi-pencil"></i>
                 </a>
+                <button type="button" onclick="copiarAnotacaoGeral()" class="btn btn-outline-secondary btn-sm" title="Copiar Anotação">
+                    <i class="bi bi-clipboard"></i>
+                </button>
                 <a href="{% url 'anotacao_detalhes' anotacao.pk %}?acao=deletar" class="btn btn-outline-danger btn-sm" title="Excluir">
                     <i class="bi bi-trash"></i>
                 </a>
             </div>
+            
+            <!-- Elemento escondido com o texto puro para copiar -->
+            <textarea id="textoOcultoAnotacao" class="d-none">{% if anotacao.tipo == 'checklist' %}{% for item in anotacao.itens.all|dictsort:"numero" %}[ {% if item.concluido %}X{% else %} {% endif %} ] {{ item.texto }}
+{% endfor %}{% elif anotacao.tipo == 'lista_numerada' %}{% for item in anotacao.itens.all|dictsort:"numero" %}{{ item.numero }} - {{ item.texto }}
+{% endfor %}{% else %}{{ anotacao.texto|default:"" }}{% endif %}</textarea>
         </div>
 
         <div class="text-muted small mb-3">
@@ -618,4 +626,20 @@ async function ticarItemChecklist(itemId, btn) {
     });
 </script>
 {% endif %}
+
+<script>
+    function copiarAnotacaoGeral() {
+        var copyText = document.getElementById("textoOcultoAnotacao").value;
+        if (!copyText.trim()) {
+            alert('Anotação vazia!');
+            return;
+        }
+        navigator.clipboard.writeText(copyText).then(() => { 
+            alert('Anotação copiada para a área de transferência!'); 
+        }).catch(err => {
+            console.error('Falha ao copiar:', err);
+            alert('Falha ao copiar.');
+        });
+    }
+</script>
 {% endblock %}
