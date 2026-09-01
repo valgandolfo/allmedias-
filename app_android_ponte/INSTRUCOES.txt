@@ -1,0 +1,44 @@
+O QUE FAZER PARA TER SEU APP PRONTO:
+
+1. Baixe o Android Studio em: https://developer.android.com/studio
+   (É um download grande, mas você só vai usar uma vez e depois pode até desinstalar).
+
+2. Abra o Android Studio, clique em "New Project" (Novo Projeto).
+3. Selecione "Empty Views Activity" (Atividade Vazia com Views).
+4. Em "Name", coloque "AllMedias Notifier".
+5. Em "Language", certifique-se de que está "Kotlin". Clique em "Finish".
+
+COMO INSERIR OS DOIS ARQUIVOS:
+
+6. No painel à esquerda, vá abrindo as pastas: 
+   app -> src -> main -> java -> com -> allmedias -> notifier
+   (O nome exato do final depende de como você chamou o projeto, mas é a pasta onde já tem um MainActivity).
+
+7. Copie o texto do `MainActivity.kt` que criei e substitua TODO o conteúdo do MainActivity original lá do Android Studio.
+
+8. Na mesma pasta (onde está o MainActivity), clique com o botão direito -> New -> Kotlin Class/File.
+   Dê o nome de: `NotificationListener`.
+   Copie TODO o texto do `NotificationListener.kt` que criei e cole nele.
+
+O DETALHE FINAL E CRÍTICO (O MANIFESTO):
+
+9. No painel à esquerda, abra: app -> src -> main -> AndroidManifest.xml
+10. Você precisa adicionar DUAS coisas no Manifesto. Antes da tag <application>, coloque a permissão de internet:
+    <uses-permission android:name="android.permission.INTERNET" />
+
+11. E DENTRO da tag <application> (mas antes do fechamento </application>), coloque o nosso serviço:
+    <service android:name=".NotificationListener"
+             android:label="AllMedias Listener"
+             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+             android:exported="true">
+        <intent-filter>
+            <action android:name="android.service.notification.NotificationListenerService" />
+        </intent-filter>
+    </service>
+
+COMO INSTALAR NO CELULAR:
+12. Conecte seu celular com o cabo USB.
+13. No Android Studio, lá em cima, você verá o nome do seu celular aparecer ao lado do botão verde de "Play" (Run).
+14. Aperte o Play! 
+
+O app será instalado. Abra ele, coloque sua URL do Django, salve, clique em "Dar Permissão", ache o "AllMedias Listener" na lista, ligue a chavinha e PRONTO! Você tem seu sugador de notificações profissional, em Kotlin cru, rodando invisível.

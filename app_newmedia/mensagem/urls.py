@@ -7,4 +7,7 @@ urlpatterns = [
     path('<int:pk>/',        views.mensagem_detalhes, name='mensagem_detalhes'),
     path('<int:pk>/form/',   views.mensagem_form,     name='mensagem_form'),
     path('<int:pk>/reenviar/', views.mensagem_reenviar, name='mensagem_reenviar'),
+    
+    # Rota para receber as notificações do Android
+    path('webhook/', views.webhook_notificacoes, name='webhook_notificacoes'),
 ]

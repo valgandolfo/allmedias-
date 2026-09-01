@@ -1,4 +1,5 @@
 import os
+import json
 from decouple import config
 import requests as http_requests
 from django.shortcuts import render, redirect, get_object_or_404
@@ -6,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 from .models import Mensagem
 from .forms import MensagemForm
@@ -120,3 +123,32 @@ def mensagem_reenviar(request, pk):
         mensagem.save(update_fields=['men_status'])
         return JsonResponse({'sucesso': True})
     return JsonResponse({'sucesso': False, 'erro': resultado['erro']}, status=400)
+
+
+@csrf_exempt
+@require_POST
+def webhook_notificacoes(request):
+    """
+    Webhook público (protegido por token na URL) que recebe o JSON do app Android.
+    Exemplo de URL no celular: https://seusite.com/mensagem/webhook/?token=secreta123
+    """
+    token = request.GET.get('token')
+    if token != 'joao2026':  # Pode mudar a senha aqui!
+        return JsonResponse({'erro': 'Token invalido'}, status=403)
+
+    try:
+        dados = json.loads(request.body)
+        
+        # Pega as informações que vieram do celular
+        app_nome = dados.get('app', 'Desconhecido')
+        titulo   = dados.get('title', '')
+        texto    = dados.get('text', '')
+
+        # Escreve em um arquivo .txt na raiz do seu projeto
+        arquivo_txt = os.path.join(settings.BASE_DIR, 'extrato_notificacoes.txt')
+        with open(arquivo_txt, 'a', encoding='utf-8') as f:
+            f.write(f"[{app_nome}] {titulo} -> {texto}\n")
+
+        return JsonResponse({'sucesso': True})
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=400)
