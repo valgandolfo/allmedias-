@@ -79,7 +79,7 @@
         <!-- Dia da Semana (Oculto por padrão, apenas para Semanal) -->
         <div class="mb-3 p-3 border rounded bg-light" id="blocoDiaSemana" style="display: none;">
             <label class="form-label fw-semibold mb-2">
-                <i class="bi bi-calendar-week"></i> Selecione o dia da semana:
+                <i class="bi bi-calendar-week"></i> Selecione um dia da semana (o disparo ocorrerá no horário programado acima):
             </label>
             <div class="d-flex flex-wrap gap-2">
                 {% for radio in form.men_dia_semana %}
@@ -102,7 +102,7 @@
                 <i class="bi bi-chat-text"></i> Mensagem
             </label>
             {{ form.men_mensagem }}
-            <div class="char-counter" id="charCounter">0 / 150</div>
+            <div class="char-counter" id="charCounter">0 / 255</div>
             {% if form.men_mensagem.errors %}
                 <div class="text-danger small mt-1">{{ form.men_mensagem.errors }}</div>
             {% endif %}
@@ -158,8 +158,8 @@ const counter  = document.getElementById('charCounter');
 if (msgField && counter) {
     function atualizarContador() {
         const len = msgField.value.length;
-        counter.textContent = len + ' / 150';
-        counter.classList.toggle('over', len > 150);
+        counter.textContent = len + ' / 255';
+        counter.classList.toggle('over', len > 255);
     }
     msgField.addEventListener('input', atualizarContador);
     atualizarContador();

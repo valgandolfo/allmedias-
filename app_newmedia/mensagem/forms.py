@@ -34,8 +34,8 @@ class MensagemForm(forms.ModelForm):
             'men_mensagem':  forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'maxlength': 150,
-                'placeholder': 'Digite a mensagem (máx. 150 caracteres)',
+                'maxlength': 255,
+                'placeholder': 'Digite a mensagem (máx. 255 caracteres)',
                 'id': 'id_men_mensagem',
             }),
         }

@@ -31,7 +31,7 @@ class Mensagem(models.Model):
     men_hora      = models.TimeField(               db_column='MEN_HORA',     verbose_name='Hora Agendada')
     men_ocorrencia= models.CharField(max_length=20, db_column='MEN_OCORRENCIA', choices=OCORRENCIA_CHOICES, verbose_name='Ocorrência')
     men_dia_semana= models.CharField(max_length=1,  db_column='MEN_DIA_SEMANA', choices=DIA_SEMANA_CHOICES, blank=True, null=True, verbose_name='Dia da Semana')
-    men_mensagem  = models.CharField(max_length=150, db_column='MEN_MENSAGEM', verbose_name='Mensagem')
+    men_mensagem  = models.CharField(max_length=255, db_column='MEN_MENSAGEM', verbose_name='Mensagem')
     men_status    = models.BooleanField(default=False, db_column='MEN_STATUS', verbose_name='Enviado')
     ultimo_disparo= models.DateTimeField(null=True, blank=True, db_column='MEN_ULTIMO_DISPARO', verbose_name='Último Disparo')
     criado_em     = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
