@@ -123,17 +123,49 @@
 
 {% block detail_view %}
 <div class="card-custom p-4">
-    <h5 class="mb-3">💬 {{ mensagem.men_nome }}</h5>
+    <h5 class="mb-4 text-white">
+        <i class="bi bi-person-circle text-primary me-2"></i>{{ mensagem.men_nome }}
+    </h5>
 
-    <table class="table table-borderless table-sm">
-        <tr><th class="text-muted" style="width:40%">Telefone</th><td>{{ mensagem.men_telefone }}</td></tr>
-        <tr><th class="text-muted">Data</th><td>{{ mensagem.men_dat|date:"d/m/Y" }} às {{ mensagem.men_hora|time:"H:i" }}</td></tr>
-        <tr><th class="text-muted">Ocorrência</th><td>{{ mensagem.get_men_ocorrencia_display }}</td></tr>
-        <tr><th class="text-muted">Status</th><td>{% if mensagem.men_status %}✅ Enviada{% else %}⏳ Pendente{% endif %}</td></tr>
-        <tr><th class="text-muted">Mensagem</th><td>{{ mensagem.men_mensagem }}</td></tr>
-    </table>
+    <div class="mb-3">
+        <small class="text-muted d-block mb-1"><i class="bi bi-telephone"></i> Telefone</small>
+        <span class="fs-6 text-light fw-semibold">{{ mensagem.men_telefone }}</span>
+    </div>
 
-    <div class="d-flex gap-2 mt-3">
+    <div class="mb-3">
+        <small class="text-muted d-block mb-1"><i class="bi bi-calendar-event"></i> Agendamento</small>
+        <span class="fs-6 text-light">
+            {{ mensagem.men_dat|date:"d/m/Y" }} <span class="text-muted mx-1">&bull;</span> {{ mensagem.men_hora|time:"H:i" }}
+        </span>
+    </div>
+
+    <div class="mb-3">
+        <small class="text-muted d-block mb-1"><i class="bi bi-repeat"></i> Ocorrência</small>
+        <span class="badge" style="background-color: #20c997; color: white; padding: 5px 10px; font-weight: 600;">
+            {{ mensagem.get_men_ocorrencia_display }}
+        </span>
+        {% if mensagem.men_ocorrencia == 'semanal' and mensagem.men_dia_semana %}
+            <span class="badge bg-secondary ms-1">{{ mensagem.get_men_dia_semana_display }}</span>
+        {% endif %}
+    </div>
+
+    <div class="mb-3">
+        <small class="text-muted d-block mb-1"><i class="bi bi-info-circle"></i> Status</small>
+        {% if mensagem.men_status %}
+            <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Enviada</span>
+        {% else %}
+            <span class="text-warning fw-bold"><i class="bi bi-hourglass-split"></i> Pendente</span>
+        {% endif %}
+    </div>
+
+    <div class="mb-4">
+        <small class="text-muted d-block mb-2"><i class="bi bi-chat-left-text"></i> Conteúdo da Mensagem</small>
+        <div class="p-3 rounded" style="background-color: rgba(255,255,255,0.05); color: #e9ecef; border: 1px solid rgba(255,255,255,0.1); font-size: 14px;">
+            {{ mensagem.men_mensagem|linebreaksbr }}
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
         <a href="{% url 'mensagem_form' mensagem.pk %}" class="btn btn-outline-primary flex-fill">
             <i class="bi bi-pencil"></i> Editar
         </a>
