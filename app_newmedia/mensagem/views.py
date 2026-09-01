@@ -143,6 +143,10 @@ def webhook_notificacoes(request):
         titulo   = dados.get('title', '')
         texto    = dados.get('text', '')
 
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[Webhook Android] Recebido de {app_nome}: {titulo} -> {texto}")
+
         # Escreve no extrato txt (backup antigo)
         arquivo_txt = os.path.join(settings.BASE_DIR, 'extrato_notificacoes.txt')
         with open(arquivo_txt, 'a', encoding='utf-8') as f:
