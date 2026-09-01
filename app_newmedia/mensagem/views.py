@@ -130,25 +130,52 @@ def mensagem_reenviar(request, pk):
 def webhook_notificacoes(request):
     """
     Webhook público (protegido por token na URL) que recebe o JSON do app Android.
-    Exemplo de URL no celular: https://seusite.com/mensagem/webhook/?token=secreta123
+    Exemplo de URL no celular: https://seusite.com/mensagens/webhook/?token=joao2026
     """
     token = request.GET.get('token')
-    if token != 'joao2026':  # Pode mudar a senha aqui!
+    if token != 'joao2026':
         return JsonResponse({'erro': 'Token invalido'}, status=403)
 
     try:
         dados = json.loads(request.body)
         
-        # Pega as informações que vieram do celular
         app_nome = dados.get('app', 'Desconhecido')
         titulo   = dados.get('title', '')
         texto    = dados.get('text', '')
 
-        # Escreve em um arquivo .txt na raiz do seu projeto
+        # Escreve no extrato txt (backup antigo)
         arquivo_txt = os.path.join(settings.BASE_DIR, 'extrato_notificacoes.txt')
         with open(arquivo_txt, 'a', encoding='utf-8') as f:
             f.write(f"[{app_nome}] {titulo} -> {texto}\n")
 
+        # Integração Automática com o Vallet (Carteira)
+        # 1. Pega o primeiro usuário admin para atribuir a despesa
+        from django.contrib.auth.models import User
+        usuario = User.objects.filter(is_superuser=True).first()
+        if not usuario:
+            usuario = User.objects.first()
+
+        # 2. Usa o Parser inteligente da Carteira
+        if usuario:
+            from app_newmedia.carteira.models import NotificacaoCompra
+            texto_completo = f"{titulo} - {texto}"
+            dados_extraidos = NotificacaoCompra.parse_notificacao(texto_completo)
+            
+            from datetime import datetime
+            NotificacaoCompra.objects.create(
+                usuario=usuario,
+                texto_completo=texto_completo[:5000],
+                app_origem=app_nome.upper(),
+                valor=dados_extraidos.get('valor'),
+                estabelecimento=app_nome.upper(),
+                data_compra=dados_extraidos.get('data') or datetime.now().date(),
+                hora_compra=dados_extraidos.get('hora') or datetime.now().time(),
+                tipo_transacao=str(dados_extraidos.get('tipo_transacao') or 'COMPRA').upper(),
+                origem='ANDROID_APP'
+            )
+
         return JsonResponse({'sucesso': True})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'erro': str(e)}, status=400)
