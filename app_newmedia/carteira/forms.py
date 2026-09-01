@@ -1,5 +1,5 @@
 from django import forms
-from .models import NotificacaoCompra
+from .models import NotificacaoCompra, BancoMonitorado
 
 class NotificacaoCompraForm(forms.ModelForm):
     class Meta:
@@ -16,5 +16,15 @@ class NotificacaoCompraForm(forms.ModelForm):
         widgets = {
             'data_compra': forms.DateInput(attrs={'type': 'date'}),
             'hora_compra': forms.TimeInput(attrs={'type': 'time'}),
-            'texto_completo': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+class BancoMonitoradoForm(forms.ModelForm):
+    class Meta:
+        model = BancoMonitorado
+        fields = ['nome', 'pacote_android', 'ativo']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Nubank'}),
+            'pacote_android': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: com.nu.production'}),
+            'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }

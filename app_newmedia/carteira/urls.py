@@ -16,4 +16,8 @@ urlpatterns = [
 
     # API para Tasker (Android) — recebe notificações bancárias via HTTP POST
     path('api/tasker/', views.api_receber_notificacao_tasker, name='carteira_api_tasker'),
+
+    # Gerenciamento de Bancos Monitorados pelo usuário
+    path('bancos/', views.bancos_lista, name='carteira_bancos'),
+    path('api/bancos/', views.api_bancos_sincronizar, name='carteira_api_bancos'),
 ]

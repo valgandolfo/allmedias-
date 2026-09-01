@@ -6,6 +6,47 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class BancoMonitorado(models.Model):
+    """
+    Lista de bancos/apps que o usuário deseja monitorar no celular.
+    O aplicativo Android consome essa lista para saber quais notificações capturar.
+    """
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bancos_monitorados',
+        verbose_name='Usuário'
+    )
+    nome = models.CharField(
+        max_length=50,
+        verbose_name='Nome da Instituição',
+        help_text='Ex: Nubank, Itaú, Banco do Brasil'
+    )
+    pacote_android = models.CharField(
+        max_length=100,
+        verbose_name='Pacote do Android',
+        help_text='Ex: com.nu.production, com.itau, br.com.bb.android'
+    )
+    ativo = models.BooleanField(
+        default=True,
+        verbose_name='Ativo'
+    )
+    criado_em = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Criado em'
+    )
+
+    class Meta:
+        db_table = 'carteira_banco_monitorado'
+        verbose_name = 'Banco Monitorado'
+        verbose_name_plural = 'Bancos Monitorados'
+        ordering = ['nome']
+        unique_together = ['usuario', 'pacote_android']
+
+    def __str__(self):
+        return f"{self.nome} ({'Ativo' if self.ativo else 'Inativo'})"
+
+
 class NotificacaoCompra(models.Model):
     """
     Armazena compras capturadas de notificações (Google Wallet, bancos, etc.)

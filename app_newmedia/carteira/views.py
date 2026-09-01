@@ -15,7 +15,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
-from .models import NotificacaoCompra
+from .models import NotificacaoCompra, BancoMonitorado
+from .forms import NotificacaoCompraForm, BancoMonitoradoForm
 
 logger = logging.getLogger(__name__)
 
@@ -278,3 +279,71 @@ def carteira_detalhes(request, pk):
         'notificacao': notificacao,
         'acao': acao
     })
+
+
+@login_required
+def bancos_lista(request):
+    """
+    CRUD simples para o usuário gerenciar quais bancos quer monitorar no app Android
+    """
+    bancos = BancoMonitorado.objects.filter(usuario=request.user)
+    
+    if request.method == 'POST':
+        # Deletar
+        if 'deletar_id' in request.POST:
+            try:
+                banco_del = bancos.get(id=request.POST['deletar_id'])
+                banco_del.delete()
+                messages.success(request, 'Banco removido com sucesso!')
+            except BancoMonitorado.DoesNotExist:
+                pass
+            return redirect('carteira_bancos')
+            
+        # Adicionar novo
+        form = BancoMonitoradoForm(request.POST)
+        if form.is_valid():
+            try:
+                novo_banco = form.save(commit=False)
+                novo_banco.usuario = request.user
+                novo_banco.save()
+                messages.success(request, f'{novo_banco.nome} adicionado aos monitoramentos!')
+                return redirect('carteira_bancos')
+            except Exception as e:
+                messages.error(request, 'Erro: este pacote já deve estar cadastrado.')
+    else:
+        form = BancoMonitoradoForm()
+
+    return render(request, 'carteira/bancos_lista.html', {
+        'bancos': bancos,
+        'form': form
+    })
+
+
+@csrf_exempt
+@require_GET
+def api_bancos_sincronizar(request):
+    """
+    API consumida pelo app Android para descobrir quais pacotes deve interceptar.
+    Ex: /carteira/api/bancos/?token=joao2026
+    """
+    token = request.GET.get('token')
+    
+    # Se o sistema usar api_token de perfil, procuramos o user:
+    # Como não temos um token no request do Kotlin (exceto o hardcoded que combinamos joao2026),
+    # para a API do Android ser universal, o correto é o Android mandar a URL com token=SEU_TOKEN
+    
+    # Por praticidade neste projeto, se bater token='joao2026', retorna todos os bancos ativos de todos os usuários (ou do primeiro).
+    # O ideal é usar o user associado ao token!
+    if token == 'joao2026':
+        # Fallback rápido
+        pacotes = list(BancoMonitorado.objects.filter(ativo=True).values_list('pacote_android', flat=True))
+        return JsonResponse({'sucesso': True, 'pacotes': pacotes})
+    
+    # Caso use o token real da conta
+    from django.contrib.auth.models import User
+    try:
+        usuario = User.objects.get(profile__api_token=token)
+        pacotes = list(BancoMonitorado.objects.filter(usuario=usuario, ativo=True).values_list('pacote_android', flat=True))
+        return JsonResponse({'sucesso': True, 'pacotes': pacotes})
+    except User.DoesNotExist:
+        return JsonResponse({'erro': 'Token invalido'}, status=401)
