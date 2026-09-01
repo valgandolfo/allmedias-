@@ -5,7 +5,7 @@ from .models import Mensagem
 class MensagemForm(forms.ModelForm):
     class Meta:
         model  = Mensagem
-        fields = ['men_telefone', 'men_nome', 'men_dat', 'men_hora', 'men_ocorrencia', 'men_mensagem']
+        fields = ['men_telefone', 'men_nome', 'men_dat', 'men_hora', 'men_ocorrencia', 'men_dia_semana', 'men_mensagem']
         widgets = {
             'men_telefone':  forms.TextInput(attrs={
                 'class': 'form-control',
@@ -28,6 +28,9 @@ class MensagemForm(forms.ModelForm):
                 'class': 'form-select',
                 'id': 'id_men_ocorrencia',
             }),
+            'men_dia_semana': forms.RadioSelect(attrs={
+                'class': 'btn-check',
+            }),
             'men_mensagem':  forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -42,5 +45,6 @@ class MensagemForm(forms.ModelForm):
             'men_dat':        'Data Agendada',
             'men_hora':       'Hora Agendada',
             'men_ocorrencia': 'Ocorrência',
+            'men_dia_semana': 'Dia da Semana',
             'men_mensagem':   'Mensagem',
         }

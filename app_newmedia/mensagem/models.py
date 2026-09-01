@@ -14,12 +14,23 @@ class Mensagem(models.Model):
         ('dias_uteis', 'Enviar só em dias Uteis'),
     ]
 
+    DIA_SEMANA_CHOICES = [
+        ('0', 'Segunda-feira'),
+        ('1', 'Terça-feira'),
+        ('2', 'Quarta-feira'),
+        ('3', 'Quinta-feira'),
+        ('4', 'Sexta-feira'),
+        ('5', 'Sábado'),
+        ('6', 'Domingo'),
+    ]
+
     usuario       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mensagens', verbose_name='Usuário')
     men_telefone  = models.CharField(max_length=20,  db_column='MEN_TELEFONE', verbose_name='Telefone do Contato')
     men_nome      = models.CharField(max_length=100, db_column='MEN_NOME',     verbose_name='Nome do Contato')
     men_dat       = models.DateField(               db_column='MEN_DAT',      verbose_name='Data Agendada')
     men_hora      = models.TimeField(               db_column='MEN_HORA',     verbose_name='Hora Agendada')
     men_ocorrencia= models.CharField(max_length=20, db_column='MEN_OCORRENCIA', choices=OCORRENCIA_CHOICES, verbose_name='Ocorrência')
+    men_dia_semana= models.CharField(max_length=1,  db_column='MEN_DIA_SEMANA', choices=DIA_SEMANA_CHOICES, blank=True, null=True, verbose_name='Dia da Semana')
     men_mensagem  = models.CharField(max_length=150, db_column='MEN_MENSAGEM', verbose_name='Mensagem')
     men_status    = models.BooleanField(default=False, db_column='MEN_STATUS', verbose_name='Enviado')
     ultimo_disparo= models.DateTimeField(null=True, blank=True, db_column='MEN_ULTIMO_DISPARO', verbose_name='Último Disparo')

@@ -109,7 +109,8 @@ class Command(BaseCommand):
                 if hoje_usuario >= data_original:
                     dia_de_disparo = True
             elif m.men_ocorrencia == 'semanal':
-                if hoje_usuario >= data_original and hoje_usuario.weekday() == data_original.weekday():
+                alvo_weekday = int(m.men_dia_semana) if m.men_dia_semana else data_original.weekday()
+                if hoje_usuario >= data_original and hoje_usuario.weekday() == alvo_weekday:
                     dia_de_disparo = True
             elif m.men_ocorrencia == 'mensal':
                 if hoje_usuario >= data_original and hoje_usuario.day == get_target_day_of_month(data_original, hoje_usuario):

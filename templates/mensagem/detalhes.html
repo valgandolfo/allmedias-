@@ -76,6 +76,26 @@
             <div class="ocorrencia-info" id="ocorrenciaInfo"></div>
         </div>
 
+        <!-- Dia da Semana (Oculto por padrão, apenas para Semanal) -->
+        <div class="mb-3 p-3 border rounded bg-light" id="blocoDiaSemana" style="display: none;">
+            <label class="form-label fw-semibold mb-2">
+                <i class="bi bi-calendar-week"></i> Selecione o dia da semana:
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+                {% for radio in form.men_dia_semana %}
+                    <div>
+                        {{ radio.tag }}
+                        <label class="btn btn-outline-primary btn-sm rounded-pill px-3" for="{{ radio.id_for_label }}">
+                            {{ radio.choice_label }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.men_dia_semana.errors %}
+                <div class="text-danger small mt-1">{{ form.men_dia_semana.errors }}</div>
+            {% endif %}
+        </div>
+
         <!-- Mensagem + contador -->
         <div class="mb-4">
             <label for="id_men_mensagem" class="form-label fw-semibold">
@@ -180,6 +200,21 @@ function atualizarOcorrencia() {
     if (ocorrMap[val]) {
         if (ocorrInfo) ocorrInfo.textContent = ocorrMap[val].info;
         if (btnText)   btnText.textContent   = ocorrMap[val].btn;
+    } else {
+        if (ocorrInfo) ocorrInfo.textContent = '';
+        if (btnText)   btnText.textContent   = 'Enviar';
+    }
+
+    const blocoDiaSemana = document.getElementById('blocoDiaSemana');
+    if (blocoDiaSemana) {
+        if (val === 'semanal') {
+            blocoDiaSemana.style.display = 'block';
+        } else {
+            blocoDiaSemana.style.display = 'none';
+            // Se ocultou, opcionalmente desmarca as opções para não enviar lixo
+            const radios = blocoDiaSemana.querySelectorAll('input[type="radio"]');
+            radios.forEach(r => r.checked = false);
+        }
     }
 }
 
