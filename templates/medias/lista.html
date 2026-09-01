@@ -100,7 +100,15 @@
                 </button>
             </div>
             <div class="media-meta d-flex justify-content-between align-items-center">
-                <span>{{ midia.tipo_label }} <span class="d-none d-sm-inline">&bull; {{ midia.criado_em|date:"d/m H:i" }}</span></span>
+                <span class="d-flex align-items-center flex-wrap gap-1">
+                    {{ midia.tipo_label }}
+                    {% if midia.tags %}
+                        {% for tag in midia.get_tags_list %}
+                            <span class="badge" style="background-color: #20c997; color: white; font-weight: 600; font-size: 10px; padding: 3px 6px; letter-spacing: 0.5px;">{{ tag }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    <span class="d-none d-sm-inline ms-1 text-muted">&bull; {{ midia.criado_em|date:"d/m H:i" }}</span>
+                </span>
                 {% if midia.tamanho %}
                     <span class="text-primary fw-bold" style="font-size: 11px;">
                         {{ midia.tamanho }}

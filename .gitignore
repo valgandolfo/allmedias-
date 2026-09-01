@@ -8,6 +8,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+allmedia*.txt
+checkup.py
+
 *.so
 .Python
 build/
